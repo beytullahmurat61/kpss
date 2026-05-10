@@ -469,7 +469,7 @@ let lastApiError = '';
 // Worker URL'ini buraya gir (Cloudflare Workers adresi)
 // Örnek: 'https://kpss-proxy.senin-adiniz.workers.dev'
 // Boş bırakırsan direkt Gemini'ye bağlanmaya çalışır
-const WORKER_URL = 'https://kpss-matematik.beytullah-murat61.workers.dev/';
+const WORKER_URL = '';
 
 const GEMINI_MODELS = [
   'gemini-2.5-flash-preview-05-20',
@@ -479,7 +479,6 @@ const GEMINI_MODELS = [
 ];
 
 let workingModel = null;
-let lastApiError = '';
 
 async function geminiCall(model, prompt, jsonMode){
   const body = {
