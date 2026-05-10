@@ -337,22 +337,22 @@ body::before{
     </div>
     <button class="btn-p" id="mainBtn" onclick="startApp()">Başla →</button>
     <button class="btn-s" onclick="showTopics()">📚 Konu Haritası</button>
-    <p class="api-hint">🔑 <span onclick="openModal()">Gemini API anahtarı gir</span> — ücretsiz, zorunlu</p>
+    <p class="api-hint">🔑 <span onclick="openModal()">Groq API anahtarı gir</span> — ücretsiz, zorunlu</p>
   </div>
 </div>
 
 <!-- API MODAL -->
 <div id="apiModal" class="modal-bg hidden">
   <div class="modal-box">
-    <div class="modal-title">🔑 Gemini API Anahtarı</div>
+    <div class="modal-title">🔑 Groq API Anahtarı</div>
     <p class="modal-txt">
-      Program çalışmak için ücretsiz bir Google Gemini API anahtarı gerektirir.<br><br>
+      Program ücretsiz Groq API kullanıyor.<br><br>
       <strong>Nasıl alınır?</strong><br>
-      1. <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent)">aistudio.google.com</a> → Google ile giriş<br>
-      2. "Get API Key" → "Create API Key"<br>
+      1. <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → Google ile giriş<br>
+      2. "API Keys" → "Create API Key"<br>
       3. Anahtarı kopyala buraya yapıştır
     </p>
-    <input type="password" id="apiInp" class="modal-inp" placeholder="AIzaSy..." autocomplete="off"/>
+    <input type="password" id="apiInp" class="modal-inp" placeholder="gsk_..." autocomplete="off"/>
     <p class="modal-note">⚠️ Anahtar yalnızca bu cihazda saklanır, hiçbir yere gönderilmez.</p>
     <button class="btn-p" id="saveKeyBtn" onclick="saveKey()" style="margin-bottom:10px">Kaydet & Başla</button>
     <button class="btn-s" onclick="closeModal()">Şimdi değil</button>
@@ -463,72 +463,44 @@ function saveState(){
 }
 
 // ═══════════════════════════════════════════════
-// GEMINI API
+// GROQ API
 // ═══════════════════════════════════════════════
 let lastApiError = '';
-// Worker URL'ini buraya gir (Cloudflare Workers adresi)
-// Örnek: 'https://kpss-proxy.senin-adiniz.workers.dev'
-// Boş bırakırsan direkt Gemini'ye bağlanmaya çalışır
-const WORKER_URL = '';
-
-const GEMINI_MODELS = [
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent',
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent',
-  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent',
-  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-002:generateContent',
-];
-
-let workingModel = null;
-
-async function geminiCall(model, prompt, jsonMode){
-  const body = {
-    contents:[{parts:[{text: prompt}]}],
-    generationConfig:{
-      temperature: jsonMode ? 0.2 : 0.8,
-      maxOutputTokens: jsonMode ? 500 : 650,
-    }
-  };
-
-  // model tam URL, sadece API key ekle
-  const url = model + '?key=' + ST.apiKey;
-
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
-  });
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message);
-  const text = d?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-  if(!text) throw new Error('Boş yanıt');
-  return text;
-}
 
 async function gemini(prompt, jsonMode=false){
   if(!ST.apiKey) return null;
 
-  if(workingModel){
-    try{ return await geminiCall(workingModel, prompt, jsonMode); }
-    catch(e){ workingModel = null; }
-  }
+  const systemMsg = jsonMode
+    ? 'Sadece JSON döndür. Başka hiçbir şey yazma, markdown kullanma.'
+    : 'Türkçe yaz. Samimi, arkadaş gibi bir ton kullan.';
 
-  const errors = [];
-  for(const model of GEMINI_MODELS){
-    try{
-      const result = await geminiCall(model, prompt, jsonMode);
-      workingModel = model;
-      console.log('Calisan model:', model);
-      return result;
-    }catch(e){
-      const shortName = model.split('/models/')[1]?.split(':')[0] || model;
-      console.log('Basarisiz:', shortName, '-', e.message);
-      errors.push(shortName + ': ' + e.message);
-    }
+  try{
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + ST.apiKey
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user',   content: prompt }
+        ],
+        temperature: jsonMode ? 0.2 : 0.8,
+        max_tokens: jsonMode ? 500 : 650,
+      })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message);
+    const text = d?.choices?.[0]?.message?.content?.trim();
+    if(!text) throw new Error('Boş yanıt');
+    return text;
+  }catch(e){
+    lastApiError = e.message || 'Bağlantı hatası';
+    console.error('Groq hatası:', e);
+    return null;
   }
-
-  lastApiError = errors.join(' | ');
-  return null;
 }
 
 // ═══════════════════════════════════════════════
