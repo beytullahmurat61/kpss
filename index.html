@@ -513,6 +513,7 @@ async function gemini(prompt, jsonMode=false){
     catch(e){ workingModel = null; }
   }
 
+  const errors = [];
   for(const model of GEMINI_MODELS){
     try{
       const result = await geminiCall(model, prompt, jsonMode);
@@ -520,12 +521,13 @@ async function gemini(prompt, jsonMode=false){
       console.log('Calisan model:', model);
       return result;
     }catch(e){
-      console.log('Model calishmadi:', model, '-', e.message);
-      lastApiError = e.message;
+      const shortName = model.split('/models/')[1]?.split(':')[0] || model;
+      console.log('Basarisiz:', shortName, '-', e.message);
+      errors.push(shortName + ': ' + e.message);
     }
   }
 
-  lastApiError = lastApiError || 'Hicbir model calismadi';
+  lastApiError = errors.join(' | ');
   return null;
 }
 
