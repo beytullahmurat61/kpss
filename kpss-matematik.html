@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KPSS Matematik — Sıfırdan 20 Net</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28; --border:#2a2a3d;
+  --accent:#6c63ff; --accent2:#ff6584; --accent3:#43e97b;
+  --text:#e8e8f0; --text2:#9090aa; --text3:#5a5a78;
+  --warn:#ffb347; --radius:16px; --rsm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;position:relative;z-index:1;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── WELCOME ── */
+#welcomeScreen{justify-content:center;align-items:center;padding:28px;text-align:center;}
+.wglow{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 15% 50%,rgba(108,99,255,.18) 0%,transparent 55%),
+             radial-gradient(ellipse at 85% 20%,rgba(255,101,132,.12) 0%,transparent 50%),
+             radial-gradient(ellipse at 55% 85%,rgba(67,233,123,.07) 0%,transparent 40%);}
+.winner{position:relative;z-index:1;max-width:460px;width:100%;}
+.logo-box{
+  width:82px;height:82px;margin:0 auto 24px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:22px;display:flex;align-items:center;justify-content:center;
+  font-size:38px;box-shadow:0 18px 55px rgba(108,99,255,.42);}
+.wtitle{
+  font-family:'Syne',sans-serif;font-size:44px;font-weight:800;line-height:1.08;margin-bottom:14px;
+  background:linear-gradient(135deg,#fff 35%,var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.wsub{font-size:16px;color:var(--text2);line-height:1.65;margin-bottom:32px;}
+.wstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:30px;}
+.wstat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:15px 10px;}
+.wstat .n{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:var(--accent);display:block;}
+.wstat .l{font-size:11px;color:var(--text3);margin-top:3px;}
+
+/* ── BUTTONS ── */
+.btn-p{
+  width:100%;padding:17px;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;
+  border:none;border-radius:var(--radius);
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:700;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;box-shadow:0 8px 28px rgba(108,99,255,.38);}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(108,99,255,.48);}
+.btn-p:active{transform:none;}
+.btn-p:disabled{opacity:.5;cursor:default;transform:none;}
+.btn-s{
+  width:100%;padding:13px;background:var(--surface);color:var(--text2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer;margin-top:10px;
+  transition:border-color .2s,color .2s;}
+.btn-s:hover{border-color:var(--accent);color:var(--text);}
+.api-hint{margin-top:16px;font-size:12px;color:var(--text3);}
+.api-hint span{color:var(--accent);cursor:pointer;text-decoration:underline;}
+
+/* ── HEADER ── */
+.app-header{
+  background:rgba(10,10,15,.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:13px 18px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;}
+.hlogo{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;white-space:nowrap;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hprog{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;}
+.htopic{font-size:12px;color:var(--text2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pbg{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .5s ease;}
+.streak-pill{
+  display:flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg,rgba(255,179,71,.14),rgba(255,107,107,.1));
+  border:1px solid rgba(255,179,71,.3);border-radius:20px;
+  padding:5px 11px;font-size:13px;font-weight:600;color:var(--warn);white-space:nowrap;}
+
+/* ── CONTENT ── */
+.app-content{flex:1;padding:18px 18px 100px;max-width:600px;width:100%;margin:0 auto;}
+
+/* ── TOPIC CARD ── */
+.topic-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;margin-bottom:16px;
+  position:relative;overflow:hidden;}
+.topic-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.tbadge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(108,99,255,.14);border:1px solid rgba(108,99,255,.28);
+  color:var(--accent);font-size:11px;font-weight:600;padding:4px 11px;
+  border-radius:20px;margin-bottom:12px;}
+.ttitle{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px;}
+.kpss-line{display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+.kpss-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);}
+.kpss-txt{font-size:12px;color:var(--accent3);font-weight:500;}
+.summary-body{font-size:15px;line-height:1.8;color:var(--text2);}
+.summary-body strong{color:var(--text);}
+.btn-start{
+  width:100%;padding:15px;margin-top:18px;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;
+  border:none;border-radius:var(--rsm);
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:transform .2s;box-shadow:0 4px 18px rgba(108,99,255,.28);}
+.btn-start:hover{transform:translateY(-2px);}
+
+/* ── DOTS LOADER ── */
+.dots{display:inline-flex;gap:4px;align-items:center;}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:db 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:.2s;}
+.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes db{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+
+/* ── QUESTION CARD ── */
+.q-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;margin-bottom:14px;
+  animation:sup .3s ease;}
+@keyframes sup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.qnum{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+.qlvl{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;}
+.lv1{background:rgba(67,233,123,.14);color:var(--accent3);border:1px solid rgba(67,233,123,.28);}
+.lv2{background:rgba(108,99,255,.14);color:var(--accent);border:1px solid rgba(108,99,255,.28);}
+.lv3{background:rgba(255,179,71,.14);color:var(--warn);border:1px solid rgba(255,179,71,.28);}
+.lv4{background:rgba(255,101,132,.14);color:var(--accent2);border:1px solid rgba(255,101,132,.28);}
+.qtext{font-size:17px;line-height:1.7;color:var(--text);margin-bottom:20px;}
+
+/* ── ANSWER INPUT ── */
+.ans-wrap{display:flex;gap:10px;margin-bottom:6px;}
+.ans-inp{
+  flex:1;padding:14px 16px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--rsm);color:var(--text);
+  font-size:17px;font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color .2s;}
+.ans-inp:focus{border-color:var(--accent);}
+.ans-inp::placeholder{color:var(--text3);}
+.ans-inp:disabled{opacity:.5;}
+.btn-check{
+  padding:14px 18px;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;
+  border:none;border-radius:var(--rsm);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+.btn-check:hover{opacity:.88;}
+.btn-check:disabled{opacity:.4;cursor:default;}
+.ans-hint{font-size:12px;color:var(--text3);margin-top:5px;}
+
+/* ── FEEDBACK ── */
+.fb-card{border-radius:var(--radius);padding:18px;margin-bottom:12px;animation:sup .3s ease;}
+.fb-correct{background:rgba(67,233,123,.07);border:1px solid rgba(67,233,123,.22);}
+.fb-wrong{background:rgba(255,101,132,.07);border:1px solid rgba(255,101,132,.22);}
+.fbhead{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.fbicon{font-size:22px;}
+.fbtitle{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.fb-correct .fbtitle{color:var(--accent3);}
+.fb-wrong .fbtitle{color:var(--accent2);}
+.fbbody{font-size:14px;line-height:1.75;color:var(--text2);}
+.fbbody strong{color:var(--text);}
+.btn-next{
+  width:100%;padding:15px;margin-top:12px;
+  background:var(--surface2);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--rsm);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:border-color .2s,color .2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-next:hover{border-color:var(--accent);color:var(--accent);}
+.btn-next.advance{
+  background:linear-gradient(135deg,rgba(67,233,123,.14),rgba(0,201,255,.09));
+  border-color:rgba(67,233,123,.4);color:var(--accent3);}
+
+/* ── ASK AI ── */
+.ask-wrap{margin-top:10px;}
+.btn-ask{
+  width:100%;padding:12px;
+  background:rgba(108,99,255,.09);color:var(--accent);
+  border:1px solid rgba(108,99,255,.28);border-radius:var(--rsm);
+  font-size:13px;font-weight:500;cursor:pointer;transition:background .2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-ask:hover{background:rgba(108,99,255,.16);}
+.ask-row{display:none;margin-top:8px;gap:8px;}
+.ask-row.open{display:flex;}
+.ask-inp{
+  flex:1;padding:11px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--rsm);color:var(--text);
+  font-size:14px;font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color .2s;}
+.ask-inp:focus{border-color:var(--accent);}
+.ask-inp::placeholder{color:var(--text3);}
+.btn-ask-send{
+  padding:11px 15px;background:var(--accent);color:#fff;
+  border:none;border-radius:var(--rsm);
+  font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.btn-ask-send:hover{opacity:.85;}
+.ask-ans{
+  display:none;margin-top:10px;padding:14px;
+  background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);
+  border-radius:var(--rsm);font-size:14px;line-height:1.75;color:var(--text2);}
+.ask-ans.open{display:block;}
+
+/* ── LEVEL UP ── */
+.lvlup{
+  background:linear-gradient(135deg,rgba(108,99,255,.18),rgba(255,101,132,.09));
+  border:1px solid rgba(108,99,255,.38);border-radius:var(--radius);
+  padding:28px 22px;text-align:center;margin-bottom:14px;animation:sup .4s ease;}
+.lvlup-emoji{font-size:50px;margin-bottom:12px;}
+.lvlup-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;}
+.lvlup-txt{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:20px;}
+
+/* ── TOPIC MAP ── */
+.tscreen-hdr{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
+.tscreen-hdr h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:3px;}
+.tscreen-hdr p{font-size:12px;color:var(--text2);}
+.topics-list{flex:1;padding:12px 18px 90px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;max-width:600px;width:100%;margin:0 auto;}
+.phase-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:10px 0 4px;}
+.titem{
+  display:flex;align-items:center;gap:13px;padding:13px 16px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--rsm);cursor:pointer;transition:border-color .2s,background .2s;}
+.titem:hover:not(.tlocked){border-color:var(--accent);background:rgba(108,99,255,.05);}
+.tlocked{opacity:.38;cursor:default;}
+.tdone{border-color:rgba(67,233,123,.28);}
+.tnum{
+  width:32px;height:32px;border-radius:9px;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text3);flex-shrink:0;}
+.tdone .tnum{background:rgba(67,233,123,.18);color:var(--accent3);}
+.tcurrent .tnum{background:rgba(108,99,255,.18);color:var(--accent);}
+.tinf{flex:1;}
+.tnm{font-size:14px;font-weight:500;}
+.tmt{font-size:11px;color:var(--text3);margin-top:2px;}
+.tic{font-size:15px;}
+
+/* ── STATS ── */
+.stats-hdr{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;padding:20px 18px 0;}
+.stats-body{padding:16px 18px 90px;max-width:600px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+.scard h3{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:600;}
+.sbig{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.ssub{font-size:12px;color:var(--text3);margin-top:3px;}
+.kest{background:linear-gradient(135deg,rgba(108,99,255,.14),rgba(255,101,132,.07));border:1px solid rgba(108,99,255,.28);border-radius:var(--radius);padding:20px;}
+.kest h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:7px;}
+.kest .en{font-size:50px;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);}
+.kest .el{font-size:12px;color:var(--text2);margin-top:3px;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.scell{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.scell .cn{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;}
+.scell .cl{font-size:11px;color:var(--text3);margin-top:3px;}
+.daily-warn{background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.22);border-radius:var(--rsm);padding:13px 16px;font-size:13px;color:var(--warn);}
+
+/* ── BOTTOM NAV ── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(10,10,15,.97);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);display:flex;z-index:200;}
+.nb{
+  flex:1;padding:13px 8px 15px;border:none;background:transparent;
+  color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:color .2s;text-transform:uppercase;letter-spacing:.05em;}
+.nb .ni{font-size:20px;}
+.nb.on{color:var(--accent);}
+
+/* ── CELEBRATION ── */
+.cel-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;display:flex;align-items:center;justify-content:center;}
+.cel-txt{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent3);
+  text-shadow:0 0 40px rgba(67,233,123,.55);
+  animation:cela 1.7s ease forwards;opacity:0;}
+@keyframes cela{
+  0%{opacity:0;transform:scale(.5) translateY(20px)}
+  30%{opacity:1;transform:scale(1.1) translateY(-10px)}
+  60%{opacity:1;transform:scale(1) translateY(-5px)}
+  100%{opacity:0;transform:scale(.9) translateY(-30px)}}
+
+/* ── MODAL ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);
+  z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:18px;}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:26px 22px;
+  width:100%;max-width:480px;animation:sup .3s ease;}
+.modal-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;margin-bottom:9px;}
+.modal-txt{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:18px;}
+.modal-inp{
+  width:100%;padding:13px 15px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--rsm);color:var(--text);
+  font-size:14px;font-family:'DM Sans',sans-serif;outline:none;
+  margin-bottom:12px;transition:border-color .2s;}
+.modal-inp:focus{border-color:var(--accent);}
+.modal-note{font-size:11px;color:var(--text3);margin-bottom:14px;}
+
+/* ── ERROR BANNER ── */
+.err-banner{
+  background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);
+  border-radius:var(--rsm);padding:14px 16px;font-size:13px;color:var(--accent2);
+  margin-bottom:14px;line-height:1.6;}
+
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcomeScreen" class="screen active">
+  <div class="wglow"></div>
+  <div class="winner">
+    <div class="logo-box">🎯</div>
+    <h1 class="wtitle">Sıfırdan<br>20 Net</h1>
+    <p class="wsub">KPSS matematiği için özel tasarlandı.<br>Temelden başla, sınav seviyesine çık.</p>
+    <div class="wstats">
+      <div class="wstat"><span class="n">28</span><span class="l">Konu</span></div>
+      <div class="wstat"><span class="n">∞</span><span class="l">Soru</span></div>
+      <div class="wstat"><span class="n">AI</span><span class="l">Koç</span></div>
+    </div>
+    <button class="btn-p" id="mainBtn" onclick="startApp()">Başla →</button>
+    <button class="btn-s" onclick="showTopics()">📚 Konu Haritası</button>
+    <p class="api-hint">🔑 <span onclick="openModal()">Gemini API anahtarı gir</span> — ücretsiz, zorunlu</p>
+  </div>
+</div>
+
+<!-- API MODAL -->
+<div id="apiModal" class="modal-bg hidden">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Gemini API Anahtarı</div>
+    <p class="modal-txt">
+      Program çalışmak için ücretsiz bir Google Gemini API anahtarı gerektirir.<br><br>
+      <strong>Nasıl alınır?</strong><br>
+      1. <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent)">aistudio.google.com</a> → Google ile giriş<br>
+      2. "Get API Key" → "Create API Key"<br>
+      3. Anahtarı kopyala buraya yapıştır
+    </p>
+    <input type="password" id="apiInp" class="modal-inp" placeholder="AIzaSy..." autocomplete="off"/>
+    <p class="modal-note">⚠️ Anahtar yalnızca bu cihazda saklanır, hiçbir yere gönderilmez.</p>
+    <button class="btn-p" id="saveKeyBtn" onclick="saveKey()" style="margin-bottom:10px">Kaydet & Başla</button>
+    <button class="btn-s" onclick="closeModal()">Şimdi değil</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="screen">
+  <div class="app-header">
+    <div class="hlogo">KPSS 20</div>
+    <div class="hprog">
+      <span class="htopic" id="hTopic">Yükleniyor...</span>
+      <div class="pbg"><div class="pfill" id="pFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-pill">🔥 <span id="streakNum">0</span></div>
+  </div>
+  <div class="app-content" id="appContent"></div>
+  <nav class="bnav">
+    <button class="nb on" id="nb1" onclick="goLearn()"><span class="ni">📖</span>Öğren</button>
+    <button class="nb" id="nb2" onclick="showTopics()"><span class="ni">🗺️</span>Konular</button>
+    <button class="nb" id="nb3" onclick="showStats()"><span class="ni">📊</span>İstatistik</button>
+  </nav>
+</div>
+
+<!-- TOPICS -->
+<div id="topicScreen" class="screen">
+  <div class="tscreen-hdr">
+    <h2>📚 Konu Haritası</h2>
+    <p>Tamamlanan konular yeşil · İstediğin konuya atla</p>
+  </div>
+  <div class="topics-list" id="topicsList"></div>
+  <nav class="bnav">
+    <button class="nb" onclick="goLearn()"><span class="ni">📖</span>Öğren</button>
+    <button class="nb on"><span class="ni">🗺️</span>Konular</button>
+    <button class="nb" onclick="showStats()"><span class="ni">📊</span>İstatistik</button>
+  </nav>
+</div>
+
+<!-- STATS -->
+<div id="statsScreen" class="screen">
+  <div class="stats-hdr">📊 İstatistikler</div>
+  <div class="stats-body" id="statsBody"></div>
+  <nav class="bnav">
+    <button class="nb" onclick="goLearn()"><span class="ni">📖</span>Öğren</button>
+    <button class="nb" onclick="showTopics()"><span class="ni">🗺️</span>Konular</button>
+    <button class="nb on"><span class="ni">📊</span>İstatistik</button>
+  </nav>
+</div>
+
+<!-- CELEBRATION -->
+<div class="cel-wrap hidden" id="celWrap"><div class="cel-txt" id="celTxt"></div></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// TOPICS
+// ═══════════════════════════════════════════════
+const TOPICS = [
+  {id:1,  name:"Sayı Kavramı & Basamaklar",   phase:"TEMEL", kpss:"0–1 soru",      emoji:"🔢"},
+  {id:2,  name:"Toplama & Çıkarma",            phase:"TEMEL", kpss:"0–1 soru",      emoji:"➕"},
+  {id:3,  name:"Çarpma & Bölme",               phase:"TEMEL", kpss:"0–1 soru",      emoji:"✖️"},
+  {id:4,  name:"İşlem Önceliği",               phase:"TEMEL", kpss:"1–2 soru",      emoji:"⚡"},
+  {id:5,  name:"OBEB & OKEK",                  phase:"TEMEL", kpss:"1–2 soru",      emoji:"🔗"},
+  {id:6,  name:"Asal Sayılar & Bölünebilme",   phase:"TEMEL", kpss:"1–2 soru",      emoji:"🔐"},
+  {id:7,  name:"Kesirler (Temel)",              phase:"TEMEL", kpss:"2–3 soru",      emoji:"🍕"},
+  {id:8,  name:"Kesir İşlemleri",              phase:"TEMEL", kpss:"2–3 soru",      emoji:"🧮"},
+  {id:9,  name:"Ondalık Sayılar",              phase:"ORTA",  kpss:"1–2 soru",      emoji:"📍"},
+  {id:10, name:"Negatif Sayılar",              phase:"ORTA",  kpss:"1–2 soru",      emoji:"❄️"},
+  {id:11, name:"Üslü Sayılar",                 phase:"ORTA",  kpss:"2–3 soru",      emoji:"⬆️"},
+  {id:12, name:"Karekök",                      phase:"ORTA",  kpss:"2–3 soru",      emoji:"√"},
+  {id:13, name:"Yüzde",                        phase:"ORTA",  kpss:"3–4 soru ⭐",   emoji:"💯"},
+  {id:14, name:"Oran & Orantı",                phase:"ORTA",  kpss:"2–3 soru",      emoji:"⚖️"},
+  {id:15, name:"Denklem Çözme",                phase:"ORTA",  kpss:"2–3 soru",      emoji:"📐"},
+  {id:16, name:"Mutlak Değer",                 phase:"ORTA",  kpss:"1–2 soru",      emoji:"📏"},
+  {id:17, name:"Sayı Problemleri",             phase:"KPSS",  kpss:"2–3 soru",      emoji:"🔍"},
+  {id:18, name:"Yaş Problemleri",              phase:"KPSS",  kpss:"1–2 soru",      emoji:"🎂"},
+  {id:19, name:"Hız Problemleri",              phase:"KPSS",  kpss:"2–3 soru",      emoji:"🚗"},
+  {id:20, name:"Yüzde Problemleri",            phase:"KPSS",  kpss:"3–4 soru ⭐",   emoji:"🏷️"},
+  {id:21, name:"İş Problemleri",              phase:"KPSS",  kpss:"3–4 soru ⭐⭐",emoji:"🔧"},
+  {id:22, name:"Karışım Problemleri",          phase:"KPSS",  kpss:"2–3 soru ⭐",   emoji:"🧪"},
+  {id:23, name:"Olasılık",                     phase:"KPSS",  kpss:"1–2 soru",      emoji:"🎲"},
+  {id:24, name:"Permütasyon & Kombinasyon",    phase:"KPSS",  kpss:"1–2 soru",      emoji:"🎴"},
+  {id:25, name:"Küme Problemleri",             phase:"KPSS",  kpss:"2–3 soru ⭐",   emoji:"🫧"},
+  {id:26, name:"Ardışık Sayılar",              phase:"KPSS",  kpss:"1–2 soru",      emoji:"📊"},
+  {id:27, name:"Rakam Problemleri",            phase:"KPSS",  kpss:"1–2 soru",      emoji:"🔢"},
+  {id:28, name:"Karma & Deneme",               phase:"KPSS",  kpss:"GENEL TEKRAR",  emoji:"🏆"},
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const ST = {
+  apiKey:'', topic:1, level:1,
+  streak:0, maxStreak:0, totalCorrect:0, totalQ:0,
+  completedTopics:[], topicHist:{},
+  lastSession:null, phase:'summary',
+  currentQ:null, pendingAdvance:false,
+};
+
+function loadState(){
+  try{ Object.assign(ST, JSON.parse(localStorage.getItem('kpss20v3')||'{}')); }catch(e){}
+  ST.apiKey = localStorage.getItem('kpss20_gkey')||'';
+}
+function saveState(){
+  try{
+    const {apiKey,currentQ,...rest}=ST;
+    localStorage.setItem('kpss20v3', JSON.stringify(rest));
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════
+// GEMINI API
+// ═══════════════════════════════════════════════
+let lastApiError = '';
+// Worker URL'ini buraya gir (Cloudflare Workers adresi)
+// Örnek: 'https://kpss-proxy.senin-adiniz.workers.dev'
+// Boş bırakırsan direkt Gemini'ye bağlanmaya çalışır
+const WORKER_URL = 'https://kpss-matematik.beytullah-murat61.workers.dev/';
+
+const GEMINI_MODELS = [
+  'gemini-2.5-flash-preview-05-20',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-exp',
+  'gemini-1.5-flash',
+];
+
+let workingModel = null;
+let lastApiError = '';
+
+async function geminiCall(model, prompt, jsonMode){
+  const body = {
+    contents:[{parts:[{text: prompt}]}],
+    generationConfig:{
+      temperature: jsonMode ? 0.2 : 0.8,
+      maxOutputTokens: jsonMode ? 500 : 650,
+    }
+  };
+
+  let url;
+  if(WORKER_URL) {
+    // Cloudflare Worker üzerinden
+    url = `${WORKER_URL}?key=${ST.apiKey}&model=${model}`;
+  } else {
+    // Direkt Gemini (GitHub Pages veya sunucudan açılıyorsa çalışır)
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ST.apiKey}`;
+  }
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  const text = d?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if(!text) throw new Error('Boş yanıt');
+  return text;
+}
+
+async function gemini(prompt, jsonMode=false){
+  if(!ST.apiKey) return null;
+
+  if(workingModel){
+    try{ return await geminiCall(workingModel, prompt, jsonMode); }
+    catch(e){ workingModel = null; }
+  }
+
+  for(const model of GEMINI_MODELS){
+    try{
+      const result = await geminiCall(model, prompt, jsonMode);
+      workingModel = model;
+      console.log('Calisan model:', model);
+      return result;
+    }catch(e){
+      console.log('Model calishmadi:', model, '-', e.message);
+      lastApiError = e.message;
+    }
+  }
+
+  lastApiError = lastApiError || 'Hicbir model calismadi';
+  return null;
+}
+
+// ═══════════════════════════════════════════════
+// LEVEL HELPERS
+// ═══════════════════════════════════════════════
+function lvlInfo(l){
+  if(l<=3) return {label:'Temel',cls:'lv1'};
+  if(l<=6) return {label:'TYT',cls:'lv2'};
+  if(l<=8) return {label:'AYT/DGS',cls:'lv3'};
+  return {label:'KPSS',cls:'lv4'};
+}
+
+// ═══════════════════════════════════════════════
+// AI CALLS
+// ═══════════════════════════════════════════════
+async function fetchSummary(topic){
+  const p = `Sen bir KPSS matematik koçusun. Türkçe, samimi, arkadaş gibi bir tonla yaz.
+Görev: "${topic.name}" konusunu anlat.
+Kurallar:
+- Sıfır matematik bilgisi olan birine anlatır gibi
+- Gerçek hayat örneği kullan (para, yaş, yemek, yol vb.)
+- Soyut jargon yok
+- KPSS'de nasıl çıktığına dair 1-2 cümle ekle
+- Maksimum 180 kelime
+- Düz metin yaz, HTML veya markdown kullanma`;
+  return gemini(p);
+}
+
+async function fetchQuestion(topic, level){
+  const {label} = lvlInfo(level);
+  const seviyeAciklama = level<=3
+    ? 'Çok temel, günlük hayat senaryosu. Sayılar küçük, tek adım.'
+    : level<=6
+    ? 'TYT tarzı, 1-2 adımlı işlem.'
+    : level<=8
+    ? 'AYT/DGS tarzı, çok adımlı veya tablo gerektiren.'
+    : 'KPSS tarzı, sözel, dikkat gerektiren, tuzaklı.';
+
+  const p = `Sen bir KPSS matematik soru yazarısın.
+Konu: ${topic.name}
+Seviye: ${label} (${level}/10) — ${seviyeAciklama}
+
+ÖNEMLİ KURALLAR:
+1. Soruyu yaz, kendi kendine çöz, cevabın doğruluğunu kontrol et
+2. Cevap sayısal ve net olmalı (örn: 15, 3/4, %20, 12 gün)
+3. Gerçekçi senaryo — imkânsız durumlar yok (eksi para, negatif yaş vb.)
+4. Türkçe yaz
+
+Sadece şu JSON formatında döndür, başka hiçbir şey yazma:
+{"soru":"...","cevap":"...","ipucu":"çözüm yolunu 1 cümlede açıkla"}`;
+
+  const raw = await gemini(p, true);
+  if(!raw) return null;
+  try{
+    // Tüm olası markdown/boşluk temizle
+    let clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    // Bazen model { öncesine veya } sonrasına fazladan metin ekler
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    if(start !== -1 && end !== -1) clean = clean.slice(start, end+1);
+    const obj = JSON.parse(clean);
+    if(!obj.soru || !obj.cevap) return null;
+    return obj;
+  }catch(e){
+    console.error('Soru parse hatası:', e, '\nHam yanıt:', raw);
+    return null;
+  }
+}
+
+async function fetchFeedback(topicName, qText, userAns, correctAns, isCorrect, recentArr){
+  const son8 = recentArr.slice(-8);
+  const dogru = son8.filter(Boolean).length;
+  const perfStr = `Son ${son8.length} soruda ${dogru} doğru (${Math.round(dogru/son8.length*100)}%)`;
+
+  const p = `Sen samimi bir KPSS matematik koçusun. Türkçe yaz.
+Konu: ${topicName}
+Soru: ${qText}
+Doğru cevap: ${correctAns}
+Kullanıcının cevabı: ${userAns}
+Sonuç: ${isCorrect?'DOĞRU ✓':'YANLIŞ ✗'}
+Performans: ${perfStr}
+
+${isCorrect
+  ? 'Kısa ve samimi tebrik yaz. Neden doğru olduğunu 1-2 cümle açıkla.'
+  : 'Nerede hata yaptığını nazikçe açıkla. Adım adım doğru çözümü göster. Moral verici bitir.'}
+Maksimum 120 kelime. Düz metin, HTML yok.`;
+  return gemini(p);
+}
+
+async function fetchAdvance(topicName, recentArr){
+  if(recentArr.length < 4) return null;
+  const son = recentArr.slice(-10);
+  const perfStr = son.map((r,i)=>`${i+1}:${r?'✓':'✗'}`).join(' ');
+
+  const p = `Bir öğrencinin "${topicName}" konusundaki son ${son.length} soru performansı:
+${perfStr}
+Bu öğrenci bir sonraki konuya geçmeli mi?
+Sadece JSON döndür: {"advance":true,"reason":"kısa açıklama"}
+veya: {"advance":false,"reason":"kısa açıklama"}`;
+
+  const raw = await gemini(p, true);
+  if(!raw) return null;
+  try{ return JSON.parse(raw.replace(/```json|```/g,'').trim()); }catch(e){ return null; }
+}
+
+async function fetchAskAnswer(topicName, qText, userQ){
+  const p = `Sen KPSS matematik koçusun. Türkçe, samimi, arkadaş gibi.
+Konu: ${topicName}
+Soru: ${qText}
+Öğrencinin sorusu: ${userQ}
+
+Farklı bir açıdan anlat, somut bir örnek kullan. Maksimum 140 kelime.`;
+  return gemini(p);
+}
+
+// ═══════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setNav(n){
+  ['nb1','nb2','nb3'].forEach((id,i)=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('on',i===n-1);
+  });
+}
+function celebrate(msg){
+  const w=document.getElementById('celWrap'), t=document.getElementById('celTxt');
+  t.textContent=msg; w.classList.remove('hidden');
+  setTimeout(()=>w.classList.add('hidden'),1900);
+}
+function updateHeader(){
+  const t=TOPICS[ST.topic-1];
+  document.getElementById('hTopic').textContent=`${t.emoji} ${t.name}`;
+  document.getElementById('pFill').style.width=((ST.topic-1)/28*100).toFixed(1)+'%';
+  document.getElementById('streakNum').textContent=ST.streak;
+}
+function getHist(){
+  if(!ST.topicHist[ST.topic]) ST.topicHist[ST.topic]={correct:0,total:0,recent:[]};
+  return ST.topicHist[ST.topic];
+}
+function dotsHTML(){ return '<div class="dots"><span></span><span></span><span></span></div>'; }
+
+// ═══════════════════════════════════════════════
+// FLOW
+// ═══════════════════════════════════════════════
+function startApp(){
+  loadState();
+  if(!ST.apiKey){ openModal(); return; }
+  goLearn();
+}
+
+function goLearn(){
+  showScreen('appScreen'); setNav(1); updateHeader();
+  if(ST.phase==='question'&&ST.currentQ) renderQuestionUI(ST.currentQ);
+  else renderSummary();
+}
+
+// ── SUMMARY ──
+async function renderSummary(){
+  ST.phase='summary'; ST.pendingAdvance=false;
+  const t=TOPICS[ST.topic-1];
+  const today=new Date().toDateString();
+  let warn='';
+  if(ST.lastSession&&ST.lastSession!==today&&ST.lastSession!==new Date(Date.now()-86400000).toDateString())
+    warn=`<div class="daily-warn">📅 Birkaç gündür çalışmadın — hadi devam edelim! 💪</div>`;
+  ST.lastSession=today; saveState();
+
+  document.getElementById('appContent').innerHTML=warn+`
+    <div class="topic-card">
+      <div class="tbadge">📍 Konu ${ST.topic} / 28</div>
+      <div class="ttitle">${t.emoji} ${t.name}</div>
+      <div class="kpss-line"><div class="kpss-dot"></div><span class="kpss-txt">KPSS'de: ${t.kpss}</span></div>
+      <div class="summary-body" id="sumBody">${dotsHTML()} Özet hazırlanıyor...</div>
+      <button class="btn-start hidden" id="startBtn" onclick="beginQuestions()">✍️ Sorulara Başla</button>
+    </div>`;
+
+  const text = await fetchSummary(t);
+  const el = document.getElementById('sumBody');
+  if(el) el.innerHTML = text
+    ? text.replace(/\n/g,'<br>')
+    : `<strong>${t.name}</strong> konusuna hoş geldin! ${t.emoji}<br><br>Bu konuyu sorularla birlikte öğreneceğiz.`;
+  document.getElementById('startBtn')?.classList.remove('hidden');
+}
+
+function beginQuestions(){
+  ST.phase='question'; getHist(); renderNextQuestion();
+}
+
+// ── QUESTION ──
+async function renderNextQuestion(){
+  const t=TOPICS[ST.topic-1];
+  const h=getHist();
+  const {label,cls}=lvlInfo(ST.level);
+
+  document.getElementById('appContent').innerHTML=`
+    <div class="q-card">
+      <div class="qmeta">
+        <span class="qnum">Soru ${h.total+1}</span>
+        <span class="qlvl ${cls}">${label}</span>
+      </div>
+      <div class="qtext">${dotsHTML()} Soru hazırlanıyor...</div>
+    </div>`;
+
+  const qData = await fetchQuestion(t, ST.level);
+
+  if(!qData){
+    const errMsg = lastApiError || 'Bilinmeyen hata';
+    document.getElementById('appContent').innerHTML=`
+      <div class="err-banner">
+        ⚠️ <strong>Soru üretilemedi.</strong><br><br>
+        Hata: <em>${errMsg}</em><br><br>
+        • API anahtarı yanlış olabilir → <span style="color:var(--accent);cursor:pointer" onclick="openModal()">Anahtarı güncelle</span><br>
+        • İnternet bağlantısını kontrol et<br>
+        • Birkaç saniye bekleyip tekrar dene
+      </div>
+      <button class="btn-p" onclick="renderNextQuestion()">🔄 Tekrar Dene</button>`;
+    return;
+  }
+
+  ST.currentQ={
+    text: qData.soru,
+    answer: String(qData.cevap).trim(),
+    hint: qData.ipucu||'',
+    levelLabel: label, levelClass: cls
+  };
+  saveState();
+  renderQuestionUI(ST.currentQ);
+}
+
+function renderQuestionUI(q){
+  const h=getHist();
+  const {label,cls}=lvlInfo(ST.level);
+  document.getElementById('appContent').innerHTML=`
+    <div class="q-card" id="qCard">
+      <div class="qmeta">
+        <span class="qnum">Soru ${h.total+1}</span>
+        <span class="qlvl ${cls}">${label}</span>
+      </div>
+      <p class="qtext">${q.text.replace(/\n/g,'<br>')}</p>
+      <div class="ans-wrap">
+        <input id="ansInp" class="ans-inp" type="text"
+          placeholder="Cevabını yaz..."
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter'&&this.value.trim())checkAnswer()"/>
+        <button class="btn-check" id="checkBtn" onclick="checkAnswer()">Kontrol ✓</button>
+      </div>
+      <p class="ans-hint">Cevabı yaz (örn: 15 &nbsp;|&nbsp; 3/4 &nbsp;|&nbsp; %20) → Enter veya butona bas</p>
+    </div>
+    <div class="ask-wrap">
+      <button class="btn-ask" onclick="toggleAsk()">🤖 Anlamadım — AI'ya sor</button>
+      <div class="ask-row" id="askRow">
+        <input id="askInp" class="ask-inp" type="text" placeholder="Ne anlamadın?"
+          onkeydown="if(event.key==='Enter')sendAsk()"/>
+        <button class="btn-ask-send" onclick="sendAsk()">Sor</button>
+      </div>
+      <div class="ask-ans" id="askAns"></div>
+    </div>`;
+  document.getElementById('ansInp')?.focus();
+}
+
+// ── CHECK ANSWER ──
+async function checkAnswer(){
+  const inp=document.getElementById('ansInp');
+  if(!inp||!inp.value.trim()) return;
+  const userRaw=inp.value.trim();
+  inp.disabled=true;
+  document.getElementById('checkBtn').disabled=true;
+
+  const q=ST.currentQ;
+  const t=TOPICS[ST.topic-1];
+  const h=getHist();
+
+  // Normalize karşılaştırma
+  const norm=s=>String(s).toLowerCase()
+    .replace(/\s+/g,'')
+    .replace(/,/g,'.') // virgül→nokta
+    .replace(/[×x]/g,'*')
+    .replace(/÷/g,'/')
+    .replace(/^0+(\d)/,'$1') // başta sıfır
+    .replace(/%/g,'');       // yüzde işareti
+
+  const uNorm=norm(userRaw);
+  const cNorm=norm(q.answer);
+
+  let isCorrect=uNorm===cNorm;
+  // Sayısal tolerans (0.05)
+  if(!isCorrect){
+    const u=parseFloat(uNorm), c=parseFloat(cNorm);
+    if(!isNaN(u)&&!isNaN(c)) isCorrect=Math.abs(u-c)<0.05;
+  }
+  // Kesir karşılaştırma (3/4 vs 0.75)
+  if(!isCorrect){
+    const evalFrac=s=>{ const m=s.match(/^(-?\d+)\/(-?\d+)$/); return m?parseFloat(m[1])/parseFloat(m[2]):null; };
+    const uf=evalFrac(uNorm), cf=evalFrac(cNorm);
+    if(uf!==null&&!isNaN(parseFloat(cNorm))) isCorrect=Math.abs(uf-parseFloat(cNorm))<0.05;
+    if(cf!==null&&!isNaN(parseFloat(uNorm))) isCorrect=Math.abs(parseFloat(uNorm)-cf)<0.05;
+    if(uf!==null&&cf!==null) isCorrect=Math.abs(uf-cf)<0.05;
+  }
+
+  // State güncelle
+  h.total++;
+  h.correct=(h.correct||0)+(isCorrect?1:0);
+  if(!h.recent) h.recent=[];
+  h.recent.push(isCorrect);
+  ST.totalQ++;
+  if(isCorrect){
+    ST.totalCorrect++;
+    ST.streak++;
+    ST.maxStreak=Math.max(ST.streak,ST.maxStreak);
+    if(ST.streak===5)       celebrate('🔥 5 Art Arda!');
+    else if(ST.streak===10) celebrate('🚀 10 Art Arda!');
+    else if(ST.streak===3)  celebrate('✅ 3\'lük seri!');
+    // Seviye çık
+    if(ST.streak>=3&&ST.level<10) ST.level=Math.min(10,ST.level+1);
+  } else {
+    ST.streak=0;
+    if(ST.level>1) ST.level=Math.max(1,ST.level-1);
+  }
+  document.getElementById('streakNum').textContent=ST.streak;
+  ST.phase='feedback'; saveState();
+
+  // Feedback al
+  const fbText=await fetchFeedback(t.name,q.text,userRaw,q.answer,isCorrect,h.recent);
+
+  const fallback=isCorrect
+    ? `Doğru! <strong>${q.answer}</strong> — ${q.hint||'Tebrikler!'}`
+    : `Doğru cevap: <strong>${q.answer}</strong>${q.hint?'<br>'+q.hint:''}`;
+
+  const fbDiv=document.createElement('div');
+  fbDiv.className=`fb-card ${isCorrect?'fb-correct':'fb-wrong'}`;
+  fbDiv.innerHTML=`
+    <div class="fbhead">
+      <span class="fbicon">${isCorrect?'🎉':'💡'}</span>
+      <span class="fbtitle">${isCorrect?'Doğru!':'Neredeyse!'}</span>
+    </div>
+    <div class="fbbody">${fbText?fbText.replace(/\n/g,'<br>'):fallback}</div>
+    <button class="btn-next" id="nextBtn" onclick="nextQ()">Sonraki Soru →</button>`;
+
+  document.getElementById('appContent').appendChild(fbDiv);
+  fbDiv.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  // Advance kontrolü
+  setTimeout(()=>checkAdvance(),400);
+}
+
+async function checkAdvance(){
+  if(ST.pendingAdvance) return;
+  const h=getHist();
+  if(!h.recent||h.recent.length<4) return;
+  const t=TOPICS[ST.topic-1];
+
+  let advance=false, reason='';
+  const dec=await fetchAdvance(t.name,h.recent);
+  if(dec){ advance=dec.advance; reason=dec.reason||''; }
+  else {
+    // Fallback: son 8'de %80+
+    const last=h.recent.slice(-8);
+    advance=last.length>=6&&last.filter(Boolean).length/last.length>=0.8;
+    reason=advance?'Bu konuyu gayet iyi anladın!':'';
+  }
+
+  if(advance){
+    ST.pendingAdvance=true;
+    const btn=document.getElementById('nextBtn');
+    if(btn){
+      btn.classList.add('advance');
+      btn.innerHTML='🚀 Konuyu tamamladın! Bir üste geç →';
+      btn.onclick=()=>advanceTopic(reason);
+    }
+  }
+}
+
+function nextQ(){
+  ST.phase='question'; ST.currentQ=null;
+  window.scrollTo(0,0);
+  renderNextQuestion();
+}
+
+function advanceTopic(reason){
+  if(ST.topic>=28){ showFinish(); return; }
+  if(!ST.completedTopics.includes(ST.topic)) ST.completedTopics.push(ST.topic);
+  ST.topic++;
+  ST.level=1; ST.pendingAdvance=false; ST.currentQ=null;
+  saveState(); updateHeader(); celebrate('🚀 Yeni Konu!');
+  const t=TOPICS[ST.topic-1];
+  document.getElementById('appContent').innerHTML=`
+    <div class="lvlup">
+      <div class="lvlup-emoji">🏆</div>
+      <div class="lvlup-title">Konu Tamamlandı!</div>
+      <div class="lvlup-txt">${reason||'Harika iş!'}<br><br>Sıradaki: <strong>${t.emoji} ${t.name}</strong></div>
+      <button class="btn-p" onclick="renderSummary()" style="max-width:none">Yeni Konuya Başla →</button>
+    </div>`;
+}
+
+function showFinish(){
+  document.getElementById('appContent').innerHTML=`
+    <div class="lvlup">
+      <div class="lvlup-emoji">🎓</div>
+      <div class="lvlup-title">Tebrikler! Tüm Konuları Bitirdin!</div>
+      <div class="lvlup-txt">KPSS'de 20 neti fazlasıyla hak ediyorsun.<br>Düzenli tekrar yapmaya devam et!</div>
+      <button class="btn-p" onclick="restart()" style="max-width:none">Baştan Başla</button>
+    </div>`;
+}
+
+function restart(){
+  Object.assign(ST,{topic:1,level:1,streak:0,totalCorrect:0,totalQ:0,
+    completedTopics:[],topicHist:{},currentQ:null,pendingAdvance:false});
+  saveState(); renderSummary();
+}
+
+// ── ASK AI ──
+function toggleAsk(){
+  const r=document.getElementById('askRow');
+  r?.classList.toggle('open');
+  if(r?.classList.contains('open')) document.getElementById('askInp')?.focus();
+}
+async function sendAsk(){
+  const inp=document.getElementById('askInp');
+  const q=inp?.value?.trim(); if(!q) return;
+  inp.value='';
+  const el=document.getElementById('askAns');
+  el?.classList.add('open');
+  el.innerHTML=`${dotsHTML()} AI düşünüyor...`;
+  const t=TOPICS[ST.topic-1];
+  const ans=await fetchAskAnswer(t.name,ST.currentQ?.text||'',q);
+  if(el) el.innerHTML=ans?.replace(/\n/g,'<br>')||'Şu an cevap veremiyorum, API bağlantısını kontrol et.';
+}
+
+// ── TOPICS SCREEN ──
+function showTopics(){
+  showScreen('topicScreen');
+  const list=document.getElementById('topicsList');
+  let html='', lastPhase='';
+  TOPICS.forEach(t=>{
+    if(t.phase!==lastPhase){ lastPhase=t.phase; html+=`<div class="phase-hdr">${t.phase}</div>`; }
+    const done=ST.completedTopics.includes(t.id);
+    const cur=t.id===ST.topic;
+    const locked=t.id>ST.topic;
+    const cls='titem'+(done?' tdone':cur?' tcurrent':locked?' tlocked':'');
+    const icon=done?'✅':cur?'▶️':locked?'🔒':'⭕';
+    html+=`<div class="${cls}" onclick="${locked?'':` jumpTopic(${t.id})`}">
+      <div class="tnum">${t.id}</div>
+      <div class="tinf"><div class="tnm">${t.emoji} ${t.name}</div><div class="tmt">${t.kpss}</div></div>
+      <span class="tic">${icon}</span>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+function jumpTopic(id){
+  ST.topic=id; ST.level=1; ST.phase='summary'; ST.currentQ=null;
+  saveState(); goLearn();
+}
+
+// ── STATS SCREEN ──
+function showStats(){
+  showScreen('statsScreen');
+  const acc=ST.totalQ>0?(ST.totalCorrect/ST.totalQ*100).toFixed(0):0;
+  const done=ST.completedTopics.length;
+  const estNet=Math.min(20,Math.round(done*0.65+parseFloat(acc)/12));
+  const today=new Date().toDateString();
+  const yday=new Date(Date.now()-86400000).toDateString();
+  const warn=ST.lastSession&&ST.lastSession!==today&&ST.lastSession!==yday
+    ?`<div class="daily-warn">📅 Birkaç gündür çalışmadın — bugün devam et! 💪</div>`:'';
+  document.getElementById('statsBody').innerHTML=`
+    ${warn}
+    <div class="kest">
+      <h3>🎯 Tahmini KPSS Netin</h3>
+      <div class="en">${estNet}</div>
+      <div class="el">${done===28?'Tüm konuları bitirdin — hedef tamam!':'Devam ettikçe artacak'}</div>
+    </div>
+    <div class="sgrid">
+      <div class="scell"><div class="cn" style="color:var(--accent)">${done}</div><div class="cl">Konu Bitti</div></div>
+      <div class="scell"><div class="cn" style="color:var(--accent2)">${ST.totalQ}</div><div class="cl">Toplam Soru</div></div>
+      <div class="scell"><div class="cn" style="color:var(--accent3)">${acc}%</div><div class="cl">Doğruluk</div></div>
+      <div class="scell"><div class="cn" style="color:var(--warn)">${ST.maxStreak}</div><div class="cl">En İyi Seri</div></div>
+    </div>
+    <div class="scard">
+      <h3>Genel Durum</h3>
+      <div class="sbig">${done}/28</div>
+      <div class="ssub">konu tamamlandı</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);
+        margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <span>✅ Doğru: ${ST.totalCorrect}</span>
+        <span>❌ Yanlış: ${ST.totalQ-ST.totalCorrect}</span>
+        <span>🔥 Seri: ${ST.streak}</span>
+      </div>
+    </div>
+    <button class="btn-s" onclick="openModal()" style="margin-top:4px">🔑 API Anahtarını Değiştir</button>`;
+}
+
+// ── MODAL ──
+function openModal(){
+  document.getElementById('apiModal').classList.remove('hidden');
+  const k=localStorage.getItem('kpss20_gkey');
+  if(k) document.getElementById('apiInp').value=k;
+}
+function closeModal(){ document.getElementById('apiModal').classList.add('hidden'); goLearn(); }
+function saveKey(){
+  const k=document.getElementById('apiInp').value.trim();
+  if(!k){ alert('Lütfen bir API anahtarı gir.'); return; }
+  ST.apiKey=k;
+  localStorage.setItem('kpss20_gkey',k);
+  document.getElementById('apiModal').classList.add('hidden');
+  goLearn();
+}
+
+// ── INIT ──
+loadState();
+if(ST.totalQ>0) document.getElementById('mainBtn').textContent=`Devam Et (Konu ${ST.topic}) →`;
+</script>
+</body>
+</html>
