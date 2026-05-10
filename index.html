@@ -531,38 +531,55 @@ Kurallar:
 
 async function fetchQuestion(topic, level){
   const {label} = lvlInfo(level);
-  const seviyeAciklama = level<=3
-    ? 'Çok temel, günlük hayat senaryosu. Sayılar küçük, tek adım.'
+  const h = getHist();
+  // Son soruları takip et - tekrar önle
+  const recentQ = (h.recentQuestions || []).slice(-5).join(' | ');
+
+  const seviye = level<=3
+    ? 'ÇOK TEMEL: Tek adım, küçük sayılar (1-20 arası), günlük hayat (elma, para, yaş).'
     : level<=6
-    ? 'TYT tarzı, 1-2 adımlı işlem.'
+    ? 'ORTA: TYT tarzı, 2 adım, gerçekçi sayılar.'
     : level<=8
-    ? 'AYT/DGS tarzı, çok adımlı veya tablo gerektiren.'
-    : 'KPSS tarzı, sözel, dikkat gerektiren, tuzaklı.';
+    ? 'ZOR: AYT/DGS tarzı, çok adımlı, denklem kurma gerektirir.'
+    : 'KPSS: Sözel + sayısal karışık, dikkat tuzağı içerebilir.';
 
-  const p = `Sen bir KPSS matematik soru yazarısın.
-Konu: ${topic.name}
-Seviye: ${label} (${level}/10) — ${seviyeAciklama}
+  const tip = (h.total % 2 === 0) ? 'sayısal işlem ağırlıklı' : 'sözel problem';
 
-ÖNEMLİ KURALLAR:
-1. Soruyu yaz, kendi kendine çöz, cevabın doğruluğunu kontrol et
-2. Cevap sayısal ve net olmalı (örn: 15, 3/4, %20, 12 gün)
-3. Gerçekçi senaryo — imkânsız durumlar yok (eksi para, negatif yaş vb.)
-4. Türkçe yaz
+  const p = `Sen uzman bir KPSS matematik soru yazarısın. Türkçe yaz.
 
-Sadece şu JSON formatında döndür, başka hiçbir şey yazma:
-{"soru":"...","cevap":"...","ipucu":"çözüm yolunu 1 cümlede açıkla"}`;
+GÖREV: "${topic.name}" konusunda 1 soru üret.
+SEVİYE: ${label} (${level}/10) — ${seviye}
+SORU TİPİ: Bu soru ${tip} olsun.
+${recentQ ? `SON SORULAR (BUNLARI TEKRARLAMA): ${recentQ}` : ''}
+
+ZORUNLU ADIMLAR - SIRAYLA YAP:
+1. Soruyu taslak olarak yaz
+2. Soruyu kendi baştan sona çöz (tüm adımları yap)
+3. Cevabın mantıklı olup olmadığını kontrol et (negatif yaş? küsüratlı insan sayısı? imkânsız durum?)
+4. Eğer hata varsa soruyu düzelt ve tekrar çöz
+5. Ancak onayladıktan sonra JSON çıktısını ver
+
+KURALLAR:
+- Cevap tam sayı, kesir veya yüzde olmalı — hiçbir zaman imkânsız bir değer olmamalı
+- Soru kesinlikle "${topic.name}" konusunu test etmeli, başka konuya kaymamalı
+- Gerçekçi sayılar kullan (yaşlar 5-80 arası, fiyatlar makul vb.)
+
+Sadece bu JSON formatında döndür, başka hiçbir şey yazma:
+{"soru":"...","cevap":"...","cozum":"adım adım çözümü yaz","tip":"${tip}"}`;
 
   const raw = await gemini(p, true);
   if(!raw) return null;
   try{
-    // Tüm olası markdown/boşluk temizle
     let clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-    // Bazen model { öncesine veya } sonrasına fazladan metin ekler
     const start = clean.indexOf('{');
     const end = clean.lastIndexOf('}');
     if(start !== -1 && end !== -1) clean = clean.slice(start, end+1);
     const obj = JSON.parse(clean);
     if(!obj.soru || !obj.cevap) return null;
+    // Soruyu hafızaya ekle - tekrar önleme için
+    if(!h.recentQuestions) h.recentQuestions = [];
+    h.recentQuestions.push(obj.soru.substring(0, 60));
+    if(h.recentQuestions.length > 8) h.recentQuestions.shift();
     return obj;
   }catch(e){
     console.error('Soru parse hatası:', e, '\nHam yanıt:', raw);
@@ -570,40 +587,61 @@ Sadece şu JSON formatında döndür, başka hiçbir şey yazma:
   }
 }
 
-async function fetchFeedback(topicName, qText, userAns, correctAns, isCorrect, recentArr){
+async function fetchFeedback(topicName, qText, userAns, correctAns, cozum, isCorrect, recentArr){
   const son8 = recentArr.slice(-8);
   const dogru = son8.filter(Boolean).length;
-  const perfStr = `Son ${son8.length} soruda ${dogru} doğru (${Math.round(dogru/son8.length*100)}%)`;
+  const yanlislar = son8.filter(v=>!v).length;
 
   const p = `Sen samimi bir KPSS matematik koçusun. Türkçe yaz.
 Konu: ${topicName}
 Soru: ${qText}
 Doğru cevap: ${correctAns}
+Adım adım çözüm: ${cozum || 'belirtilmedi'}
 Kullanıcının cevabı: ${userAns}
 Sonuç: ${isCorrect?'DOĞRU ✓':'YANLIŞ ✗'}
-Performans: ${perfStr}
+Son 8 soruda: ${dogru} doğru, ${yanlislar} yanlış
 
 ${isCorrect
-  ? 'Kısa ve samimi tebrik yaz. Neden doğru olduğunu 1-2 cümle açıkla.'
-  : 'Nerede hata yaptığını nazikçe açıkla. Adım adım doğru çözümü göster. Moral verici bitir.'}
-Maksimum 120 kelime. Düz metin, HTML yok.`;
+  ? 'Kısa tebrik (1 cümle). Neden doğru olduğunu çözüm adımlarını referans alarak açıkla.'
+  : 'Kullanıcının nerede hata yaptığını bul. Adım adım doğru çözümü göster. Sonda moral ver.'}
+Maksimum 130 kelime. Düz metin.`;
   return gemini(p);
 }
 
-async function fetchAdvance(topicName, recentArr){
-  if(recentArr.length < 4) return null;
-  const son = recentArr.slice(-10);
+async function fetchAdvance(topicName, recentArr, totalQ){
+  if(recentArr.length < 5) return null;
+  const son = recentArr.slice(-12);
+  const dogru = son.filter(Boolean).length;
+  const oran = dogru / son.length;
   const perfStr = son.map((r,i)=>`${i+1}:${r?'✓':'✗'}`).join(' ');
 
-  const p = `Bir öğrencinin "${topicName}" konusundaki son ${son.length} soru performansı:
-${perfStr}
-Bu öğrenci bir sonraki konuya geçmeli mi?
-Sadece JSON döndür: {"advance":true,"reason":"kısa açıklama"}
-veya: {"advance":false,"reason":"kısa açıklama"}`;
+  // Minimum soru şartı: en az 6 soru çözülmeli
+  if(son.length < 6) return {advance: false, reason: `Henüz ${6 - son.length} soru daha çöz.`};
+
+  const p = `Sen bir matematik öğretmenisin. Öğrencinin konuyu gerçekten kavrayıp kavramadığına karar ver.
+
+Konu: ${topicName}
+Toplam çözülen soru: ${totalQ}
+Son ${son.length} soru performansı: ${perfStr}
+Doğruluk: %${Math.round(oran*100)}
+
+DEĞERLENDİRME KRİTERLERİ:
+- En az 6 soru çözmüş olmalı ✓ (${totalQ >= 6 ? 'TAMAM' : 'YETERSİZ'})
+- Son 6 soruda en az 4 doğru yapmalı
+- Sadece şans eseri doğru yapmış olmamalı (ardışık doğrular varsa geçiş daha güvenli)
+- Konuyu kavramadan geçirmek zararlı
+
+Sadece JSON döndür:
+{"advance":true/false,"reason":"Türkçe kısa açıklama (max 30 kelime)","guven":"yüksek/orta/düşük"}`;
 
   const raw = await gemini(p, true);
   if(!raw) return null;
-  try{ return JSON.parse(raw.replace(/```json|```/g,'').trim()); }catch(e){ return null; }
+  try{
+    let clean = raw.replace(/```json|```/g,'').trim();
+    const s = clean.indexOf('{'), e2 = clean.lastIndexOf('}');
+    if(s !== -1 && e2 !== -1) clean = clean.slice(s, e2+1);
+    return JSON.parse(clean);
+  }catch(e){ return null; }
 }
 
 async function fetchAskAnswer(topicName, qText, userQ){
@@ -725,7 +763,8 @@ async function renderNextQuestion(){
   ST.currentQ={
     text: qData.soru,
     answer: String(qData.cevap).trim(),
-    hint: qData.ipucu||'',
+    cozum: qData.cozum||'',
+    tip: qData.tip||'',
     levelLabel: label, levelClass: cls
   };
   saveState();
@@ -825,11 +864,11 @@ async function checkAnswer(){
   ST.phase='feedback'; saveState();
 
   // Feedback al
-  const fbText=await fetchFeedback(t.name,q.text,userRaw,q.answer,isCorrect,h.recent);
+  const fbText=await fetchFeedback(t.name,q.text,userRaw,q.answer,q.cozum||'',isCorrect,h.recent);
 
   const fallback=isCorrect
-    ? `Doğru! <strong>${q.answer}</strong> — ${q.hint||'Tebrikler!'}`
-    : `Doğru cevap: <strong>${q.answer}</strong>${q.hint?'<br>'+q.hint:''}`;
+    ? `Doğru! Cevap: <strong>${q.answer}</strong>`
+    : `Doğru cevap: <strong>${q.answer}</strong>${q.cozum?'<br><br><strong>Çözüm:</strong> '+q.cozum:''}`;
 
   const fbDiv=document.createElement('div');
   fbDiv.className=`fb-card ${isCorrect?'fb-correct':'fb-wrong'}`;
@@ -851,17 +890,17 @@ async function checkAnswer(){
 async function checkAdvance(){
   if(ST.pendingAdvance) return;
   const h=getHist();
-  if(!h.recent||h.recent.length<4) return;
+  if(!h.recent||h.recent.length<5) return;
   const t=TOPICS[ST.topic-1];
 
-  let advance=false, reason='';
-  const dec=await fetchAdvance(t.name,h.recent);
-  if(dec){ advance=dec.advance; reason=dec.reason||''; }
+  let advance=false, reason='', guven='';
+  const dec=await fetchAdvance(t.name,h.recent,h.total);
+  if(dec){ advance=dec.advance; reason=dec.reason||''; guven=dec.guven||''; }
   else {
-    // Fallback: son 8'de %80+
+    // Fallback: en az 6 soru + son 8'de %80+
     const last=h.recent.slice(-8);
-    advance=last.length>=6&&last.filter(Boolean).length/last.length>=0.8;
-    reason=advance?'Bu konuyu gayet iyi anladın!':'';
+    advance=h.total>=6&&last.length>=6&&last.filter(Boolean).length/last.length>=0.8;
+    reason=advance?'Bu konuyu iyi anladın!':'Birkaç soru daha çöz.';
   }
 
   if(advance){
@@ -869,7 +908,8 @@ async function checkAdvance(){
     const btn=document.getElementById('nextBtn');
     if(btn){
       btn.classList.add('advance');
-      btn.innerHTML='🚀 Konuyu tamamladın! Bir üste geç →';
+      const guvenEmoji = guven==='yüksek'?'🚀':guven==='orta'?'✅':'👍';
+      btn.innerHTML=`${guvenEmoji} Konuyu tamamladın! Bir üste geç →`;
       btn.onclick=()=>advanceTopic(reason);
     }
   }
