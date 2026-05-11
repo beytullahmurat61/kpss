@@ -1,1328 +1,247 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Matematik Öğretmeni — KPSS/TYT/AYT/DGS</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0a0a0f;--sur:#13131a;--sur2:#1c1c28;--bor:#2a2a3d;
-  --acc:#6c63ff;--red:#ff6584;--grn:#43e97b;--warn:#ffb347;
-  --txt:#e8e8f0;--t2:#9090aa;--t3:#5a5a78;
-  --r:14px;--rs:9px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-
-.view{display:none;min-height:100vh;flex-direction:column;}
-.view.active{display:flex;}
-
-.hdr{background:rgba(10,10,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--bor);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
-.hdr-back{width:34px;height:34px;border-radius:9px;background:var(--sur2);border:1px solid var(--bor);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:border-color .2s;}
-.hdr-back:hover{border-color:var(--acc);color:var(--txt);}
-.hdr-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.hdr-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;}
-.badge-acc{background:rgba(108,99,255,.15);color:var(--acc);border:1px solid rgba(108,99,255,.3);}
-.badge-grn{background:rgba(67,233,123,.15);color:var(--grn);border:1px solid rgba(67,233,123,.3);}
-.badge-warn{background:rgba(255,179,71,.15);color:var(--warn);border:1px solid rgba(255,179,71,.3);}
-.badge-red{background:rgba(255,101,132,.15);color:var(--red);border:1px solid rgba(255,101,132,.3);}
-
-.content{flex:1;padding:16px;max-width:620px;width:100%;margin:0 auto;padding-bottom:24px;}
-
-.home-logo{width:80px;height:80px;margin:40px auto 20px;background:linear-gradient(135deg,var(--acc),var(--red));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 16px 50px rgba(108,99,255,.4);}
-.home-title{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;text-align:center;margin-bottom:10px;background:linear-gradient(135deg,#fff 30%,var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.home-sub{text-align:center;font-size:15px;color:var(--t2);line-height:1.65;margin-bottom:32px;}
-.home-identity{background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:var(--r);padding:14px 16px;margin-bottom:24px;font-size:13px;color:var(--t2);line-height:1.7;font-style:italic;}
-.home-identity strong{color:var(--acc);}
-.menu-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
-.menu-btn{padding:16px 18px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);cursor:pointer;transition:border-color .2s,background .2s;display:flex;align-items:center;gap:14px;text-align:left;width:100%;}
-.menu-btn:hover{border-color:var(--acc);background:rgba(108,99,255,.05);}
-.menu-btn .mi{font-size:24px;flex-shrink:0;}
-.menu-btn .mt{flex:1;}
-.menu-btn .mt strong{display:block;font-size:15px;font-weight:600;color:var(--txt);margin-bottom:2px;}
-.menu-btn .mt span{font-size:12px;color:var(--t3);}
-.menu-btn .ma{font-size:18px;color:var(--t3);}
-
-.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:18px;margin-bottom:14px;position:relative;}
-.card.accent-top::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--red));border-radius:var(--r) var(--r) 0 0;}
-.card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:10px;}
-.card p{font-size:14px;color:var(--t2);line-height:1.75;}
-.card p strong{color:var(--txt);}
-
-.topic-list{display:flex;flex-direction:column;gap:7px;}
-.topic-row{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--rs);cursor:pointer;transition:all .2s;}
-.topic-row:hover:not(.t-locked){border-color:var(--acc);background:rgba(108,99,255,.05);}
-.topic-row.t-locked{opacity:.35;cursor:not-allowed;}
-.topic-row.t-done{border-color:rgba(67,233,123,.3);}
-.topic-row.t-current{border-color:rgba(108,99,255,.4);background:rgba(108,99,255,.04);}
-.t-icon{font-size:22px;flex-shrink:0;}
-.t-info{flex:1;min-width:0;}
-.t-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.t-meta{font-size:11px;color:var(--t3);margin-top:2px;}
-.phase-sep{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);padding:10px 0 4px;}
-
-.prog-bar-wrap{margin:10px 0;}
-.prog-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:5px;}
-.prog-bar-bg{height:8px;background:var(--sur2);border-radius:4px;overflow:hidden;}
-.prog-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
-.fill-acc{background:linear-gradient(90deg,var(--acc),#8b5cf6);}
-.fill-grn{background:linear-gradient(90deg,var(--grn),#00c9ff);}
-.fill-warn{background:var(--warn);}
-
-.q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
-.q-counter{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
-.q-tags{display:flex;gap:5px;flex-wrap:wrap;}
-.q-text{font-size:17px;line-height:1.72;color:var(--txt);margin-bottom:22px;padding:16px;background:var(--sur2);border-radius:var(--rs);border:1px solid var(--bor);}
-.retry-notice{display:flex;align-items:center;gap:7px;padding:10px 13px;background:rgba(255,101,132,.09);border:1px solid rgba(255,101,132,.25);border-radius:var(--rs);margin-bottom:12px;font-size:13px;color:var(--red);}
-
-.ans-row{display:flex;gap:8px;margin-bottom:8px;}
-.ans-inp{flex:1;padding:14px 16px;background:var(--sur2);border:1.5px solid var(--bor);border-radius:var(--rs);color:var(--txt);font-size:17px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
-.ans-inp:focus{border-color:var(--acc);}
-.ans-inp::placeholder{color:var(--t3);}
-.ans-inp:disabled{opacity:.5;}
-.ans-hint{font-size:12px;color:var(--t3);margin-bottom:16px;}
-
-.btn{padding:13px 20px;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
-.btn-primary{background:linear-gradient(135deg,var(--acc),#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(108,99,255,.3);}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(108,99,255,.4);}
-.btn-primary:disabled{opacity:.45;cursor:default;transform:none;}
-.btn-ghost{background:var(--sur2);color:var(--t2);border:1px solid var(--bor);}
-.btn-ghost:hover{border-color:var(--acc);color:var(--txt);}
-.btn-ghost.advance{background:rgba(67,233,123,.1);border-color:rgba(67,233,123,.4);color:var(--grn);}
-.btn-danger{background:rgba(255,101,132,.1);color:var(--red);border:1px solid rgba(255,101,132,.3);}
-.btn-danger:hover{background:rgba(255,101,132,.18);}
-.btn-full{width:100%;justify-content:center;}
-.btn-row{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
-
-.fb{border-radius:var(--r);padding:18px;margin-bottom:12px;animation:fadeup .3s ease;}
-.fb-ok{background:rgba(67,233,123,.07);border:1px solid rgba(67,233,123,.2);}
-.fb-fail{background:rgba(255,101,132,.07);border:1px solid rgba(255,101,132,.2);}
-.fb-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
-.fb-icon{font-size:20px;}
-.fb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
-.fb-ok .fb-title{color:var(--grn);}
-.fb-fail .fb-title{color:var(--red);}
-.fb-body{font-size:14px;line-height:1.8;color:var(--t2);}
-.fb-body strong{color:var(--txt);}
-
-.formula-box{margin-top:12px;padding:13px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.22);border-radius:var(--rs);}
-.formula-box .fb-label{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
-.formula-box .fb-content{font-size:13px;color:var(--t2);line-height:1.7;}
-.formula-box .fb-content strong{color:var(--txt);font-family:monospace;background:rgba(108,99,255,.12);padding:1px 5px;border-radius:4px;}
-
-.solution-box{margin-top:12px;padding:13px;background:rgba(255,179,71,.05);border:1px solid rgba(255,179,71,.2);border-radius:var(--rs);}
-.solution-box .sol-label{font-size:11px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
-.solution-box .sol-body{font-size:13px;color:var(--t2);line-height:1.8;}
-.solution-box .sol-body strong{color:var(--txt);}
-
-.ask-section{margin-top:10px;}
-.ask-toggle{width:100%;padding:11px;background:rgba(108,99,255,.08);color:var(--acc);border:1px solid rgba(108,99,255,.25);border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s;}
-.ask-toggle:hover{background:rgba(108,99,255,.14);}
-.ask-form{display:none;margin-top:8px;gap:7px;}
-.ask-form.open{display:flex;}
-.ask-inp{flex:1;padding:11px 14px;background:var(--sur2);border:1px solid var(--bor);border-radius:var(--rs);color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
-.ask-inp:focus{border-color:var(--acc);}
-.ask-inp::placeholder{color:var(--t3);}
-.ask-result{display:none;margin-top:9px;padding:13px;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.16);border-radius:var(--rs);font-size:14px;line-height:1.75;color:var(--t2);}
-.ask-result.open{display:block;}
-
-.dots{display:inline-flex;gap:4px;align-items:center;}
-.dots span{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:db 1.2s infinite;}
-.dots span:nth-child(2){animation-delay:.2s;}
-.dots span:nth-child(3){animation-delay:.4s;}
-@keyframes db{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-5px)}}
-@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.stat-cell{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;text-align:center;}
-.stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
-.stat-lbl{font-size:11px;color:var(--t3);margin-top:4px;}
-.net-box{background:linear-gradient(135deg,rgba(108,99,255,.14),rgba(255,101,132,.07));border:1px solid rgba(108,99,255,.3);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:14px;}
-.net-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--acc);}
-.net-lbl{font-size:13px;color:var(--t2);margin-top:4px;}
-.weak-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bor);font-size:13px;}
-.weak-row:last-child{border:none;}
-.weak-name{color:var(--t2);}
-.weak-pct{font-weight:700;}
-
-.exam-bar{background:rgba(255,101,132,.08);border-bottom:1px solid rgba(255,101,132,.2);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;}
-.exam-timer{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--red);}
-.exam-info{font-size:12px;color:var(--t2);}
-.result-net{font-family:'Syne',sans-serif;font-size:62px;font-weight:800;color:var(--acc);text-align:center;margin:16px 0 4px;}
-.result-lbl{text-align:center;font-size:13px;color:var(--t2);margin-bottom:20px;}
-
-.cel-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;display:flex;align-items:center;justify-content:center;}
-.cel-txt{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--grn);text-shadow:0 0 40px rgba(67,233,123,.5);animation:celA 1.7s ease forwards;opacity:0;}
-@keyframes celA{0%{opacity:0;transform:scale(.5) translateY(18px)}30%{opacity:1;transform:scale(1.1) translateY(-8px)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-25px)}}
-
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:16px;}
-.modal-box{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:24px 20px;width:100%;max-width:480px;animation:fadeup .3s ease;}
-.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}
-.modal-txt{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:16px;}
-.modal-inp{width:100%;padding:13px 14px;background:var(--sur2);border:1px solid var(--bor);border-radius:var(--rs);color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px;transition:border-color .2s;}
-.modal-inp:focus{border-color:var(--acc);}
-.modal-note{font-size:11px;color:var(--t3);margin-bottom:13px;}
-
-.err{background:rgba(255,101,132,.09);border:1px solid rgba(255,101,132,.28);border-radius:var(--rs);padding:13px 15px;font-size:13px;color:var(--red);line-height:1.65;margin-bottom:12px;}
-.hidden{display:none!important;}
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f23">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>KPSS Matematik | Çalışma Uygulaması</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- HOME -->
-<div id="vHome" class="view active">
-  <div class="content" style="text-align:center">
-    <div class="home-logo">📐</div>
-    <h1 class="home-title">Matematik<br>Öğretmeni</h1>
-    <p class="home-sub">KPSS · TYT · AYT · DGS<br>Sıfırdan sınava, adım adım.</p>
-    <div class="home-identity">
-      <strong>"Ben bir test sistemi değilim.<br>Ben bir öğretmenim.</strong><br>
-      Amacım seni sınava hazırlamak ve eksiklerini kapatmaktır."
-    </div>
-    <div class="menu-grid">
-      <button class="menu-btn" onclick="goTopics()">
-        <span class="mi">📚</span>
-        <span class="mt"><strong>Konu Çalış</strong><span>28 konu · 5 kademe · Adaptif öğretim</span></span>
-        <span class="ma">›</span>
-      </button>
-      <button class="menu-btn" onclick="goExamSetup()">
-        <span class="mi">📝</span>
-        <span class="mt"><strong>Deneme Sınavı</strong><span>KPSS/TYT/AYT/DGS · Süreli · -0.25 sistem</span></span>
-        <span class="ma">›</span>
-      </button>
-      <button class="menu-btn" onclick="goStats()">
-        <span class="mi">📊</span>
-        <span class="mt"><strong>İstatistikler</strong><span>Zayıf konular · Net tahmini · Seri</span></span>
-        <span class="ma">›</span>
-      </button>
-      <button class="menu-btn" onclick="openModal('api')">
-        <span class="mi">🔑</span>
-        <span class="mt"><strong>Groq API Anahtarı</strong><span id="apiStatus">Girilmedi — gerekli</span></span>
-        <span class="ma">›</span>
-      </button>
-      <button class="menu-btn btn-danger" onclick="openModal('reset')" style="border-color:rgba(255,101,132,.25)">
-        <span class="mi">🔄</span>
-        <span class="mt"><strong>Sıfırla</strong><span>İlerlemeyi sıfırla</span></span>
-        <span class="ma">›</span>
-      </button>
-    </div>
-  </div>
-</div>
+    <!-- ==================== APP KAPSAYICI ==================== -->
+    <div id="appContainer">
+        
+        <!-- HEADER -->
+        <header id="mainHeader">
+            <button class="btn-icon" id="btnBack" onclick="goBack()" aria-label="Geri">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span id="headerTitle">KPSS Matematik</span>
+            <button class="btn-icon" id="btnMenu" onclick="toggleMenu()" aria-label="Menü">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </header>
 
-<!-- TOPICS -->
-<div id="vTopics" class="view">
-  <div class="hdr">
-    <button class="hdr-back" onclick="goHome()">←</button>
-    <span class="hdr-title">Konu Haritası</span>
-    <span class="hdr-badge badge-acc" id="topicsDoneLabel">0/28</span>
-  </div>
-  <div class="content">
-    <div id="topicsList"></div>
-  </div>
-</div>
-
-<!-- LEARN -->
-<div id="vLearn" class="view">
-  <div class="hdr">
-    <button class="hdr-back" onclick="goTopics()">←</button>
-    <span class="hdr-title" id="learnTitle">Konu</span>
-    <span class="hdr-badge badge-acc" id="learnKademe">K1</span>
-  </div>
-  <div class="content" id="learnContent"></div>
-</div>
-
-<!-- EXAM SETUP -->
-<div id="vExamSetup" class="view">
-  <div class="hdr">
-    <button class="hdr-back" onclick="goHome()">←</button>
-    <span class="hdr-title">Deneme Sınavı</span>
-  </div>
-  <div class="content">
-    <div class="card accent-top" style="margin-bottom:16px">
-      <h3>Sınav Türü Seç</h3>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
-        <button class="btn btn-ghost btn-full" onclick="startExam('KPSS',20)">📋 KPSS — 20 Soru · 25 dk</button>
-        <button class="btn btn-ghost btn-full" onclick="startExam('TYT',20)">📋 TYT — 20 Soru · 20 dk</button>
-        <button class="btn btn-ghost btn-full" onclick="startExam('AYT',20)">📋 AYT — 20 Soru · 20 dk</button>
-        <button class="btn btn-ghost btn-full" onclick="startExam('DGS',20)">📋 DGS — 20 Soru · 20 dk</button>
-        <button class="btn btn-ghost btn-full" onclick="startExam('KARMA',30)">🔀 Karma — 30 Soru · 35 dk</button>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Puanlama Sistemi</h3>
-      <p>Doğru: <strong>+1</strong> &nbsp;·&nbsp; Yanlış: <strong>−0.25</strong> &nbsp;·&nbsp; Boş: <strong>0</strong><br><br>
-      Sorular %40 kolay, %40 orta, %20 zor dağılımında gelir.<br>
-      Zayıf konulara ekstra ağırlık verilir.</p>
-    </div>
-  </div>
-</div>
-
-<!-- EXAM -->
-<div id="vExam" class="view">
-  <div class="exam-bar">
-    <div>
-      <div class="exam-info" id="examInfo">Soru 0/20</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:2px" id="examType">KPSS</div>
-    </div>
-    <div class="exam-timer" id="examTimer">25:00</div>
-  </div>
-  <div class="content" id="examContent"></div>
-</div>
-
-<!-- STATS -->
-<div id="vStats" class="view">
-  <div class="hdr">
-    <button class="hdr-back" onclick="goHome()">←</button>
-    <span class="hdr-title">İstatistikler</span>
-  </div>
-  <div class="content" id="statsContent"></div>
-</div>
-
-<!-- MODALS -->
-<div id="apiModal" class="modal-bg hidden">
-  <div class="modal-box">
-    <div class="modal-title">🔑 Groq API Anahtarı</div>
-    <p class="modal-txt">Groq ücretsiz bir AI servisidir.<br><br>
-    <strong>Nasıl alınır:</strong><br>
-    1. <a href="https://console.groq.com" target="_blank" style="color:var(--acc)">console.groq.com</a> → Google ile giriş<br>
-    2. API Keys → Create API Key<br>
-    3. Anahtarı kopyalayıp aşağıya yapıştır</p>
-    <input type="password" id="apiInp" class="modal-inp" placeholder="gsk_..." autocomplete="off"/>
-    <p class="modal-note">⚠️ Anahtar yalnızca bu cihazda saklanır.</p>
-    <button class="btn btn-primary btn-full" onclick="saveKey()" style="margin-bottom:8px">Kaydet</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('api')">Kapat</button>
-  </div>
-</div>
-
-<div id="resetModal" class="modal-bg hidden">
-  <div class="modal-box">
-    <div class="modal-title">🔄 Sıfırlama</div>
-    <p class="modal-txt">Ne sıfırlamak istiyorsun?</p>
-    <button class="btn btn-danger btn-full" onclick="doReset('all')" style="margin-bottom:8px">🗑️ Her Şeyi Sıfırla</button>
-    <button class="btn btn-ghost btn-full" onclick="doReset('topic')" style="margin-bottom:8px">📖 Bu Konuyu Sıfırla</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('reset')">Vazgeç</button>
-  </div>
-</div>
-
-<div class="cel-wrap hidden" id="celWrap"><div class="cel-txt" id="celTxt"></div></div>
-
-<script>
-// ═══════════════════════════════════════════════════════════
-// TOPICS DATA
-// ═══════════════════════════════════════════════════════════
-const TOPICS = [
-  {id:1,  n:"Sayı Kavramı & Basamaklar",  p:"TEMEL", kpss:"0–1 soru", e:"🔢"},
-  {id:2,  n:"Toplama & Çıkarma",           p:"TEMEL", kpss:"0–1 soru", e:"➕"},
-  {id:3,  n:"Çarpma & Bölme",              p:"TEMEL", kpss:"0–1 soru", e:"✖️"},
-  {id:4,  n:"İşlem Önceliği",              p:"TEMEL", kpss:"1–2 soru", e:"⚡"},
-  {id:5,  n:"OBEB & OKEK",                 p:"TEMEL", kpss:"1–2 soru", e:"🔗"},
-  {id:6,  n:"Asal Sayılar & Bölünebilme",  p:"TEMEL", kpss:"1–2 soru", e:"🔐"},
-  {id:7,  n:"Kesirler",                    p:"TEMEL", kpss:"2–3 soru", e:"🍕"},
-  {id:8,  n:"Kesir İşlemleri",             p:"TEMEL", kpss:"2–3 soru", e:"🧮"},
-  {id:9,  n:"Ondalık Sayılar",             p:"ORTA",  kpss:"1–2 soru", e:"📍"},
-  {id:10, n:"Negatif Sayılar",             p:"ORTA",  kpss:"1–2 soru", e:"❄️"},
-  {id:11, n:"Üslü Sayılar",                p:"ORTA",  kpss:"2–3 soru", e:"⬆️"},
-  {id:12, n:"Karekök",                     p:"ORTA",  kpss:"2–3 soru", e:"√"},
-  {id:13, n:"Yüzde",                       p:"ORTA",  kpss:"3–4 soru ⭐", e:"💯"},
-  {id:14, n:"Oran & Orantı",               p:"ORTA",  kpss:"2–3 soru", e:"⚖️"},
-  {id:15, n:"Denklem Çözme",               p:"ORTA",  kpss:"2–3 soru", e:"📐"},
-  {id:16, n:"Mutlak Değer",                p:"ORTA",  kpss:"1–2 soru", e:"📏"},
-  {id:17, n:"Sayı Problemleri",            p:"KPSS",  kpss:"2–3 soru", e:"🔍"},
-  {id:18, n:"Yaş Problemleri",             p:"KPSS",  kpss:"1–2 soru", e:"🎂"},
-  {id:19, n:"Hız Problemleri",             p:"KPSS",  kpss:"2–3 soru", e:"🚗"},
-  {id:20, n:"Yüzde Problemleri",           p:"KPSS",  kpss:"3–4 soru ⭐", e:"🏷️"},
-  {id:21, n:"İş Problemleri",              p:"KPSS",  kpss:"3–4 soru ⭐⭐", e:"🔧"},
-  {id:22, n:"Karışım Problemleri",         p:"KPSS",  kpss:"2–3 soru ⭐", e:"🧪"},
-  {id:23, n:"Olasılık",                    p:"KPSS",  kpss:"1–2 soru", e:"🎲"},
-  {id:24, n:"Permütasyon & Kombinasyon",   p:"KPSS",  kpss:"1–2 soru", e:"🎴"},
-  {id:25, n:"Küme Problemleri",            p:"KPSS",  kpss:"2–3 soru ⭐", e:"🫧"},
-  {id:26, n:"Ardışık Sayılar",             p:"KPSS",  kpss:"1–2 soru", e:"📊"},
-  {id:27, n:"Rakam Problemleri",           p:"KPSS",  kpss:"1–2 soru", e:"🔢"},
-  {id:28, n:"Karma & Deneme",              p:"KPSS",  kpss:"GENEL TEKRAR", e:"🏆"},
-];
-
-const KADEME = ["Temel","TYT","AYT","DGS","KPSS"];
-
-const FORMULAS = {
-  5: ["OBEB: Ortak asal çarpanların en küçük kuvvetleri çarpımı","OKEK: Tüm asal çarpanların en büyük kuvvetleri çarpımı"],
-  7: ["Kesir: pay/payda — payda 0 olamaz","Sadeleştirme: pay ve paydayı OBEB'e böl"],
-  8: ["Toplama/Çıkarma: Paydaları OKEK ile eşitle, sonra payları topla/çıkar","Çarpma: pay×pay / payda×payda","Bölme: a/b ÷ c/d = a/b × d/c (ters çevir ve çarp)"],
-  11:["aⁿ × aᵐ = aⁿ⁺ᵐ","aⁿ ÷ aᵐ = aⁿ⁻ᵐ","(aⁿ)ᵐ = aⁿˣᵐ","a⁰ = 1 (a≠0)"],
-  12:["√(a×b) = √a × √b","√(a/b) = √a / √b","√a² = a (a≥0)"],
-  13:["Yüzde = (Kısım / Bütün) × 100","Kısım = Bütün × Yüzde / 100"],
-  14:["Doğru orantı: a/b = c/d → a×d = b×c","Ters orantı: a×b = k (sabit)"],
-  15:["ax + b = c → x = (c−b)/a","İki denklem: yerine koyma veya toplama/çıkarma yöntemi"],
-  16:["|a| = a (a≥0), |a| = −a (a<0)","|a−b| = a ile b arasındaki uzaklık"],
-  18:["Yaş farkı her zaman sabittir","x yıl sonra: şimdiki yaş + x","x yıl önce: şimdiki yaş − x"],
-  19:["Hız = Yol / Zaman","Yol = Hız × Zaman","Zaman = Yol / Hız"],
-  20:["Zamlı fiyat = Eski × (1 + r/100)","İndirimli fiyat = Eski × (1 − r/100)","Kâr yüzdesi = Kâr/Maliyet × 100"],
-  21:["A'nın 1 günlük işi = 1/a","Birlikte 1 günde = 1/a + 1/b","Birlikte biter = 1 / (1/a + 1/b)"],
-  22:["Karışım: C₁V₁ + C₂V₂ = Cm(V₁+V₂)","Cm = (C₁V₁ + C₂V₂) / (V₁+V₂)"],
-  23:["P(A) = İstenen / Toplam","0 ≤ P(A) ≤ 1","P(A)+P(A') = 1"],
-  24:["Permütasyon (sıra önemli): P(n,r) = n!/(n−r)!","Kombinasyon (sıra önemsiz): C(n,r) = n!/[r!(n−r)!]"],
-  25:["|A∪B| = |A| + |B| − |A∩B|","|A∩B| = |A| + |B| − |A∪B|"],
-  26:["n ardışık tam sayı: a, a+1, ..., a+n−1","Toplam = n×(ilk+son)/2 = n×(2a+n−1)/2"],
-};
-
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let ST = {
-  apiKey:'',
-  topic:1, kademe:1,
-  streak:0, maxStreak:0,
-  totalCorrect:0, totalQ:0,
-  completedTopics:[],
-  hist:{},
-  lastSession:null,
-  phase:'summary',
-  cq:null,
-  pendingAdvance:false,
-  examHistory:[],
-};
-
-function ld(){
-  try{ Object.assign(ST, JSON.parse(localStorage.getItem('mat_v5')||'{}')); }catch(e){}
-  ST.apiKey = localStorage.getItem('mat_key')||'';
-  updateApiStatus();
-}
-function sv(){
-  try{
-    const {apiKey,cq,...r}=ST;
-    localStorage.setItem('mat_v5', JSON.stringify(r));
-  }catch(e){}
-}
-function getH(id){
-  id=id||ST.topic;
-  if(!ST.hist[id]) ST.hist[id]={k:1,correct:0,total:0,recent:[],recentQ:[],wrongType:null,wrongCount:0,weakTypes:{}};
-  return ST.hist[id];
-}
-function updateApiStatus(){
-  const el=document.getElementById('apiStatus');
-  if(el) el.textContent=ST.apiKey?'✅ Bağlı — hazır':'Girilmedi — gerekli';
-}
-
-// ═══════════════════════════════════════════════════════════
-// GROQ API
-// ═══════════════════════════════════════════════════════════
-let lastErr='';
-
-async function ai(sysprompt, userprompt, json=false){
-  if(!ST.apiKey){ lastErr='API anahtarı yok'; return null; }
-  try{
-    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+ST.apiKey},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[{role:'system',content:sysprompt},{role:'user',content:userprompt}],
-        temperature:json?0.15:0.7,
-        max_tokens:json?700:800,
-      })
-    });
-    const d=await r.json();
-    if(d.error){lastErr=d.error.message;return null;}
-    return d?.choices?.[0]?.message?.content?.trim()||null;
-  }catch(e){lastErr=e.message;return null;}
-}
-
-function pj(raw){
-  if(!raw) return null;
-  try{
-    let s=raw.replace(/```json|```/g,'').trim();
-    const a=s.indexOf('{'),b=s.lastIndexOf('}');
-    if(a!==-1&&b!==-1) s=s.slice(a,b+1);
-    return JSON.parse(s);
-  }catch(e){return null;}
-}
-
-// ═══════════════════════════════════════════════════════════
-// HİKAYELİ SORU SİSTEMİ
-// ═══════════════════════════════════════════════════════════
-const STORY_RNG = {
-  int(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
-  pick(arr) { return arr[this.int(0, arr.length - 1)]; },
-  name() { return this.pick(["Ayşe","Mehmet","Elif","Can","Zeynep","Ali","Merve","Burak","Fatma","Ece","Hakan","Seda"]); },
-  place() { return this.pick(["market","kırtasiye","fırın","depo","okul kantini","pazar","manav","mağaza"]); }
-};
-
-function storyCleanNum(n) {
-  if (Number.isInteger(n)) return String(n);
-  const s = Number(n).toFixed(2);
-  return s.replace(/\.00$/, "").replace(/0$/, "");
-}
-
-function storyMake({ soru, cevap, cozum, tip, zorluk }) {
-  return { soru, cevap: storyCleanNum(cevap), cozum, tip, zorluk };
-}
-
-function isStoryTopicName(topicName) {
-  const s = String(topicName || "").toLowerCase();
-  return (
-    s.includes("yaş") ||
-    s.includes("hız") ||
-    s.includes("iş problemi") ||
-    s.includes("iş problemleri") ||
-    s.includes("yüzde problemi") ||
-    s.includes("yüzde problemleri") ||
-    s.includes("karışım") ||
-    s.includes("sayı problemi") ||
-    s.includes("sayı problemleri")
-  );
-}
-
-function tplYas1() {
-  const x = STORY_RNG.int(6, 18);
-  const fark = STORY_RNG.int(18, 40);
-  const yil = STORY_RNG.int(2, 10);
-  const baba = x + fark;
-  return storyMake({
-    soru: `${STORY_RNG.name()}'in yaşı ${x} ve babası ondan ${fark} yaş büyüktür. ${yil} yıl sonra babasının yaşı kaç olur?`,
-    cevap: baba + yil,
-    cozum: `Babanın şimdiki yaşı ${x} + ${fark} = ${baba}. ${yil} yıl sonra ${baba} + ${yil} = ${baba + yil}.`,
-    tip: "yaş",
-    zorluk: "orta"
-  });
-}
-
-function tplYas2() {
-  const x = STORY_RNG.int(10, 20);
-  const fark = STORY_RNG.int(12, 30);
-  const yil = STORY_RNG.int(3, 8);
-  const isim1 = STORY_RNG.name();
-  const isim2 = STORY_RNG.name();
-  return storyMake({
-    soru: `${isim1} ile ${isim2} arasında ${fark} yaş fark vardır. ${isim1}'in yaşı ${x} ise, ${yil} yıl sonra ${isim2}'in yaşı kaç olur?`,
-    cevap: x + fark + yil,
-    cozum: `${isim2}'in şimdiki yaşı ${x} + ${fark} = ${x + fark}. ${yil} yıl sonra ${x + fark} + ${yil} = ${x + fark + yil}.`,
-    tip: "yaş",
-    zorluk: "orta"
-  });
-}
-
-function tplHiz1() {
-  const v = STORY_RNG.int(40, 90);
-  const t = STORY_RNG.int(2, 6);
-  return storyMake({
-    soru: `Bir araç saatte ${v} km hızla gidiyor. ${t} saat yol alırsa kaç km gider?`,
-    cevap: v * t,
-    cozum: `Yol = hız × zaman = ${v} × ${t} = ${v * t} km.`,
-    tip: "hız",
-    zorluk: "kolay"
-  });
-}
-
-function tplHiz2() {
-  const v = STORY_RNG.int(45, 90);
-  const t = STORY_RNG.int(2, 5);
-  const y = v * t;
-  return storyMake({
-    soru: `Bir araç ${y} km yolu saatte ${v} km hızla gidiyor. Kaç saatte varır?`,
-    cevap: t,
-    cozum: `Zaman = yol / hız = ${y} / ${v} = ${t} saat.`,
-    tip: "hız",
-    zorluk: "orta"
-  });
-}
-
-function tplIs1() {
-  const a = STORY_RNG.int(6, 12);
-  const b = STORY_RNG.int(8, 16);
-  const sonuc = parseFloat((1 / (1/a + 1/b)).toFixed(2));
-  return storyMake({
-    soru: `Bir işçi bir işi tek başına ${a} günde, diğer işçi ${b} günde bitiriyor. Birlikte çalışırlarsa iş kaç günde biter?`,
-    cevap: sonuc,
-    cozum: `Birlikte günlük iş miktarı 1/${a} + 1/${b} = ${(1/a+1/b).toFixed(3)}. Toplam süre bunun tersidir: yaklaşık ${sonuc} gün.`,
-    tip: "iş",
-    zorluk: "zor"
-  });
-}
-
-function tplYuzde1() {
-  const e = STORY_RNG.int(200, 900);
-  const p = STORY_RNG.int(10, 40);
-  const indirim = Math.round(e * p / 100);
-  const yeni = e - indirim;
-  return storyMake({
-    soru: `Bir ${STORY_RNG.place()}'de bir ürünün fiyatı ${e} TL'dir. Buna yüzde ${p} indirim uygulanırsa yeni fiyat kaç TL olur?`,
-    cevap: yeni,
-    cozum: `İndirim miktarı ${e} × ${p} / 100 = ${indirim} TL. Yeni fiyat ${e} - ${indirim} = ${yeni} TL.`,
-    tip: "yüzde",
-    zorluk: "orta"
-  });
-}
-
-function tplKarisim1() {
-  const a = STORY_RNG.int(2, 6);
-  const b = STORY_RNG.int(3, 8);
-  const c = STORY_RNG.int(4, 10);
-  const toplam = a * 2 + b * 3 + c * 4;
-  const isim = STORY_RNG.name();
-  return storyMake({
-    soru: `${isim} ${a} kg elma, ${b} kg armut ve ${c} kg portakal aldı. Elma 2 TL/kg, armut 3 TL/kg, portakal 4 TL/kg ise toplam kaç TL öder?`,
-    cevap: toplam,
-    cozum: `Toplam = ${a}×2 + ${b}×3 + ${c}×4 = ${a*2} + ${b*3} + ${c*4} = ${toplam} TL.`,
-    tip: "karışım",
-    zorluk: "orta"
-  });
-}
-
-function tplSayi1() {
-  const a = STORY_RNG.int(2, 9);
-  const b = STORY_RNG.int(10, 40);
-  const sonuc = a * b + b;
-  return storyMake({
-    soru: `Bir sayının ${a} katının ${b} fazlası ${sonuc} ise sayı kaçtır?`,
-    cevap: b,
-    cozum: `${a}x + ${b} = ${sonuc} denklemini kuralım. ${a}x = ${sonuc} - ${b} = ${sonuc - b}. x = ${b}.`,
-    tip: "sayı",
-    zorluk: "orta"
-  });
-}
-
-const STORY_POOLS = {
-  "yaş":    [tplYas1, tplYas2],
-  "hız":    [tplHiz1, tplHiz2],
-  "iş":     [tplIs1],
-  "yüzde":  [tplYuzde1],
-  "karışım":[tplKarisim1],
-  "sayı":   [tplSayi1]
-};
-
-function storyQuestion(topicName) {
-  const s = String(topicName || "").toLowerCase();
-  const key = Object.keys(STORY_POOLS).find(k => s.includes(k));
-  if (!key) return null;
-  const pool = STORY_POOLS[key];
-  return pool[STORY_RNG.int(0, pool.length - 1)]();
-}
-
-// ═══════════════════════════════════════════════════════════
-// AI GÖREVLER
-// ═══════════════════════════════════════════════════════════
-
-async function aiSummary(topic, kademe){
-  const sys=`Sen deneyimli bir matematik öğretmenisin. Türkçe yazıyorsun. Resmi ama anlaşılır bir dil kullanırsın. Gereksiz süsleme yapmazsın.`;
-  const usr=`Konu: "${topic.n}" — ${KADEME[kademe-1]} seviyesi (Kademe ${kademe}/5)
-Görev: Bu konuyu bu seviyeye göre öğrenciye tanıt.
-- Sıfır bilgiden başlayarak anlat
-- Gerçek hayat örneği ver (1 tane yeterli)
-- Bu kademede ne tür sorular bekleneceğini söyle
-- Max 150 kelime`;
-  return ai(sys, usr);
-}
-
-// Soru üretici — hikayeli konular için şablon, diğerleri için Groq AI
-async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ){
-  // Hikayeli konu kontrolü
-  if (isStoryTopicName(topic.n)) {
-    return storyQuestion(topic.n);
-  }
-
-  const kDesc = kademe===1?'Tek adım, sayılar 1-30, günlük hayat (elma/para/yaş), çözüm çok basit':
-                kademe===2?'TYT tarzı, 2-3 adım, sayılar makul, formül uygulaması':
-                kademe===3?'AYT tarzı, çok adımlı, denklem kurma, dikkat gerektiriyor':
-                kademe===4?'DGS tarzı, sözel+sayısal karma, üst düzey dikkat':
-                           'KPSS sınav sorusu kalitesi, tuzak içerebilir, gerçek sınav formatı';
-
-  const retryPart = wrongType && wrongCount>=1
-    ? `\n⚠️ KRİTİK: Öğrenci "${wrongType}" tipinde ${wrongCount} kez hata yaptı. Aynı mantıkta ama FARKLI sayılarla soru üret. Öğrenci anlayıncaya kadar ısrar et.`
-    : '';
-
-  const sys=`Sen uzman bir KPSS/TYT/AYT/DGS matematik soru yazarısın. Türkçe yazıyorsun.
-ZORUNLU: Her soruyu üretmeden önce kendi baştan sona çöz. Cevabın mantıklı olduğunu doğrula. Hatalıysa yeniden yaz.
-YASAK: Negatif yaş, küsüratlı insan sayısı, imkansız senaryo, yanlış matematik.`;
-
-  const usr=`Konu: "${topic.n}" — Kademe ${kademe}/5 (${kDesc})${retryPart}
-${recentQ&&recentQ.length>0?'Son sorular (tekrarlama!): '+recentQ.slice(-5).join(' | '):''}
-
-ADIMLAR:
-1. Soruyu taslak yaz
-2. Kendi çöz (tüm adımlar)
-3. Cevap gerçekçi mi kontrol et
-4. Onaylandıysa JSON ver
-
-JSON (başka hiçbir şey yazma):
-{"soru":"...","cevap":"net sayısal cevap","cozum":"adım adım","tip":"[problem tipi]","zorluk":"kolay/orta/zor"}`;
-
-  const raw=await ai(sys, usr, true);
-  const obj=pj(raw);
-  if(!obj||!obj.soru||!obj.cevap) return null;
-  return obj;
-}
-
-async function aiFeedback(topicName, soru, cozum, userAns, dogruAns, isCorrect, son8, wrongCount){
-  const dogru=son8.filter(Boolean).length;
-  const topicObj=TOPICS.find(t=>t.n===topicName);
-  const formuls = topicObj ? FORMULAS[topicObj.id] : null;
-  const formulPart = !isCorrect && wrongCount>=2 && formuls
-    ? `\nFormüller: ${formuls.join(' | ')}`
-    : '';
-
-  const sys=`Sen matematik öğretmenisin. Türkçe yaz. Resmi ama destekleyici. Aşırı uzun açıklama yapma. Max 120 kelime.`;
-  const usr=`Konu: ${topicName}
-Soru: ${soru}
-Çözüm: ${cozum||'—'}
-Doğru cevap: ${dogruAns}
-Öğrencinin cevabı: ${userAns}
-Sonuç: ${isCorrect?'DOĞRU':'YANLIŞ'}
-Son 8 soru: ${dogru}/8 doğru${formulPart}
-
-${isCorrect
-  ? 'Kısa tebrik (1 cümle). Neden doğru olduğunu açıkla.'
-  : 'Hatayı bul, adım adım düzelt. Moral bozma ama net ol.'}`;
-  return ai(sys, usr);
-}
-
-async function aiAdvance(topicName, kademe, hist){
-  if(hist.total<20) return {advance:false, reason:`Henüz ${20-hist.total} soru daha çöz. (Minimum 20 soru gerekli)`};
-  const oran=(hist.correct/hist.total)*100;
-  if(oran<90) return {advance:false, reason:`Başarı oranın %${oran.toFixed(0)}. Geçmek için %90 gerekli.`};
-
-  const son10=hist.recent.slice(-10);
-  const son10d=son10.filter(Boolean).length;
-  if(son10d<8) return {advance:false, reason:'Son 10 soruda yeterli performans yok. Biraz daha çalış.'};
-
-  if(kademe>=5){
-    return {advance:true, konu:true, reason:`${topicName} konusunu tüm kademelerde tamamladın! 🎉`};
-  }
-  return {advance:true, konu:false, reason:`%${oran.toFixed(0)} başarı ile kademe ${kademe+1}'e geçiyorsun!`};
-}
-
-async function aiExamQ(topicName, sinav, zorluk){
-  const sys=`Sen uzman bir ${sinav} matematik soru yazarısın. Türkçe yaz. Soruyu üret ve doğrula.`;
-  const usr=`${sinav} sınavı için "${topicName}" konusunda ${zorluk} seviyede soru üret.
-JSON: {"soru":"...","cevap":"...","cozum":"...","konu":"${topicName}"}`;
-  const raw=await ai(sys, usr, true);
-  return pj(raw);
-}
-
-async function aiAsk(topicName, soru, sorulan){
-  const sys=`Sen matematik öğretmenisin. Öğrenci bir soruyu soruyor. Türkçe, net, kısa açıkla. Max 120 kelime.`;
-  return ai(sys, `Konu: ${topicName}\nSoru bağlamı: ${soru}\nÖğrencinin sorusu: ${sorulan}`);
-}
-
-async function aiWeakAnalysis(data){
-  const sys=`Matematik öğretmeni. Öğrencinin performansına bakıp zayıf noktaları belirle. Türkçe, kısa.`;
-  const usr=`${data}\nEn zayıf 3 konu ve kısa öneri. JSON: {"analiz":[{"konu":"...","oneri":"..."}]}`;
-  const raw=await ai(sys, usr, true);
-  return pj(raw);
-}
-
-// ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
-function showView(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function dots(){ return '<div class="dots"><span></span><span></span><span></span></div>'; }
-function celebrate(msg){
-  const w=document.getElementById('celWrap'),t=document.getElementById('celTxt');
-  t.textContent=msg; w.classList.remove('hidden');
-  setTimeout(()=>w.classList.add('hidden'),1900);
-}
-function normAns(s){
-  return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.').replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|adet/g,'').replace(/^0+(\d)/,'$1');
-}
-function checkEqual(u,c){
-  const un=normAns(u), cn=normAns(c);
-  if(un===cn) return true;
-  const uv=parseFloat(un), cv=parseFloat(cn);
-  if(!isNaN(uv)&&!isNaN(cv)&&Math.abs(uv-cv)<0.05) return true;
-  const ef=s=>{const m=s.match(/^(-?\d+)\/(-?\d+)$/);return m?+m[1]/+m[2]:null;};
-  const uf=ef(un),cf=ef(cn);
-  if(uf!==null&&!isNaN(cv)) return Math.abs(uf-cv)<0.05;
-  if(cf!==null&&!isNaN(uv)) return Math.abs(uv-cf)<0.05;
-  if(uf!==null&&cf!==null) return Math.abs(uf-cf)<0.05;
-  return false;
-}
-function esc(s){ return String(s).replace(/'/g,"\\'").replace(/\n/g,' '); }
-
-// ═══════════════════════════════════════════════════════════
-// NAV
-// ═══════════════════════════════════════════════════════════
-function goHome(){ showView('vHome'); }
-function goStats(){ showView('vStats'); renderStats(); }
-function goExamSetup(){
-  if(!ST.apiKey){ openModal('api'); return; }
-  showView('vExamSetup');
-}
-
-function goTopics(){
-  showView('vTopics');
-  const done=ST.completedTopics.length;
-  document.getElementById('topicsDoneLabel').textContent=`${done}/28`;
-  const list=document.getElementById('topicsList');
-  let html='', lastP='';
-  TOPICS.forEach(t=>{
-    if(t.p!==lastP){ lastP=t.p; html+=`<div class="phase-sep">${t.p}</div>`; }
-    const h=getH(t.id);
-    const done2=ST.completedTopics.includes(t.id);
-    const cur=t.id===ST.topic;
-    const locked=t.id>ST.topic&&!done2;
-    const acc=h.total>0?Math.round(h.correct/h.total*100):null;
-    const pct=h.total>0?Math.min(100,Math.round(h.total/20*100)):0;
-    let cls='topic-row'+(done2?' t-done':cur?' t-current':locked?' t-locked':'');
-    const icon=done2?'✅':cur?'▶️':locked?'🔒':'⭕';
-    html+=`<div class="${cls}" onclick="${locked?'':` openTopic(${t.id})`}">
-      <span class="t-icon">${t.e}</span>
-      <div class="t-info">
-        <div class="t-name">${t.n}</div>
-        <div class="t-meta">KPSS: ${t.kpss}${acc!==null?' · %'+acc+' doğru':''} · K${h.k||1}/5</div>
-        <div class="prog-bar-wrap" style="margin:5px 0 0">
-          <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div>
-          <div style="font-size:10px;color:var(--t3);margin-top:2px">${h.total}/20 soru (min %90)</div>
+        <!-- YAN MENU (OVERLAY) -->
+        <div id="sideMenu" class="overlay hidden">
+            <div class="overlay-bg" onclick="toggleMenu()"></div>
+            <div class="overlay-panel">
+                <div class="side-menu-header">
+                    <span>Menü</span>
+                    <button class="btn-icon" onclick="toggleMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="side-menu-actions">
+                    <button class="btn btn-ghost btn-full" onclick="goHome(); toggleMenu();">🏠 Ana Sayfa</button>
+                    <button class="btn btn-ghost btn-full" onclick="goTopics(); toggleMenu();">📚 Konu Çalış</button>
+                    <button class="btn btn-ghost btn-full" onclick="goQuestionBank(); toggleMenu();">📝 Soru Bankası</button>
+                    <button class="btn btn-ghost btn-full" onclick="goExamList(); toggleMenu();">📋 Deneme Sınavı</button>
+                    <button class="btn btn-ghost btn-full" onclick="goStats(); toggleMenu();">📊 İstatistikler</button>
+                </div>
+                <div class="side-menu-footer">
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('api');">
+                        🔑 API Anahtarı
+                        <span id="apiStatusMini" style="font-size: 10px; margin-left: 6px;"></span>
+                    </button>
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('reset');">🔄 Sıfırla</button>
+                </div>
+            </div>
         </div>
-      </div>
-      <span style="font-size:18px">${icon}</span>
-    </div>`;
-  });
-  list.innerHTML=html;
-}
 
-function openTopic(id){
-  ST.topic=id;
-  const h=getH(id);
-  ST.kademe=h.k||1;
-  showView('vLearn');
-  renderSummary();
-}
+        <!-- ANA İÇERİK -->
+        <main id="mainContent">
+            
+            <!-- ========== ANA SAYFA ========== -->
+            <div id="vHome" class="view active">
+                <div class="hero-section">
+                    <div class="hero-icon">🧮</div>
+                    <h1>KPSS Matematik</h1>
+                    <p class="hero-sub">Planlı çalış, seviyeni gör, kazan!</p>
+                </div>
 
-// ═══════════════════════════════════════════════════════════
-// LEARN FLOW
-// ═══════════════════════════════════════════════════════════
-function setLearnHeader(){
-  const t=TOPICS[ST.topic-1];
-  document.getElementById('learnTitle').textContent=`${t.e} ${t.n}`;
-  document.getElementById('learnKademe').textContent=`K${ST.kademe} · ${KADEME[ST.kademe-1]}`;
-}
+                <div class="stats-row" id="homeStatsRow">
+                    <div class="stat-mini">
+                        <span class="stat-mini-val" id="statTopics">0</span>
+                        <span class="stat-mini-lbl">Konu</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-val" id="statQuestions">0</span>
+                        <span class="stat-mini-lbl">Soru</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-val" id="statAccuracy">%0</span>
+                        <span class="stat-mini-lbl">Doğruluk</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-mini-val" id="statStreak">0</span>
+                        <span class="stat-mini-lbl">Seri</span>
+                    </div>
+                </div>
 
-async function renderSummary(){
-  ST.phase='summary'; ST.pendingAdvance=false;
-  const t=TOPICS[ST.topic-1], h=getH();
-  setLearnHeader();
-  const content=document.getElementById('learnContent');
+                <div class="next-topic-badge" id="nextTopicBadge">
+                    Sıradaki: Yükleniyor...
+                </div>
 
-  const today=new Date().toDateString();
-  let warn='';
-  if(ST.lastSession&&ST.lastSession!==today&&ST.lastSession!==new Date(Date.now()-86400000).toDateString())
-    warn=`<div class="err" style="background:rgba(255,179,71,.07);border-color:rgba(255,179,71,.25);color:var(--warn)">📅 Birkaç gündür çalışmadın. Devam edelim!</div>`;
-  ST.lastSession=today; sv();
+                <div class="btn-group-vertical">
+                    <button class="btn btn-primary btn-full" onclick="goTopics()">
+                        📚 Konu Çalış
+                    </button>
+                    <button class="btn btn-accent btn-full" onclick="goQuestionBank()">
+                        📝 Soru Bankası
+                    </button>
+                    <button class="btn btn-secondary btn-full" onclick="goExamList()">
+                        📋 Deneme Sınavı
+                    </button>
+                    <button class="btn btn-ghost btn-full" onclick="goStats()">
+                        📊 İstatistikler
+                    </button>
+                </div>
+            </div>
 
-  const acc=h.total>0?Math.round(h.correct/h.total*100):null;
-  const prog=Math.min(100,Math.round(h.total/20*100));
+            <!-- ========== KONU LİSTESİ ========== -->
+            <div id="vTopics" class="view">
+                <div class="section-header">
+                    <h2>📚 Konular</h2>
+                    <span class="badge" id="topicsDoneLabel">0/28</span>
+                </div>
+                <div id="topicsList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
 
-  content.innerHTML=warn+`
-    <div class="card accent-top">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:6px">
-        <div>
-          <div class="hdr-badge badge-acc" style="display:inline-block;margin-bottom:6px">Kademe ${ST.kademe}/5 — ${KADEME[ST.kademe-1]}</div>
-          <h3 style="margin:0">${t.e} ${t.n}</h3>
-          <div style="font-size:12px;color:var(--t3);margin-top:3px">KPSS: ${t.kpss}</div>
+            <!-- ========== ÖĞRENME (KONU ÇALIŞ) ========== -->
+            <div id="vLearn" class="view">
+                <div id="learnHeader" class="learn-header">
+                    <h2 id="learnTitle">Konu</h2>
+                    <span class="badge badge-acc" id="learnKademe">Seviye</span>
+                </div>
+                <div id="learnContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== SORU BANKASI LİSTESİ ========== -->
+            <div id="vQuestionBank" class="view">
+                <div class="section-header">
+                    <h2>📝 Soru Bankası</h2>
+                    <span>Konu başına 300 soru</span>
+                </div>
+                <div id="qbTopicsList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- ========== SORU BANKASI ÇÖZME ========== -->
+            <div id="vQBSolve" class="view">
+                <div id="qbSolveHeader" class="learn-header">
+                    <h2 id="qbSolveTitle">Soru Bankası</h2>
+                    <span class="badge badge-acc" id="qbSolveProgress">0/300</span>
+                </div>
+                <div id="qbSolveContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== DENEME LİSTESİ ========== -->
+            <div id="vExamList" class="view">
+                <div class="section-header">
+                    <h2>📋 Deneme Sınavları</h2>
+                    <span>20 soru / 20 dakika</span>
+                </div>
+                <div id="examListContent">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== DENEME SINAVI ========== -->
+            <div id="vExam" class="view">
+                <div id="examHeader" class="exam-header">
+                    <div class="exam-info">
+                        <h2 id="examTitle">Deneme Sınavı</h2>
+                        <span class="badge badge-warn" id="examTimer">20:00</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="cancelExam()">Vazgeç</button>
+                </div>
+                <div id="examContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== İSTATİSTİKLER ========== -->
+            <div id="vStats" class="view">
+                <div class="section-header">
+                    <h2>📊 İstatistikler</h2>
+                </div>
+                <div id="statsContent">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODALLAR ==================== -->
+    
+    <!-- API Anahtarı Modal -->
+    <div id="apiModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('api')"></div>
+        <div class="modal-card">
+            <h3>🔑 Groq API Anahtarı</h3>
+            <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">
+                Konu özetleri ve öğretmene sor özelliği için gereklidir.<br>
+                <a href="https://console.groq.com/keys" target="_blank" style="color: #6c63ff;">groq.com/keys</a> adresinden ücretsiz alabilirsiniz.
+            </p>
+            <input id="apiInp" class="input" type="password" placeholder="gsk_...">
+            <div class="btn-row">
+                <button class="btn btn-ghost btn-full" onclick="closeModal('api')">Vazgeç</button>
+                <button class="btn btn-primary btn-full" onclick="saveKey()">Kaydet</button>
+            </div>
         </div>
-        ${acc!==null?`<div class="hdr-badge ${acc>=90?'badge-grn':acc>=70?'badge-warn':'badge-red'}" style="font-size:13px">%${acc}</div>`:''}
-      </div>
-      <div class="prog-bar-wrap">
-        <div class="prog-bar-label"><span>İlerleme (min 20 soru + %90 gerekli)</span><span>${h.total}/20</span></div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${prog}%"></div></div>
-      </div>
-      <div id="sumText" style="margin-top:14px;font-size:14px;color:var(--t2);line-height:1.8">${dots()} Hazırlanıyor...</div>
-      <div class="btn-row" style="margin-top:16px">
-        <button class="btn btn-primary btn-full hidden" id="startBtn" onclick="beginQ()">✍️ Sorulara Başla</button>
-      </div>
     </div>
-    ${formulaCard(ST.topic)}`;
 
-  const txt=await aiSummary(t, ST.kademe);
-  const el=document.getElementById('sumText');
-  if(el) el.innerHTML=txt?txt.replace(/\n/g,'<br>'):`<strong>${t.n}</strong> konusuna hoş geldin.`;
-  document.getElementById('startBtn')?.classList.remove('hidden');
-}
-
-function formulaCard(topicId){
-  const fl=FORMULAS[topicId];
-  if(!fl) return '';
-  return `<div class="formula-box"><div class="fb-label">📐 Formüller & Kurallar</div>
-    <div class="fb-content">${fl.map(f=>`• ${f}`).join('<br>')}</div></div>`;
-}
-
-function beginQ(){ ST.phase='question'; getH(); renderNextQ(); }
-
-async function renderNextQ(){
-  const t=TOPICS[ST.topic-1], h=getH();
-  setLearnHeader();
-  document.getElementById('learnContent').innerHTML=
-    `<div class="card">${dots()} Soru hazırlanıyor...</div>`;
-
-  const qData = await aiQuestion(t, ST.kademe, h.wrongType, h.wrongCount, h.recentQ);
-  if(!qData){
-    document.getElementById('learnContent').innerHTML=`
-      <div class="err">⚠️ Soru üretilemedi.<br>Hata: ${lastErr||'Bilinmeyen'}<br>→ <span style="color:var(--acc);cursor:pointer" onclick="openModal('api')">API anahtarını kontrol et</span></div>
-      <button class="btn btn-primary btn-full" onclick="renderNextQ()">🔄 Tekrar Dene</button>`;
-    return;
-  }
-
-  if(!h.recentQ) h.recentQ=[];
-  h.recentQ.push(qData.soru.substring(0,55));
-  if(h.recentQ.length>8) h.recentQ.shift();
-
-  ST.cq={...qData}; sv();
-  renderQUI(qData, h);
-}
-
-function renderQUI(q, h){
-  const isRetry=h.wrongCount>0&&h.wrongType;
-  const zbadge=q.zorluk==='kolay'?'badge-grn':q.zorluk==='zor'?'badge-red':'badge-warn';
-  const content=document.getElementById('learnContent');
-
-  const acc=h.total>0?Math.round(h.correct/h.total*100):0;
-  const prog=Math.min(100,Math.round(h.total/20*100));
-
-  content.innerHTML=`
-    <div class="prog-bar-wrap" style="margin-bottom:12px">
-      <div class="prog-bar-label">
-        <span>Soru ${h.total+1} · %${acc} doğru</span>
-        <span style="color:${acc>=90?'var(--grn)':acc>=70?'var(--warn)':'var(--red)'}">${h.total}/20 · hedef %90</span>
-      </div>
-      <div class="prog-bar-bg"><div class="prog-bar-fill ${acc>=90?'fill-grn':acc>=70?'fill-warn':'fill-acc'}" style="width:${prog}%"></div></div>
-    </div>
-    ${isRetry?`<div class="retry-notice">🔁 Aynı tip soru — ${h.wrongType} — ${h.wrongCount}. tekrar. Doğru yapana kadar devam.</div>`:''}
-    <div class="card accent-top" id="qCard">
-      <div class="q-header">
-        <span class="q-counter">Soru ${h.total+1}</span>
-        <div class="q-tags">
-          <span class="hdr-badge ${zbadge}">${q.zorluk||'orta'}</span>
-          <span class="hdr-badge badge-acc">K${ST.kademe}</span>
+    <!-- Sıfırlama Modal -->
+    <div id="resetModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('reset')"></div>
+        <div class="modal-card">
+            <h3>🔄 Sıfırla</h3>
+            <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">Neyi sıfırlamak istersiniz?</p>
+            <button class="btn btn-ghost btn-full" onclick="doReset('topic')">Sadece Bu Konuyu Sıfırla</button>
+            <button class="btn btn-danger btn-full" onclick="doReset('all')">Tüm İlerlemeyi Sıfırla</button>
+            <button class="btn btn-ghost btn-full" onclick="closeModal('reset')" style="margin-top: 8px;">Vazgeç</button>
         </div>
-      </div>
-      <div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>
-      <div class="ans-row">
-        <input id="ansInp" class="ans-inp" type="text" placeholder="Cevabını yaz..."
-          autocomplete="off" autocorrect="off" spellcheck="false"
-          onkeydown="if(event.key==='Enter'&&this.value.trim())kontrol()"/>
-        <button class="btn btn-primary" id="kontBtn" onclick="kontrol()">✓</button>
-      </div>
-      <div class="ans-hint">Sayı, kesir (3/4), yüzde (25) veya birim ile yaz → Enter veya ✓</div>
     </div>
-    <div class="ask-section">
-      <button class="ask-toggle" onclick="toggleAsk()">🤖 Anlamadım — Öğretmene sor</button>
-      <div class="ask-form" id="askForm">
-        <input id="askInp" class="ask-inp" type="text" placeholder="Ne anlamadın?" onkeydown="if(event.key==='Enter')sendAsk()"/>
-        <button class="btn btn-primary" onclick="sendAsk()">Sor</button>
-      </div>
-      <div class="ask-result" id="askResult"></div>
-    </div>`;
-  document.getElementById('ansInp')?.focus();
-}
 
-async function kontrol(){
-  const inp=document.getElementById('ansInp');
-  if(!inp||!inp.value.trim()) return;
-  const userAns=inp.value.trim();
-  inp.disabled=true; document.getElementById('kontBtn').disabled=true;
-
-  const q=ST.cq, t=TOPICS[ST.topic-1], h=getH();
-  const isCorrect=checkEqual(userAns, q.cevap);
-
-  h.total++; h.correct=(h.correct||0)+(isCorrect?1:0);
-  if(!h.recent) h.recent=[];
-  h.recent.push(isCorrect);
-  ST.totalQ++; ST.totalCorrect+=(isCorrect?1:0);
-
-  if(isCorrect){
-    ST.streak++; ST.maxStreak=Math.max(ST.streak,ST.maxStreak);
-    h.wrongType=null; h.wrongCount=0;
-    if(ST.streak===5) celebrate('🔥 5 Art Arda!');
-    else if(ST.streak===10) celebrate('🚀 10 Seri!');
-    else if(ST.streak>0&&ST.streak%3===0) celebrate('✅ İyi gidiyorsun!');
-  } else {
-    ST.streak=0;
-    h.wrongType=q.tip||'genel';
-    h.wrongCount=(h.wrongCount||0)+1;
-    if(!h.weakTypes) h.weakTypes={};
-    h.weakTypes[q.tip||'genel']=(h.weakTypes[q.tip||'genel']||0)+1;
-  }
-
-  ST.phase='feedback'; sv();
-
-  const son8=h.recent.slice(-8);
-  const fbTxt=await aiFeedback(t.n, q.soru, q.cozum, userAns, q.cevap, isCorrect, son8, h.wrongCount);
-
-  let formulHtml='';
-  if(!isCorrect && h.wrongCount>=2 && FORMULAS[ST.topic]){
-    formulHtml=`<div class="formula-box" style="margin-top:12px">
-      <div class="fb-label">💡 Bu konunun formülleri</div>
-      <div class="fb-content">${FORMULAS[ST.topic].map(f=>`• ${f}`).join('<br>')}</div>
-    </div>`;
-  }
-
-  let cozumHtml='';
-  if(!isCorrect && q.cozum){
-    cozumHtml=`<div class="solution-box" style="margin-top:10px">
-      <div class="sol-label">📋 Adım Adım Çözüm</div>
-      <div class="sol-body">${q.cozum.replace(/\n/g,'<br>')}</div>
-    </div>`;
-  }
-
-  const fallback=isCorrect
-    ?`Doğru! Cevap: <strong>${q.cevap}</strong>`
-    :`Doğru cevap: <strong>${q.cevap}</strong>`;
-
-  const fbDiv=document.createElement('div');
-  fbDiv.className=`fb ${isCorrect?'fb-ok':'fb-fail'}`;
-  fbDiv.innerHTML=`
-    <div class="fb-head"><span class="fb-icon">${isCorrect?'🎉':'❌'}</span><span class="fb-title">${isCorrect?'Doğru!':'Yanlış'}</span></div>
-    <div class="fb-body">${fbTxt?fbTxt.replace(/\n/g,'<br>'):fallback}</div>
-    ${cozumHtml}${formulHtml}
-    <div class="btn-row" style="margin-top:12px">
-      <button class="btn btn-ghost btn-full" id="nextBtn" onclick="nextQ()">Sonraki Soru →</button>
-    </div>`;
-
-  document.getElementById('learnContent').appendChild(fbDiv);
-  fbDiv.scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  setTimeout(()=>checkAdvance(),400);
-}
-
-async function checkAdvance(){
-  if(ST.pendingAdvance) return;
-  const h=getH(), t=TOPICS[ST.topic-1];
-  const dec=await aiAdvance(t.n, ST.kademe, h);
-
-  if(dec.advance){
-    ST.pendingAdvance=true;
-    const btn=document.getElementById('nextBtn');
-    if(!btn) return;
-    btn.classList.add('advance');
-    if(dec.konu){
-      btn.innerHTML=`🏆 Konu Tamamlandı! Sonraki Konuya Geç →`;
-      btn.onclick=()=>advanceTopic(dec.reason);
-    } else {
-      btn.innerHTML=`⬆️ Kademe ${ST.kademe+1}'e Geç (${KADEME[ST.kademe]}) →`;
-      btn.onclick=()=>advanceKademe(dec.reason);
-    }
-  } else {
-    const h2=getH();
-    const remaining=20-h2.total;
-    const acc=h2.total>0?Math.round(h2.correct/h2.total*100):0;
-    const msgDiv=document.createElement('div');
-    msgDiv.style.cssText='font-size:12px;color:var(--t3);text-align:center;margin-top:6px;padding:8px;';
-    msgDiv.textContent=dec.reason||(remaining>0?`${remaining} soru daha (min 20) · %${acc} başarı (hedef %90)`:acc<90?`%${acc} başarı — %90 gerekli`:'');
-    document.getElementById('nextBtn')?.parentElement?.appendChild(msgDiv);
-  }
-}
-
-function nextQ(){ ST.phase='question'; ST.cq=null; window.scrollTo(0,0); renderNextQ(); }
-
-function advanceKademe(reason){
-  celebrate(`⬆️ Kademe ${ST.kademe+1}!`);
-  ST.kademe++;
-  const h=getH(); h.k=ST.kademe;
-  ST.pendingAdvance=false; ST.cq=null;
-  sv(); setLearnHeader();
-  document.getElementById('learnContent').innerHTML=`
-    <div class="card accent-top" style="text-align:center;padding:28px">
-      <div style="font-size:48px;margin-bottom:12px">⬆️</div>
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px">Kademe ${ST.kademe} — ${KADEME[ST.kademe-1]}</div>
-      <div style="font-size:14px;color:var(--t2);margin-bottom:20px">${reason}</div>
-      ${formulaCard(ST.topic)}
-      <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="renderNextQ()">Devam Et →</button>
-    </div>`;
-}
-
-function advanceTopic(reason){
-  if(!ST.completedTopics.includes(ST.topic)) ST.completedTopics.push(ST.topic);
-  const next=ST.topic<28?ST.topic+1:ST.topic;
-  celebrate('🏆 Konu Bitti!');
-  ST.topic=next; ST.kademe=1;
-  ST.pendingAdvance=false; ST.cq=null;
-  sv();
-
-  if(ST.topic>28){ showFinish(); return; }
-  const t=TOPICS[ST.topic-1];
-  document.getElementById('learnTitle').textContent=`${t.e} ${t.n}`;
-  document.getElementById('learnKademe').textContent=`K1 · Temel`;
-  document.getElementById('learnContent').innerHTML=`
-    <div class="card accent-top" style="text-align:center;padding:28px">
-      <div style="font-size:48px;margin-bottom:12px">🏆</div>
-      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px">Konu Tamamlandı!</div>
-      <div style="font-size:14px;color:var(--t2);margin-bottom:20px">${reason}</div>
-      <div style="font-size:15px;margin-bottom:16px">Sıradaki: <strong>${t.e} ${t.n}</strong></div>
-      <button class="btn btn-primary btn-full" onclick="renderSummary()">Yeni Konuya Başla →</button>
-    </div>`;
-}
-
-function showFinish(){
-  document.getElementById('learnContent').innerHTML=`
-    <div class="card accent-top" style="text-align:center;padding:28px">
-      <div style="font-size:48px;margin-bottom:12px">🎓</div>
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px">Tebrikler!</div>
-      <div style="font-size:14px;color:var(--t2);margin-bottom:20px">Tüm 28 konuyu tamamladın. KPSS'de 20 neti hak ediyorsun.</div>
-      <button class="btn btn-primary btn-full" onclick="goExamSetup()" style="margin-bottom:8px">📝 Deneme Sınavı Yap</button>
-      <button class="btn btn-ghost btn-full" onclick="doReset('all')">Baştan Başla</button>
-    </div>`;
-}
-
-// ═══════════════════════════════════════════════════════════
-// ASK
-// ═══════════════════════════════════════════════════════════
-function toggleAsk(){ document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); }
-
-async function sendAsk(){
-  const inp=document.getElementById('askInp');
-  const q=inp?.value?.trim();
-  if(!q) return;
-  inp.value='';
-  const el=document.getElementById('askResult');
-  el?.classList.add('open');
-  el.innerHTML=`${dots()} Öğretmen düşünüyor...`;
-  const t=TOPICS[ST.topic-1];
-  const ans=await aiAsk(t.n, ST.cq?.soru||'', q);
-  if(el) el.innerHTML=ans?.replace(/\n/g,'<br>')||'Şu an cevap veremiyorum.';
-}
-
-// ═══════════════════════════════════════════════════════════
-// EXAM
-// ═══════════════════════════════════════════════════════════
-let examState={type:'',total:0,answers:[],qIdx:0,timer:null};
-
-function startExam(type, total){
-  if(!ST.apiKey){ openModal('api'); return; }
-  examState={type,total,answers:[],qIdx:0,timer:null};
-  showView('vExam');
-  document.getElementById('examType').textContent=type+' Sınavı';
-  const secs = total===20?(type==='KPSS'?25:20):35;
-  startTimer(secs*60);
-  loadExamQ(0);
-}
-
-function startTimer(secs){
-  if(examState.timer) clearInterval(examState.timer);
-  let rem=secs;
-  examState.timer=setInterval(()=>{
-    rem--;
-    const m=Math.floor(rem/60),s=rem%60;
-    const el=document.getElementById('examTimer');
-    if(el){ el.textContent=`${m}:${s.toString().padStart(2,'0')}`; if(rem<=60) el.style.color='var(--red)'; }
-    if(rem<=0){ clearInterval(examState.timer); finishExam(); }
-  },1000);
-}
-
-function getZorluk(idx, total){
-  const r=idx/total;
-  if(r<0.4) return 'kolay';
-  if(r<0.8) return 'orta';
-  return 'zor';
-}
-
-async function loadExamQ(idx){
-  if(idx>=examState.total){ finishExam(); return; }
-  document.getElementById('examInfo').textContent=`Soru ${idx+1}/${examState.total}`;
-  document.getElementById('examContent').innerHTML=`<div class="card">${dots()} Soru ${idx+1} hazırlanıyor...</div>`;
-
-  const weakIds=Object.entries(ST.hist)
-    .filter(([,h])=>h.total>=5&&Math.round((h.correct||0)/h.total*100)<70)
-    .map(([id])=>+id);
-
-  const pool=weakIds.length>0&&Math.random()<0.4
-    ?TOPICS.filter(t=>weakIds.includes(t.id))
-    :TOPICS.slice(0,Math.max(8,ST.completedTopics.length+1));
-
-  const t=pool[Math.floor(Math.random()*pool.length)];
-  const zorluk=getZorluk(idx,examState.total);
-  const qData=await aiExamQ(t.n, examState.type, zorluk);
-
-  if(!qData){
-    document.getElementById('examContent').innerHTML=`<div class="err">Soru üretilemedi. <button class="btn btn-ghost" onclick="loadExamQ(${idx})">Tekrar</button></div>`;
-    return;
-  }
-
-  const zbadge=zorluk==='kolay'?'badge-grn':zorluk==='zor'?'badge-red':'badge-warn';
-  document.getElementById('examContent').innerHTML=`
-    <div class="card accent-top" id="eqCard">
-      <div class="q-header">
-        <span class="q-counter">Soru ${idx+1}/${examState.total}</span>
-        <div class="q-tags">
-          <span class="hdr-badge ${zbadge}">${zorluk}</span>
-          <span class="hdr-badge badge-acc">${t.n}</span>
+    <!-- Kutlama Animasyonu -->
+    <div id="celWrap" class="celebrate hidden">
+        <div class="cel-box">
+            <span class="cel-icon">🎉</span>
+            <span id="celTxt">Tebrikler!</span>
         </div>
-      </div>
-      <div class="q-text">${qData.soru.replace(/\n/g,'<br>')}</div>
-      <div class="ans-row">
-        <input id="eAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..."
-          autocomplete="off" onkeydown="if(event.key==='Enter'&&this.value.trim())submitExamAns('${esc(qData.cevap)}','${esc(qData.cozum||'')}','${esc(t.n)}',${idx})"/>
-        <button class="btn btn-primary" onclick="submitExamAns('${esc(qData.cevap)}','${esc(qData.cozum||'')}','${esc(t.n)}',${idx})">✓</button>
-      </div>
-      <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipExamQ('${esc(t.n)}',${idx})">Boş Bırak →</button>
-    </div>`;
-  document.getElementById('eAnsInp')?.focus();
-}
-
-function submitExamAns(cevap, cozum, konu, idx){
-  const inp=document.getElementById('eAnsInp');
-  const ua=inp?.value?.trim()||'';
-  const ok=checkEqual(ua,cevap);
-  examState.answers.push({idx,konu,cevap,cozum,ua,ok,skipped:false});
-  loadExamQ(idx+1);
-}
-
-function skipExamQ(konu, idx){
-  examState.answers.push({idx,konu,cevap:'—',ua:'',ok:false,skipped:true});
-  loadExamQ(idx+1);
-}
-
-function finishExam(){
-  if(examState.timer) clearInterval(examState.timer);
-  const ans=examState.answers;
-  const dogru=ans.filter(a=>a.ok).length;
-  const yanlis=ans.filter(a=>!a.ok&&!a.skipped&&a.ua).length;
-  const bos=ans.filter(a=>a.skipped||!a.ua).length;
-  const net=(dogru-yanlis*0.25).toFixed(2);
-
-  ST.examHistory.push({type:examState.type,net,date:new Date().toLocaleDateString('tr')});
-  sv();
-
-  const wrongList=ans.filter(a=>!a.ok&&!a.skipped).slice(0,3);
-
-  document.getElementById('examContent').innerHTML=`
-    <div style="text-align:center;padding:10px 0 20px">
-      <div style="font-size:13px;color:var(--t2);margin-bottom:6px">${examState.type} Sınavı Sonucu</div>
-      <div class="result-net">${net}</div>
-      <div class="result-lbl">Net</div>
-      <div class="stat-grid">
-        <div class="stat-cell"><div class="stat-num" style="color:var(--grn)">${dogru}</div><div class="stat-lbl">Doğru</div></div>
-        <div class="stat-cell"><div class="stat-num" style="color:var(--red)">${yanlis}</div><div class="stat-lbl">Yanlış</div></div>
-        <div class="stat-cell"><div class="stat-num" style="color:var(--t3)">${bos}</div><div class="stat-lbl">Boş</div></div>
-        <div class="stat-cell"><div class="stat-num" style="color:var(--warn)">${examState.total}</div><div class="stat-lbl">Toplam</div></div>
-      </div>
-      ${wrongList.length>0?`<div class="card" style="text-align:left;margin-top:14px"><h3 style="margin-bottom:10px">Yanlış Yaptıkların</h3>${wrongList.map(a=>`<div class="weak-row"><span class="weak-name">${a.konu}</span><span class="hdr-badge badge-red" style="font-size:11px">❌ ${a.ua||'boş'} → ${a.cevap}</span></div>`).join('')}</div>`:''}
     </div>
-    <div class="btn-row">
-      <button class="btn btn-primary btn-full" onclick="startExam('${examState.type}',${examState.total})">🔄 Tekrar Sınav</button>
-      <button class="btn btn-ghost btn-full" onclick="goHome()">Ana Menüye Dön</button>
-    </div>`;
-}
 
-// ═══════════════════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════════════════
-async function renderStats(){
-  const acc=ST.totalQ>0?(ST.totalCorrect/ST.totalQ*100).toFixed(0):0;
-  const done=ST.completedTopics.length;
-  const estNet=Math.min(20,Math.round(done*0.55+parseFloat(acc)/14));
-
-  const weakTopics=Object.entries(ST.hist)
-    .filter(([,h])=>h.total>=5)
-    .map(([id,h])=>({name:TOPICS.find(t=>t.id==id)?.n||id, pct:Math.round((h.correct||0)/h.total*100), total:h.total}))
-    .sort((a,b)=>a.pct-b.pct)
-    .slice(0,5);
-
-  const examLast=ST.examHistory.slice(-5).reverse();
-
-  document.getElementById('statsContent').innerHTML=`
-    <div class="net-box">
-      <div style="font-size:12px;color:var(--t2);margin-bottom:6px">Tahmini KPSS Netin</div>
-      <div class="net-num">${estNet}</div>
-      <div class="net-lbl">${done===28?'Tüm konular bitti — hedef tamam!':'Konuları tamamladıkça artacak'}</div>
-    </div>
-    <div class="stat-grid">
-      <div class="stat-cell"><div class="stat-num" style="color:var(--acc)">${done}</div><div class="stat-lbl">Konu Bitti</div></div>
-      <div class="stat-cell"><div class="stat-num" style="color:var(--red)">${ST.totalQ}</div><div class="stat-lbl">Toplam Soru</div></div>
-      <div class="stat-cell"><div class="stat-num" style="color:var(--grn)">${acc}%</div><div class="stat-lbl">Doğruluk</div></div>
-      <div class="stat-cell"><div class="stat-num" style="color:var(--warn)">${ST.maxStreak}</div><div class="stat-lbl">En İyi Seri</div></div>
-    </div>
-    ${weakTopics.length>0?`
-    <div class="card">
-      <h3>⚠️ Zayıf Konular</h3>
-      <div id="weakList">
-        ${weakTopics.map(w=>`
-        <div class="weak-row">
-          <span class="weak-name">${w.name}</span>
-          <span class="weak-pct" style="color:${w.pct>=90?'var(--grn)':w.pct>=70?'var(--warn)':'var(--red)'}">%${w.pct} (${w.total} soru)</span>
-        </div>`).join('')}
-      </div>
-      <div id="weakAnalysis" style="margin-top:12px;font-size:13px;color:var(--t2)">${dots()} Analiz yapılıyor...</div>
-    </div>`:''}
-    ${examLast.length>0?`
-    <div class="card">
-      <h3>📝 Son Sınavlar</h3>
-      ${examLast.map(e=>`<div class="weak-row"><span class="weak-name">${e.type} · ${e.date}</span><span class="weak-pct" style="color:var(--acc)">${e.net} net</span></div>`).join('')}
-    </div>`:''}
-    <div class="card">
-      <h3>Genel İlerleme</h3>
-      <div class="prog-bar-wrap">
-        <div class="prog-bar-label"><span>Tamamlanan Konular</span><span>${done}/28</span></div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${Math.round(done/28*100)}%"></div></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--t2);margin-top:12px">
-        <span>✅ Doğru: ${ST.totalCorrect}</span>
-        <span>❌ Yanlış: ${ST.totalQ-ST.totalCorrect}</span>
-        <span>🔥 Seri: ${ST.streak}</span>
-      </div>
-    </div>`;
-
-  if(weakTopics.length>0){
-    const data=weakTopics.map(w=>`${w.name}: %${w.pct} (${w.total} soru)`).join('\n');
-    const ana=await aiWeakAnalysis(data);
-    const el=document.getElementById('weakAnalysis');
-    if(el&&ana?.analiz){
-      el.innerHTML=`<strong>Öğretmen Notu:</strong><br>`+
-        ana.analiz.map(a=>`• <strong>${a.konu}:</strong> ${a.oneri}`).join('<br>');
-    } else if(el){ el.innerHTML=''; }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// RESET & MODAL
-// ═══════════════════════════════════════════════════════════
-function doReset(type){
-  closeModal('reset');
-  if(type==='all'){
-    if(!confirm('Her şey silinecek. Emin misin?')) return;
-    Object.assign(ST,{topic:1,kademe:1,streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},cq:null,pendingAdvance:false,examHistory:[]});
-    sv(); goHome();
-  } else {
-    const h=getH();
-    Object.assign(h,{k:1,correct:0,total:0,recent:[],recentQ:[],wrongType:null,wrongCount:0,weakTypes:{}});
-    ST.kademe=1; ST.pendingAdvance=false; ST.cq=null;
-    if(ST.completedTopics.includes(ST.topic)) ST.completedTopics=ST.completedTopics.filter(i=>i!==ST.topic);
-    sv(); alert(`${TOPICS[ST.topic-1]?.n} sıfırlandı.`); renderSummary();
-  }
-}
-
-function openModal(id){
-  document.getElementById(id+'Modal').classList.remove('hidden');
-  if(id==='api'){ const k=localStorage.getItem('mat_key'); if(k) document.getElementById('apiInp').value=k; }
-}
-function closeModal(id){ document.getElementById(id+'Modal').classList.add('hidden'); }
-
-function saveKey(){
-  const k=document.getElementById('apiInp').value.trim();
-  if(!k){ alert('Lütfen bir API anahtarı gir.'); return; }
-  ST.apiKey=k; localStorage.setItem('mat_key',k);
-  closeModal('api'); updateApiStatus();
-  alert('Kaydedildi!');
-}
-
-// ═══════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════
-ld();
-if(ST.totalQ>0){
-  const mainBtn=document.querySelector('.menu-btn');
-  if(mainBtn){
-    const t=TOPICS[ST.topic-1];
-    const strongEl=mainBtn.querySelector('.mt strong');
-    const spanEl=mainBtn.querySelector('.mt span');
-    if(strongEl) strongEl.textContent=`Devam Et — ${t?.e} ${t?.n}`;
-    if(spanEl) spanEl.textContent=`Konu ${ST.topic}/28 · Kademe ${ST.kademe}/5`;
-  }
-}
-</script>
+    <!-- ==================== SCRIPTLER (Sıra önemli!) ==================== -->
+    <script src="config.js"></script>
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
