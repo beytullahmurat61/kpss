@@ -15,11 +15,9 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
 
-/* VIEWS */
 .view{display:none;min-height:100vh;flex-direction:column;}
 .view.active{display:flex;}
 
-/* HEADER */
 .hdr{background:rgba(10,10,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--bor);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
 .hdr-back{width:34px;height:34px;border-radius:9px;background:var(--sur2);border:1px solid var(--bor);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:border-color .2s;}
 .hdr-back:hover{border-color:var(--acc);color:var(--txt);}
@@ -30,10 +28,8 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .badge-warn{background:rgba(255,179,71,.15);color:var(--warn);border:1px solid rgba(255,179,71,.3);}
 .badge-red{background:rgba(255,101,132,.15);color:var(--red);border:1px solid rgba(255,101,132,.3);}
 
-/* CONTENT */
 .content{flex:1;padding:16px;max-width:620px;width:100%;margin:0 auto;padding-bottom:24px;}
 
-/* HOME */
 .home-logo{width:80px;height:80px;margin:40px auto 20px;background:linear-gradient(135deg,var(--acc),var(--red));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 16px 50px rgba(108,99,255,.4);}
 .home-title{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;text-align:center;margin-bottom:10px;background:linear-gradient(135deg,#fff 30%,var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .home-sub{text-align:center;font-size:15px;color:var(--t2);line-height:1.65;margin-bottom:32px;}
@@ -48,14 +44,12 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .menu-btn .mt span{font-size:12px;color:var(--t3);}
 .menu-btn .ma{font-size:18px;color:var(--t3);}
 
-/* CARDS */
 .card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:18px;margin-bottom:14px;position:relative;}
 .card.accent-top::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--red));border-radius:var(--r) var(--r) 0 0;}
 .card h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:10px;}
 .card p{font-size:14px;color:var(--t2);line-height:1.75;}
 .card p strong{color:var(--txt);}
 
-/* TOPIC LIST */
 .topic-list{display:flex;flex-direction:column;gap:7px;}
 .topic-row{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--rs);cursor:pointer;transition:all .2s;}
 .topic-row:hover:not(.t-locked){border-color:var(--acc);background:rgba(108,99,255,.05);}
@@ -66,11 +60,8 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .t-info{flex:1;min-width:0;}
 .t-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .t-meta{font-size:11px;color:var(--t3);margin-top:2px;}
-.t-prog{flex-shrink:0;}
-.prog-ring{width:36px;height:36px;flex-shrink:0;}
 .phase-sep{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);padding:10px 0 4px;}
 
-/* PROGRESS BAR */
 .prog-bar-wrap{margin:10px 0;}
 .prog-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:5px;}
 .prog-bar-bg{height:8px;background:var(--sur2);border-radius:4px;overflow:hidden;}
@@ -79,14 +70,12 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .fill-grn{background:linear-gradient(90deg,var(--grn),#00c9ff);}
 .fill-warn{background:var(--warn);}
 
-/* QUESTION */
 .q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
 .q-counter{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
 .q-tags{display:flex;gap:5px;flex-wrap:wrap;}
 .q-text{font-size:17px;line-height:1.72;color:var(--txt);margin-bottom:22px;padding:16px;background:var(--sur2);border-radius:var(--rs);border:1px solid var(--bor);}
 .retry-notice{display:flex;align-items:center;gap:7px;padding:10px 13px;background:rgba(255,101,132,.09);border:1px solid rgba(255,101,132,.25);border-radius:var(--rs);margin-bottom:12px;font-size:13px;color:var(--red);}
 
-/* INPUT */
 .ans-row{display:flex;gap:8px;margin-bottom:8px;}
 .ans-inp{flex:1;padding:14px 16px;background:var(--sur2);border:1.5px solid var(--bor);border-radius:var(--rs);color:var(--txt);font-size:17px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
 .ans-inp:focus{border-color:var(--acc);}
@@ -94,7 +83,6 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .ans-inp:disabled{opacity:.5;}
 .ans-hint{font-size:12px;color:var(--t3);margin-bottom:16px;}
 
-/* BUTTONS */
 .btn{padding:13px 20px;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
 .btn-primary{background:linear-gradient(135deg,var(--acc),#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(108,99,255,.3);}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(108,99,255,.4);}
@@ -107,7 +95,6 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .btn-full{width:100%;justify-content:center;}
 .btn-row{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
 
-/* FEEDBACK */
 .fb{border-radius:var(--r);padding:18px;margin-bottom:12px;animation:fadeup .3s ease;}
 .fb-ok{background:rgba(67,233,123,.07);border:1px solid rgba(67,233,123,.2);}
 .fb-fail{background:rgba(255,101,132,.07);border:1px solid rgba(255,101,132,.2);}
@@ -119,19 +106,16 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .fb-body{font-size:14px;line-height:1.8;color:var(--t2);}
 .fb-body strong{color:var(--txt);}
 
-/* FORMULA HINT */
 .formula-box{margin-top:12px;padding:13px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.22);border-radius:var(--rs);}
 .formula-box .fb-label{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
 .formula-box .fb-content{font-size:13px;color:var(--t2);line-height:1.7;}
 .formula-box .fb-content strong{color:var(--txt);font-family:monospace;background:rgba(108,99,255,.12);padding:1px 5px;border-radius:4px;}
 
-/* STEP SOLUTION */
 .solution-box{margin-top:12px;padding:13px;background:rgba(255,179,71,.05);border:1px solid rgba(255,179,71,.2);border-radius:var(--rs);}
 .solution-box .sol-label{font-size:11px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
 .solution-box .sol-body{font-size:13px;color:var(--t2);line-height:1.8;}
 .solution-box .sol-body strong{color:var(--txt);}
 
-/* ASK */
 .ask-section{margin-top:10px;}
 .ask-toggle{width:100%;padding:11px;background:rgba(108,99,255,.08);color:var(--acc);border:1px solid rgba(108,99,255,.25);border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s;}
 .ask-toggle:hover{background:rgba(108,99,255,.14);}
@@ -143,7 +127,6 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .ask-result{display:none;margin-top:9px;padding:13px;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.16);border-radius:var(--rs);font-size:14px;line-height:1.75;color:var(--t2);}
 .ask-result.open{display:block;}
 
-/* DOTS */
 .dots{display:inline-flex;gap:4px;align-items:center;}
 .dots span{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:db 1.2s infinite;}
 .dots span:nth-child(2){animation-delay:.2s;}
@@ -151,7 +134,6 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 @keyframes db{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-5px)}}
 @keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* STATS */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .stat-cell{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;text-align:center;}
 .stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
@@ -164,19 +146,16 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .weak-name{color:var(--t2);}
 .weak-pct{font-weight:700;}
 
-/* EXAM */
 .exam-bar{background:rgba(255,101,132,.08);border-bottom:1px solid rgba(255,101,132,.2);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;}
 .exam-timer{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--red);}
 .exam-info{font-size:12px;color:var(--t2);}
 .result-net{font-family:'Syne',sans-serif;font-size:62px;font-weight:800;color:var(--acc);text-align:center;margin:16px 0 4px;}
 .result-lbl{text-align:center;font-size:13px;color:var(--t2);margin-bottom:20px;}
 
-/* CELEBRATION */
 .cel-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;display:flex;align-items:center;justify-content:center;}
 .cel-txt{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--grn);text-shadow:0 0 40px rgba(67,233,123,.5);animation:celA 1.7s ease forwards;opacity:0;}
 @keyframes celA{0%{opacity:0;transform:scale(.5) translateY(18px)}30%{opacity:1;transform:scale(1.1) translateY(-8px)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-25px)}}
 
-/* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:16px;}
 .modal-box{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:24px 20px;width:100%;max-width:480px;animation:fadeup .3s ease;}
 .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}
@@ -194,7 +173,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 </head>
 <body>
 
-<!-- ═══ HOME ═══ -->
+<!-- HOME -->
 <div id="vHome" class="view active">
   <div class="content" style="text-align:center">
     <div class="home-logo">📐</div>
@@ -234,7 +213,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   </div>
 </div>
 
-<!-- ═══ TOPICS ═══ -->
+<!-- TOPICS -->
 <div id="vTopics" class="view">
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">←</button>
@@ -246,7 +225,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   </div>
 </div>
 
-<!-- ═══ LEARN ═══ -->
+<!-- LEARN -->
 <div id="vLearn" class="view">
   <div class="hdr">
     <button class="hdr-back" onclick="goTopics()">←</button>
@@ -256,7 +235,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   <div class="content" id="learnContent"></div>
 </div>
 
-<!-- ═══ EXAM SETUP ═══ -->
+<!-- EXAM SETUP -->
 <div id="vExamSetup" class="view">
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">←</button>
@@ -282,7 +261,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   </div>
 </div>
 
-<!-- ═══ EXAM ═══ -->
+<!-- EXAM -->
 <div id="vExam" class="view">
   <div class="exam-bar">
     <div>
@@ -294,7 +273,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   <div class="content" id="examContent"></div>
 </div>
 
-<!-- ═══ STATS ═══ -->
+<!-- STATS -->
 <div id="vStats" class="view">
   <div class="hdr">
     <button class="hdr-back" onclick="goHome()">←</button>
@@ -303,7 +282,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   <div class="content" id="statsContent"></div>
 </div>
 
-<!-- ═══ MODALS ═══ -->
+<!-- MODALS -->
 <div id="apiModal" class="modal-bg hidden">
   <div class="modal-box">
     <div class="modal-title">🔑 Groq API Anahtarı</div>
@@ -329,7 +308,6 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
   </div>
 </div>
 
-<!-- CELEBRATION -->
 <div class="cel-wrap hidden" id="celWrap"><div class="cel-txt" id="celTxt"></div></div>
 
 <script>
@@ -357,7 +335,7 @@ const TOPICS = [
   {id:18, n:"Yaş Problemleri",             p:"KPSS",  kpss:"1–2 soru", e:"🎂"},
   {id:19, n:"Hız Problemleri",             p:"KPSS",  kpss:"2–3 soru", e:"🚗"},
   {id:20, n:"Yüzde Problemleri",           p:"KPSS",  kpss:"3–4 soru ⭐", e:"🏷️"},
-  {id:21, n:"İş Problemleri",             p:"KPSS",  kpss:"3–4 soru ⭐⭐", e:"🔧"},
+  {id:21, n:"İş Problemleri",              p:"KPSS",  kpss:"3–4 soru ⭐⭐", e:"🔧"},
   {id:22, n:"Karışım Problemleri",         p:"KPSS",  kpss:"2–3 soru ⭐", e:"🧪"},
   {id:23, n:"Olasılık",                    p:"KPSS",  kpss:"1–2 soru", e:"🎲"},
   {id:24, n:"Permütasyon & Kombinasyon",   p:"KPSS",  kpss:"1–2 soru", e:"🎴"},
@@ -370,9 +348,9 @@ const TOPICS = [
 const KADEME = ["Temel","TYT","AYT","DGS","KPSS"];
 
 const FORMULAS = {
-  5:["OBEB: Ortak asal çarpanların en küçük kuvvetleri çarpımı","OKEK: Tüm asal çarpanların en büyük kuvvetleri çarpımı"],
-  7:["Kesir: pay/payda — payda 0 olamaz","Sadeleştirme: pay ve paydayı OBEB'e böl"],
-  8:["Toplama/Çıkarma: Paydaları OKEK ile eşitle, sonra payları topla/çıkar","Çarpma: pay×pay / payda×payda","Bölme: a/b ÷ c/d = a/b × d/c (ters çevir ve çarp)"],
+  5: ["OBEB: Ortak asal çarpanların en küçük kuvvetleri çarpımı","OKEK: Tüm asal çarpanların en büyük kuvvetleri çarpımı"],
+  7: ["Kesir: pay/payda — payda 0 olamaz","Sadeleştirme: pay ve paydayı OBEB'e böl"],
+  8: ["Toplama/Çıkarma: Paydaları OKEK ile eşitle, sonra payları topla/çıkar","Çarpma: pay×pay / payda×payda","Bölme: a/b ÷ c/d = a/b × d/c (ters çevir ve çarp)"],
   11:["aⁿ × aᵐ = aⁿ⁺ᵐ","aⁿ ÷ aᵐ = aⁿ⁻ᵐ","(aⁿ)ᵐ = aⁿˣᵐ","a⁰ = 1 (a≠0)"],
   12:["√(a×b) = √a × √b","√(a/b) = √a / √b","√a² = a (a≥0)"],
   13:["Yüzde = (Kısım / Bütün) × 100","Kısım = Bütün × Yüzde / 100"],
@@ -381,7 +359,7 @@ const FORMULAS = {
   16:["|a| = a (a≥0), |a| = −a (a<0)","|a−b| = a ile b arasındaki uzaklık"],
   18:["Yaş farkı her zaman sabittir","x yıl sonra: şimdiki yaş + x","x yıl önce: şimdiki yaş − x"],
   19:["Hız = Yol / Zaman","Yol = Hız × Zaman","Zaman = Yol / Hız"],
-  20:["Zamlı fiyat = Eski × (1 + r/100)","İndirimli fiyat = Eski × (1 − r/100)","Kâr% = Kâr/Maliyet × 100"],
+  20:["Zamlı fiyat = Eski × (1 + r/100)","İndirimli fiyat = Eski × (1 − r/100)","Kâr yüzdesi = Kâr/Maliyet × 100"],
   21:["A'nın 1 günlük işi = 1/a","Birlikte 1 günde = 1/a + 1/b","Birlikte biter = 1 / (1/a + 1/b)"],
   22:["Karışım: C₁V₁ + C₂V₂ = Cm(V₁+V₂)","Cm = (C₁V₁ + C₂V₂) / (V₁+V₂)"],
   23:["P(A) = İstenen / Toplam","0 ≤ P(A) ≤ 1","P(A)+P(A') = 1"],
@@ -399,12 +377,12 @@ let ST = {
   streak:0, maxStreak:0,
   totalCorrect:0, totalQ:0,
   completedTopics:[],
-  hist:{}, // {topicId: {k, correct, total, recent[], recentQ[], wrongType, wrongCount, weakTypes{}}}
+  hist:{},
   lastSession:null,
-  phase:'summary', // summary | question | feedback
-  cq:null, // current question
+  phase:'summary',
+  cq:null,
   pendingAdvance:false,
-  examHistory:[], // [{type, net, date}]
+  examHistory:[],
 };
 
 function ld(){
@@ -463,40 +441,13 @@ function pj(raw){
 }
 
 // ═══════════════════════════════════════════════════════════
-// AI GÖREVLER
+// HİKAYELİ SORU SİSTEMİ
 // ═══════════════════════════════════════════════════════════
-
-// 1. Konu özeti
-async function aiSummary(topic, kademe){
-  const sys=`Sen deneyimli bir matematik öğretmenisin. Türkçe yazıyorsun. Resmi ama anlaşılır bir dil kullanırsın. Gereksiz süsleme yapmazsın.`;
-  const usr=`Konu: "${topic.n}" — ${KADEME[kademe-1]} seviyesi (Kademe ${kademe}/5)
-Görев: Bu konuyu bu seviyeye göre öğrenciye tanıt.
-- Sıfır bilgiden başlayarak anlat
-- Gerçek hayat örneği ver (1 tane yeterli)
-- Bu kademede ne tür sorular bekleneceğini söyle
-- Max 150 kelime`;
-  return ai(sys,usr);
-}
-
-const topicName = topic.n || "";
-
-if (isStoryTopicName(topicName)) {
-  const q = storyQuestion(topicName);
-  if (q) return q;
-}
-
-// 2. Soru üret + doğrula
-async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ){
-  /* =========================================================
-// ═══════════════════════════════════════════════════════════
-// HİKAYELİ SORU SİSTEMİ — TAM ENTEGRASYON
-// ═══════════════════════════════════════════════════════════
-
 const STORY_RNG = {
   int(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
   pick(arr) { return arr[this.int(0, arr.length - 1)]; },
-  name() { return this.pick(["Ayşe", "Mehmet", "Elif", "Can", "Zeynep", "Ali", "Merve", "Burak", "Fatma", "Ece", "Hakan", "Seda"]); },
-  place() { return this.pick(["market", "kırtasiye", "fırın", "depo", "okul kantini", "pazar", "manav", "mağaza"]); }
+  name() { return this.pick(["Ayşe","Mehmet","Elif","Can","Zeynep","Ali","Merve","Burak","Fatma","Ece","Hakan","Seda"]); },
+  place() { return this.pick(["market","kırtasiye","fırın","depo","okul kantini","pazar","manav","mağaza"]); }
 };
 
 function storyCleanNum(n) {
@@ -506,13 +457,7 @@ function storyCleanNum(n) {
 }
 
 function storyMake({ soru, cevap, cozum, tip, zorluk }) {
-  return {
-    soru,
-    cevap: storyCleanNum(cevap),
-    cozum,
-    tip,
-    zorluk
-  };
+  return { soru, cevap: storyCleanNum(cevap), cozum, tip, zorluk };
 }
 
 function isStoryTopicName(topicName) {
@@ -530,7 +475,6 @@ function isStoryTopicName(topicName) {
   );
 }
 
-// ŞABLONLAR
 function tplYas1() {
   const x = STORY_RNG.int(6, 18);
   const fark = STORY_RNG.int(18, 40);
@@ -549,10 +493,12 @@ function tplYas2() {
   const x = STORY_RNG.int(10, 20);
   const fark = STORY_RNG.int(12, 30);
   const yil = STORY_RNG.int(3, 8);
+  const isim1 = STORY_RNG.name();
+  const isim2 = STORY_RNG.name();
   return storyMake({
-    soru: `${STORY_RNG.name()} ile kardeşi arasında ${fark} yaş fark vardır. ${STORY_RNG.name()}'in yaşı ${x} ise, ${yil} yıl sonra kardeşinin yaşı kaç olur?`,
+    soru: `${isim1} ile ${isim2} arasında ${fark} yaş fark vardır. ${isim1}'in yaşı ${x} ise, ${yil} yıl sonra ${isim2}'in yaşı kaç olur?`,
     cevap: x + fark + yil,
-    cozum: `Kardeşin şimdiki yaşı ${x} + ${fark} = ${x + fark}. ${yil} yıl sonra ${x + fark} + ${yil} = ${x + fark + yil}.`,
+    cozum: `${isim2}'in şimdiki yaşı ${x} + ${fark} = ${x + fark}. ${yil} yıl sonra ${x + fark} + ${yil} = ${x + fark + yil}.`,
     tip: "yaş",
     zorluk: "orta"
   });
@@ -564,20 +510,20 @@ function tplHiz1() {
   return storyMake({
     soru: `Bir araç saatte ${v} km hızla gidiyor. ${t} saat yol alırsa kaç km gider?`,
     cevap: v * t,
-    cozum: `Yol = hız × zaman = ${v} × ${t} = ${v * t}.`,
+    cozum: `Yol = hız × zaman = ${v} × ${t} = ${v * t} km.`,
     tip: "hız",
     zorluk: "kolay"
   });
 }
 
 function tplHiz2() {
-  const y = STORY_RNG.int(180, 420);
   const v = STORY_RNG.int(45, 90);
-  const t = y / v;
+  const t = STORY_RNG.int(2, 5);
+  const y = v * t;
   return storyMake({
     soru: `Bir araç ${y} km yolu saatte ${v} km hızla gidiyor. Kaç saatte varır?`,
-    cevap: storyCleanNum(t),
-    cozum: `Zaman = yol / hız = ${y} / ${v} = ${storyCleanNum(t)} saat.`,
+    cevap: t,
+    cozum: `Zaman = yol / hız = ${y} / ${v} = ${t} saat.`,
     tip: "hız",
     zorluk: "orta"
   });
@@ -586,11 +532,11 @@ function tplHiz2() {
 function tplIs1() {
   const a = STORY_RNG.int(6, 12);
   const b = STORY_RNG.int(8, 16);
-  const sonuc = +(1 / (1 / a + 1 / b)).toFixed(2);
+  const sonuc = parseFloat((1 / (1/a + 1/b)).toFixed(2));
   return storyMake({
-    soru: `Bir işçi bir işi tek başına ${a} günde, diğeri ${b} günde bitiriyor. Birlikte çalışırlarsa iş kaç günde biter?`,
+    soru: `Bir işçi bir işi tek başına ${a} günde, diğer işçi ${b} günde bitiriyor. Birlikte çalışırlarsa iş kaç günde biter?`,
     cevap: sonuc,
-    cozum: `Birlikte günlük iş miktarı 1/${a} + 1/${b}. Toplam süre bunun tersidir.`,
+    cozum: `Birlikte günlük iş miktarı 1/${a} + 1/${b} = ${(1/a+1/b).toFixed(3)}. Toplam süre bunun tersidir: yaklaşık ${sonuc} gün.`,
     tip: "iş",
     zorluk: "zor"
   });
@@ -599,11 +545,12 @@ function tplIs1() {
 function tplYuzde1() {
   const e = STORY_RNG.int(200, 900);
   const p = STORY_RNG.int(10, 40);
-  const yeni = e - Math.round(e * p / 100);
+  const indirim = Math.round(e * p / 100);
+  const yeni = e - indirim;
   return storyMake({
-    soru: `${STORY_RNG.place()}de bir ürünün fiyatı ${e} TL. Buna ${p} indirim uygulanırsa yeni fiyat kaç TL olur?`,
+    soru: `Bir ${STORY_RNG.place()}'de bir ürünün fiyatı ${e} TL'dir. Buna yüzde ${p} indirim uygulanırsa yeni fiyat kaç TL olur?`,
     cevap: yeni,
-    cozum: `İndirim miktarı ${e} × ${p} / 100 = ${Math.round(e * p / 100)} TL. Yeni fiyat ${e} - ${Math.round(e * p / 100)} = ${yeni} TL.`,
+    cozum: `İndirim miktarı ${e} × ${p} / 100 = ${indirim} TL. Yeni fiyat ${e} - ${indirim} = ${yeni} TL.`,
     tip: "yüzde",
     zorluk: "orta"
   });
@@ -614,10 +561,11 @@ function tplKarisim1() {
   const b = STORY_RNG.int(3, 8);
   const c = STORY_RNG.int(4, 10);
   const toplam = a * 2 + b * 3 + c * 4;
+  const isim = STORY_RNG.name();
   return storyMake({
-    soru: `${STORY_RNG.name()} ${a} kg elma, ${b} kg armut ve ${c} kg portakal aldı. Elma 2 TL/kg, armut 3 TL/kg, portakal 4 TL/kg ise toplam kaç TL öder?`,
+    soru: `${isim} ${a} kg elma, ${b} kg armut ve ${c} kg portakal aldı. Elma 2 TL/kg, armut 3 TL/kg, portakal 4 TL/kg ise toplam kaç TL öder?`,
     cevap: toplam,
-    cozum: `Toplam = ${a}×2 + ${b}×3 + ${c}×4 = ${toplam}.`,
+    cozum: `Toplam = ${a}×2 + ${b}×3 + ${c}×4 = ${a*2} + ${b*3} + ${c*4} = ${toplam} TL.`,
     tip: "karışım",
     zorluk: "orta"
   });
@@ -626,22 +574,23 @@ function tplKarisim1() {
 function tplSayi1() {
   const a = STORY_RNG.int(2, 9);
   const b = STORY_RNG.int(10, 40);
+  const sonuc = a * b + b;
   return storyMake({
-    soru: `Bir sayının ${a} katının ${b} fazlası ${a * b + b} ise sayı kaçtır?`,
+    soru: `Bir sayının ${a} katının ${b} fazlası ${sonuc} ise sayı kaçtır?`,
     cevap: b,
-    cozum: `${a}x + ${b} = ${a * b + b} olur. Buradan x = ${b}.`,
+    cozum: `${a}x + ${b} = ${sonuc} denklemini kuralım. ${a}x = ${sonuc} - ${b} = ${sonuc - b}. x = ${b}.`,
     tip: "sayı",
     zorluk: "orta"
   });
 }
 
 const STORY_POOLS = {
-  "yaş": [tplYas1, tplYas2],
-  "hız": [tplHiz1, tplHiz2],
-  "iş": [tplIs1],
-  "yüzde": [tplYuzde1],
-  "karışım": [tplKarisim1],
-  "sayı": [tplSayi1]
+  "yaş":    [tplYas1, tplYas2],
+  "hız":    [tplHiz1, tplHiz2],
+  "iş":     [tplIs1],
+  "yüzde":  [tplYuzde1],
+  "karışım":[tplKarisim1],
+  "sayı":   [tplSayi1]
 };
 
 function storyQuestion(topicName) {
@@ -653,15 +602,27 @@ function storyQuestion(topicName) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// Orijinal AI SORU ÜRETİMİ (hikayeli olmayanlar için)
+// AI GÖREVLER
 // ═══════════════════════════════════════════════════════════
-async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ) {
-  // HİKAYELİ KONU KONTROLÜ — 1 SATIR!
+
+async function aiSummary(topic, kademe){
+  const sys=`Sen deneyimli bir matematik öğretmenisin. Türkçe yazıyorsun. Resmi ama anlaşılır bir dil kullanırsın. Gereksiz süsleme yapmazsın.`;
+  const usr=`Konu: "${topic.n}" — ${KADEME[kademe-1]} seviyesi (Kademe ${kademe}/5)
+Görev: Bu konuyu bu seviyeye göre öğrenciye tanıt.
+- Sıfır bilgiden başlayarak anlat
+- Gerçek hayat örneği ver (1 tane yeterli)
+- Bu kademede ne tür sorular bekleneceğini söyle
+- Max 150 kelime`;
+  return ai(sys, usr);
+}
+
+// Soru üretici — hikayeli konular için şablon, diğerleri için Groq AI
+async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ){
+  // Hikayeli konu kontrolü
   if (isStoryTopicName(topic.n)) {
     return storyQuestion(topic.n);
   }
 
-  // Eski Groq AI akışı (hikayeli olmayan konular için)
   const kDesc = kademe===1?'Tek adım, sayılar 1-30, günlük hayat (elma/para/yaş), çözüm çok basit':
                 kademe===2?'TYT tarzı, 2-3 adım, sayılar makul, formül uygulaması':
                 kademe===3?'AYT tarzı, çok adımlı, denklem kurma, dikkat gerektiriyor':
@@ -677,7 +638,7 @@ ZORUNLU: Her soruyu üretmeden önce kendi baştan sona çöz. Cevabın mantıkl
 YASAK: Negatif yaş, küsüratlı insan sayısı, imkansız senaryo, yanlış matematik.`;
 
   const usr=`Konu: "${topic.n}" — Kademe ${kademe}/5 (${kDesc})${retryPart}
-${recentQ.length>0?'Son sorular (tekrarlama!): '+recentQ.slice(-5).join(' | '):''}
+${recentQ&&recentQ.length>0?'Son sorular (tekrarlama!): '+recentQ.slice(-5).join(' | '):''}
 
 ADIMLAR:
 1. Soruyu taslak yaz
@@ -688,34 +649,20 @@ ADIMLAR:
 JSON (başka hiçbir şey yazma):
 {"soru":"...","cevap":"net sayısal cevap","cozum":"adım adım","tip":"[problem tipi]","zorluk":"kolay/orta/zor"}`;
 
-  const raw=await ai(sys,usr,true);
-  const obj=pj(raw);
-  if(!obj||!obj.soru||!obj.cevap) return null;
-  return obj;
-}
-ADIMLAR:
-1. Soruyu taslak yaz
-2. Kendi çöz (tüm adımlar)
-3. Cevap gerçekçi mi kontrol et
-4. Onaylandıysa JSON ver
-
-JSON (başka hiçbir şey yazma):
-{"soru":"...","cevap":"net sayısal cevap","cozum":"adım adım","tip":"[problem tipi]","zorluk":"kolay/orta/zor"}`;
-
-  const raw=await ai(sys,usr,true);
+  const raw=await ai(sys, usr, true);
   const obj=pj(raw);
   if(!obj||!obj.soru||!obj.cevap) return null;
   return obj;
 }
 
-// 3. Geri bildirim
 async function aiFeedback(topicName, soru, cozum, userAns, dogruAns, isCorrect, son8, wrongCount){
   const dogru=son8.filter(Boolean).length;
-  const formuls = FORMULAS[TOPICS.find(t=>t.n===topicName)?.id];
+  const topicObj=TOPICS.find(t=>t.n===topicName);
+  const formuls = topicObj ? FORMULAS[topicObj.id] : null;
   const formulPart = !isCorrect && wrongCount>=2 && formuls
     ? `\nFormüller: ${formuls.join(' | ')}`
     : '';
-  
+
   const sys=`Sen matematik öğretmenisin. Türkçe yaz. Resmi ama destekleyici. Aşırı uzun açıklama yapma. Max 120 kelime.`;
   const usr=`Konu: ${topicName}
 Soru: ${soru}
@@ -728,10 +675,9 @@ Son 8 soru: ${dogru}/8 doğru${formulPart}
 ${isCorrect
   ? 'Kısa tebrik (1 cümle). Neden doğru olduğunu açıkla.'
   : 'Hatayı bul, adım adım düzelt. Moral bozma ama net ol.'}`;
-  return ai(sys,usr);
+  return ai(sys, usr);
 }
 
-// 4. Geçiş kararı (min 20 soru, %90+)
 async function aiAdvance(topicName, kademe, hist){
   if(hist.total<20) return {advance:false, reason:`Henüz ${20-hist.total} soru daha çöz. (Minimum 20 soru gerekli)`};
   const oran=(hist.correct/hist.total)*100;
@@ -747,26 +693,23 @@ async function aiAdvance(topicName, kademe, hist){
   return {advance:true, konu:false, reason:`%${oran.toFixed(0)} başarı ile kademe ${kademe+1}'e geçiyorsun!`};
 }
 
-// 5. Sınav sorusu
 async function aiExamQ(topicName, sinav, zorluk){
   const sys=`Sen uzman bir ${sinav} matematik soru yazarısın. Türkçe yaz. Soruyu üret ve doğrula.`;
   const usr=`${sinav} sınavı için "${topicName}" konusunda ${zorluk} seviyede soru üret.
 JSON: {"soru":"...","cevap":"...","cozum":"...","konu":"${topicName}"}`;
-  const raw=await ai(sys,usr,true);
+  const raw=await ai(sys, usr, true);
   return pj(raw);
 }
 
-// 6. Soru sor
 async function aiAsk(topicName, soru, sorulan){
   const sys=`Sen matematik öğretmenisin. Öğrenci bir soruyu soruyor. Türkçe, net, kısa açıkla. Max 120 kelime.`;
-  return ai(sys,`Konu: ${topicName}\nSoru bağlamı: ${soru}\nÖğrencinin sorusu: ${sorulan}`);
+  return ai(sys, `Konu: ${topicName}\nSoru bağlamı: ${soru}\nÖğrencinin sorusu: ${sorulan}`);
 }
 
-// 7. Zayıf analiz
 async function aiWeakAnalysis(data){
   const sys=`Matematik öğretmeni. Öğrencinin performansına bakıp zayıf noktaları belirle. Türkçe, kısa.`;
   const usr=`${data}\nEn zayıf 3 konu ve kısa öneri. JSON: {"analiz":[{"konu":"...","oneri":"..."}]}`;
-  const raw=await ai(sys,usr,true);
+  const raw=await ai(sys, usr, true);
   return pj(raw);
 }
 
@@ -778,8 +721,14 @@ function showView(id){
   document.getElementById(id).classList.add('active');
 }
 function dots(){ return '<div class="dots"><span></span><span></span><span></span></div>'; }
-function celebrate(msg){ const w=document.getElementById('celWrap'),t=document.getElementById('celTxt'); t.textContent=msg; w.classList.remove('hidden'); setTimeout(()=>w.classList.add('hidden'),1900); }
-function normAns(s){ return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.').replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|adet/g,'').replace(/^0+(\d)/,'$1'); }
+function celebrate(msg){
+  const w=document.getElementById('celWrap'),t=document.getElementById('celTxt');
+  t.textContent=msg; w.classList.remove('hidden');
+  setTimeout(()=>w.classList.add('hidden'),1900);
+}
+function normAns(s){
+  return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.').replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|adet/g,'').replace(/^0+(\d)/,'$1');
+}
 function checkEqual(u,c){
   const un=normAns(u), cn=normAns(c);
   if(un===cn) return true;
@@ -792,6 +741,7 @@ function checkEqual(u,c){
   if(uf!==null&&cf!==null) return Math.abs(uf-cf)<0.05;
   return false;
 }
+function esc(s){ return String(s).replace(/'/g,"\\'").replace(/\n/g,' '); }
 
 // ═══════════════════════════════════════════════════════════
 // NAV
@@ -799,7 +749,7 @@ function checkEqual(u,c){
 function goHome(){ showView('vHome'); }
 function goStats(){ showView('vStats'); renderStats(); }
 function goExamSetup(){
-  if(!ST.apiKey){openModal('api');return;}
+  if(!ST.apiKey){ openModal('api'); return; }
   showView('vExamSetup');
 }
 
@@ -810,7 +760,7 @@ function goTopics(){
   const list=document.getElementById('topicsList');
   let html='', lastP='';
   TOPICS.forEach(t=>{
-    if(t.p!==lastP){lastP=t.p;html+=`<div class="phase-sep">${t.p}</div>`;}
+    if(t.p!==lastP){ lastP=t.p; html+=`<div class="phase-sep">${t.p}</div>`; }
     const h=getH(t.id);
     const done2=ST.completedTopics.includes(t.id);
     const cur=t.id===ST.topic;
@@ -858,7 +808,6 @@ async function renderSummary(){
   setLearnHeader();
   const content=document.getElementById('learnContent');
 
-  // Günlük uyarı
   const today=new Date().toDateString();
   let warn='';
   if(ST.lastSession&&ST.lastSession!==today&&ST.lastSession!==new Date(Date.now()-86400000).toDateString())
@@ -931,7 +880,6 @@ function renderQUI(q, h){
   const zbadge=q.zorluk==='kolay'?'badge-grn':q.zorluk==='zor'?'badge-red':'badge-warn';
   const content=document.getElementById('learnContent');
 
-  // İlerleme
   const acc=h.total>0?Math.round(h.correct/h.total*100):0;
   const prog=Math.min(100,Math.round(h.total/20*100));
 
@@ -981,7 +929,6 @@ async function kontrol(){
   const q=ST.cq, t=TOPICS[ST.topic-1], h=getH();
   const isCorrect=checkEqual(userAns, q.cevap);
 
-  // State güncelle
   h.total++; h.correct=(h.correct||0)+(isCorrect?1:0);
   if(!h.recent) h.recent=[];
   h.recent.push(isCorrect);
@@ -1003,20 +950,17 @@ async function kontrol(){
 
   ST.phase='feedback'; sv();
 
-  // Feedback al
   const son8=h.recent.slice(-8);
   const fbTxt=await aiFeedback(t.n, q.soru, q.cozum, userAns, q.cevap, isCorrect, son8, h.wrongCount);
 
-  // Formül hint — 2. yanlıştan sonra
   let formulHtml='';
   if(!isCorrect && h.wrongCount>=2 && FORMULAS[ST.topic]){
     formulHtml=`<div class="formula-box" style="margin-top:12px">
       <div class="fb-label">💡 Bu konunun formülleri</div>
-      <div class="fb-content">${FORMULAS[ST.topic].map(f=>`• <strong>${f.split(':')[0]}:</strong>${f.includes(':')?f.slice(f.indexOf(':')+1):''}`).join('<br>')}</div>
+      <div class="fb-content">${FORMULAS[ST.topic].map(f=>`• ${f}`).join('<br>')}</div>
     </div>`;
   }
 
-  // Çözüm göster yanlışta
   let cozumHtml='';
   if(!isCorrect && q.cozum){
     cozumHtml=`<div class="solution-box" style="margin-top:10px">
@@ -1042,7 +986,6 @@ async function kontrol(){
   document.getElementById('learnContent').appendChild(fbDiv);
   fbDiv.scrollIntoView({behavior:'smooth',block:'nearest'});
 
-  // Geçiş kontrolü
   setTimeout(()=>checkAdvance(),400);
 }
 
@@ -1064,7 +1007,6 @@ async function checkAdvance(){
       btn.onclick=()=>advanceKademe(dec.reason);
     }
   } else {
-    // İlerleme durumunu göster
     const h2=getH();
     const remaining=20-h2.total;
     const acc=h2.total>0?Math.round(h2.correct/h2.total*100):0;
@@ -1130,9 +1072,14 @@ function showFinish(){
 // ASK
 // ═══════════════════════════════════════════════════════════
 function toggleAsk(){ document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); }
+
 async function sendAsk(){
-  const inp=document.getElementById('askInp'); const q=inp?.value?.trim(); if(!q) return; inp.value='';
-  const el=document.getElementById('askResult'); el?.classList.add('open');
+  const inp=document.getElementById('askInp');
+  const q=inp?.value?.trim();
+  if(!q) return;
+  inp.value='';
+  const el=document.getElementById('askResult');
+  el?.classList.add('open');
   el.innerHTML=`${dots()} Öğretmen düşünüyor...`;
   const t=TOPICS[ST.topic-1];
   const ans=await aiAsk(t.n, ST.cq?.soru||'', q);
@@ -1145,7 +1092,7 @@ async function sendAsk(){
 let examState={type:'',total:0,answers:[],qIdx:0,timer:null};
 
 function startExam(type, total){
-  if(!ST.apiKey){openModal('api');return;}
+  if(!ST.apiKey){ openModal('api'); return; }
   examState={type,total,answers:[],qIdx:0,timer:null};
   showView('vExam');
   document.getElementById('examType').textContent=type+' Sınavı';
@@ -1162,13 +1109,10 @@ function startTimer(secs){
     const m=Math.floor(rem/60),s=rem%60;
     const el=document.getElementById('examTimer');
     if(el){ el.textContent=`${m}:${s.toString().padStart(2,'0')}`; if(rem<=60) el.style.color='var(--red)'; }
-    if(rem<=0){clearInterval(examState.timer);finishExam();}
+    if(rem<=0){ clearInterval(examState.timer); finishExam(); }
   },1000);
 }
 
-function exitExam(){if(examState.timer)clearInterval(examState.timer); goHome();}
-
-// Zorluk dağılımı: %40 kolay, %40 orta, %20 zor
 function getZorluk(idx, total){
   const r=idx/total;
   if(r<0.4) return 'kolay';
@@ -1177,11 +1121,10 @@ function getZorluk(idx, total){
 }
 
 async function loadExamQ(idx){
-  if(idx>=examState.total){finishExam();return;}
+  if(idx>=examState.total){ finishExam(); return; }
   document.getElementById('examInfo').textContent=`Soru ${idx+1}/${examState.total}`;
   document.getElementById('examContent').innerHTML=`<div class="card">${dots()} Soru ${idx+1} hazırlanıyor...</div>`;
 
-  // Zayıf konulara ağırlık ver
   const weakIds=Object.entries(ST.hist)
     .filter(([,h])=>h.total>=5&&Math.round((h.correct||0)/h.total*100)<70)
     .map(([id])=>+id);
@@ -1194,7 +1137,10 @@ async function loadExamQ(idx){
   const zorluk=getZorluk(idx,examState.total);
   const qData=await aiExamQ(t.n, examState.type, zorluk);
 
-  if(!qData){document.getElementById('examContent').innerHTML=`<div class="err">Soru üretilemedi. <button class="btn btn-ghost" onclick="loadExamQ(${idx})">Tekrar</button></div>`;return;}
+  if(!qData){
+    document.getElementById('examContent').innerHTML=`<div class="err">Soru üretilemedi. <button class="btn btn-ghost" onclick="loadExamQ(${idx})">Tekrar</button></div>`;
+    return;
+  }
 
   const zbadge=zorluk==='kolay'?'badge-grn':zorluk==='zor'?'badge-red':'badge-warn';
   document.getElementById('examContent').innerHTML=`
@@ -1217,9 +1163,7 @@ async function loadExamQ(idx){
   document.getElementById('eAnsInp')?.focus();
 }
 
-function esc(s){return String(s).replace(/'/g,"\\'").replace(/\n/g,' ');}
-
-function submitExamAns(cevap,cozum,konu,idx){
+function submitExamAns(cevap, cozum, konu, idx){
   const inp=document.getElementById('eAnsInp');
   const ua=inp?.value?.trim()||'';
   const ok=checkEqual(ua,cevap);
@@ -1227,7 +1171,7 @@ function submitExamAns(cevap,cozum,konu,idx){
   loadExamQ(idx+1);
 }
 
-function skipExamQ(konu,idx){
+function skipExamQ(konu, idx){
   examState.answers.push({idx,konu,cevap:'—',ua:'',ok:false,skipped:true});
   loadExamQ(idx+1);
 }
@@ -1322,7 +1266,6 @@ async function renderStats(){
       </div>
     </div>`;
 
-  // Zayıf analiz
   if(weakTopics.length>0){
     const data=weakTopics.map(w=>`${w.name}: %${w.pct} (${w.total} soru)`).join('\n');
     const ana=await aiWeakAnalysis(data);
@@ -1352,11 +1295,15 @@ function doReset(type){
   }
 }
 
-function openModal(id){ document.getElementById(id+'Modal').classList.remove('hidden'); if(id==='api'){const k=localStorage.getItem('mat_key');if(k) document.getElementById('apiInp').value=k;} }
+function openModal(id){
+  document.getElementById(id+'Modal').classList.remove('hidden');
+  if(id==='api'){ const k=localStorage.getItem('mat_key'); if(k) document.getElementById('apiInp').value=k; }
+}
 function closeModal(id){ document.getElementById(id+'Modal').classList.add('hidden'); }
+
 function saveKey(){
   const k=document.getElementById('apiInp').value.trim();
-  if(!k){alert('Lütfen bir API anahtarı gir.');return;}
+  if(!k){ alert('Lütfen bir API anahtarı gir.'); return; }
   ST.apiKey=k; localStorage.setItem('mat_key',k);
   closeModal('api'); updateApiStatus();
   alert('Kaydedildi!');
@@ -1367,12 +1314,13 @@ function saveKey(){
 // ═══════════════════════════════════════════════════════════
 ld();
 if(ST.totalQ>0){
-  document.querySelector('.menu-btn').textContent='';
   const mainBtn=document.querySelector('.menu-btn');
   if(mainBtn){
     const t=TOPICS[ST.topic-1];
-    mainBtn.querySelector?.('.mt strong') && (mainBtn.querySelector('.mt strong').textContent=`Devam Et — ${t?.e} ${t?.n}`);
-    mainBtn.querySelector?.('.mt span') && (mainBtn.querySelector('.mt span').textContent=`Konu ${ST.topic}/28 · Kademe ${ST.kademe}/5`);
+    const strongEl=mainBtn.querySelector('.mt strong');
+    const spanEl=mainBtn.querySelector('.mt span');
+    if(strongEl) strongEl.textContent=`Devam Et — ${t?.e} ${t?.n}`;
+    if(spanEl) spanEl.textContent=`Konu ${ST.topic}/28 · Kademe ${ST.kademe}/5`;
   }
 }
 </script>
