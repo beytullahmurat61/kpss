@@ -478,8 +478,190 @@ Görев: Bu konuyu bu seviyeye göre öğrenciye tanıt.
   return ai(sys,usr);
 }
 
+const topicName = topic.n || "";
+
+if (isStoryTopicName(topicName)) {
+  const q = storyQuestion(topicName);
+  if (q) return q;
+}
+
 // 2. Soru üret + doğrula
 async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ){
+  /* =========================================================
+// ═══════════════════════════════════════════════════════════
+// HİKAYELİ SORU SİSTEMİ — TAM ENTEGRASYON
+// ═══════════════════════════════════════════════════════════
+
+const STORY_RNG = {
+  int(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; },
+  pick(arr) { return arr[this.int(0, arr.length - 1)]; },
+  name() { return this.pick(["Ayşe", "Mehmet", "Elif", "Can", "Zeynep", "Ali", "Merve", "Burak", "Fatma", "Ece", "Hakan", "Seda"]); },
+  place() { return this.pick(["market", "kırtasiye", "fırın", "depo", "okul kantini", "pazar", "manav", "mağaza"]); }
+};
+
+function storyCleanNum(n) {
+  if (Number.isInteger(n)) return String(n);
+  const s = Number(n).toFixed(2);
+  return s.replace(/\.00$/, "").replace(/0$/, "");
+}
+
+function storyMake({ soru, cevap, cozum, tip, zorluk }) {
+  return {
+    soru,
+    cevap: storyCleanNum(cevap),
+    cozum,
+    tip,
+    zorluk
+  };
+}
+
+function isStoryTopicName(topicName) {
+  const s = String(topicName || "").toLowerCase();
+  return (
+    s.includes("yaş") ||
+    s.includes("hız") ||
+    s.includes("iş problemi") ||
+    s.includes("iş problemleri") ||
+    s.includes("yüzde problemi") ||
+    s.includes("yüzde problemleri") ||
+    s.includes("karışım") ||
+    s.includes("sayı problemi") ||
+    s.includes("sayı problemleri")
+  );
+}
+
+// ŞABLONLAR
+function tplYas1() {
+  const x = STORY_RNG.int(6, 18);
+  const fark = STORY_RNG.int(18, 40);
+  const yil = STORY_RNG.int(2, 10);
+  const baba = x + fark;
+  return storyMake({
+    soru: `${STORY_RNG.name()}'in yaşı ${x} ve babası ondan ${fark} yaş büyüktür. ${yil} yıl sonra babasının yaşı kaç olur?`,
+    cevap: baba + yil,
+    cozum: `Babanın şimdiki yaşı ${x} + ${fark} = ${baba}. ${yil} yıl sonra ${baba} + ${yil} = ${baba + yil}.`,
+    tip: "yaş",
+    zorluk: "orta"
+  });
+}
+
+function tplYas2() {
+  const x = STORY_RNG.int(10, 20);
+  const fark = STORY_RNG.int(12, 30);
+  const yil = STORY_RNG.int(3, 8);
+  return storyMake({
+    soru: `${STORY_RNG.name()} ile kardeşi arasında ${fark} yaş fark vardır. ${STORY_RNG.name()}'in yaşı ${x} ise, ${yil} yıl sonra kardeşinin yaşı kaç olur?`,
+    cevap: x + fark + yil,
+    cozum: `Kardeşin şimdiki yaşı ${x} + ${fark} = ${x + fark}. ${yil} yıl sonra ${x + fark} + ${yil} = ${x + fark + yil}.`,
+    tip: "yaş",
+    zorluk: "orta"
+  });
+}
+
+function tplHiz1() {
+  const v = STORY_RNG.int(40, 90);
+  const t = STORY_RNG.int(2, 6);
+  return storyMake({
+    soru: `Bir araç saatte ${v} km hızla gidiyor. ${t} saat yol alırsa kaç km gider?`,
+    cevap: v * t,
+    cozum: `Yol = hız × zaman = ${v} × ${t} = ${v * t}.`,
+    tip: "hız",
+    zorluk: "kolay"
+  });
+}
+
+function tplHiz2() {
+  const y = STORY_RNG.int(180, 420);
+  const v = STORY_RNG.int(45, 90);
+  const t = y / v;
+  return storyMake({
+    soru: `Bir araç ${y} km yolu saatte ${v} km hızla gidiyor. Kaç saatte varır?`,
+    cevap: storyCleanNum(t),
+    cozum: `Zaman = yol / hız = ${y} / ${v} = ${storyCleanNum(t)} saat.`,
+    tip: "hız",
+    zorluk: "orta"
+  });
+}
+
+function tplIs1() {
+  const a = STORY_RNG.int(6, 12);
+  const b = STORY_RNG.int(8, 16);
+  const sonuc = +(1 / (1 / a + 1 / b)).toFixed(2);
+  return storyMake({
+    soru: `Bir işçi bir işi tek başına ${a} günde, diğeri ${b} günde bitiriyor. Birlikte çalışırlarsa iş kaç günde biter?`,
+    cevap: sonuc,
+    cozum: `Birlikte günlük iş miktarı 1/${a} + 1/${b}. Toplam süre bunun tersidir.`,
+    tip: "iş",
+    zorluk: "zor"
+  });
+}
+
+function tplYuzde1() {
+  const e = STORY_RNG.int(200, 900);
+  const p = STORY_RNG.int(10, 40);
+  const yeni = e - Math.round(e * p / 100);
+  return storyMake({
+    soru: `${STORY_RNG.place()}de bir ürünün fiyatı ${e} TL. Buna ${p} indirim uygulanırsa yeni fiyat kaç TL olur?`,
+    cevap: yeni,
+    cozum: `İndirim miktarı ${e} × ${p} / 100 = ${Math.round(e * p / 100)} TL. Yeni fiyat ${e} - ${Math.round(e * p / 100)} = ${yeni} TL.`,
+    tip: "yüzde",
+    zorluk: "orta"
+  });
+}
+
+function tplKarisim1() {
+  const a = STORY_RNG.int(2, 6);
+  const b = STORY_RNG.int(3, 8);
+  const c = STORY_RNG.int(4, 10);
+  const toplam = a * 2 + b * 3 + c * 4;
+  return storyMake({
+    soru: `${STORY_RNG.name()} ${a} kg elma, ${b} kg armut ve ${c} kg portakal aldı. Elma 2 TL/kg, armut 3 TL/kg, portakal 4 TL/kg ise toplam kaç TL öder?`,
+    cevap: toplam,
+    cozum: `Toplam = ${a}×2 + ${b}×3 + ${c}×4 = ${toplam}.`,
+    tip: "karışım",
+    zorluk: "orta"
+  });
+}
+
+function tplSayi1() {
+  const a = STORY_RNG.int(2, 9);
+  const b = STORY_RNG.int(10, 40);
+  return storyMake({
+    soru: `Bir sayının ${a} katının ${b} fazlası ${a * b + b} ise sayı kaçtır?`,
+    cevap: b,
+    cozum: `${a}x + ${b} = ${a * b + b} olur. Buradan x = ${b}.`,
+    tip: "sayı",
+    zorluk: "orta"
+  });
+}
+
+const STORY_POOLS = {
+  "yaş": [tplYas1, tplYas2],
+  "hız": [tplHiz1, tplHiz2],
+  "iş": [tplIs1],
+  "yüzde": [tplYuzde1],
+  "karışım": [tplKarisim1],
+  "sayı": [tplSayi1]
+};
+
+function storyQuestion(topicName) {
+  const s = String(topicName || "").toLowerCase();
+  const key = Object.keys(STORY_POOLS).find(k => s.includes(k));
+  if (!key) return null;
+  const pool = STORY_POOLS[key];
+  return pool[STORY_RNG.int(0, pool.length - 1)]();
+}
+
+// ═══════════════════════════════════════════════════════════
+// Orijinal AI SORU ÜRETİMİ (hikayeli olmayanlar için)
+// ═══════════════════════════════════════════════════════════
+async function aiQuestion(topic, kademe, wrongType, wrongCount, recentQ) {
+  // HİKAYELİ KONU KONTROLÜ — 1 SATIR!
+  if (isStoryTopicName(topic.n)) {
+    return storyQuestion(topic.n);
+  }
+
+  // Eski Groq AI akışı (hikayeli olmayan konular için)
   const kDesc = kademe===1?'Tek adım, sayılar 1-30, günlük hayat (elma/para/yaş), çözüm çok basit':
                 kademe===2?'TYT tarzı, 2-3 adım, sayılar makul, formül uygulaması':
                 kademe===3?'AYT tarzı, çok adımlı, denklem kurma, dikkat gerektiriyor':
@@ -497,6 +679,20 @@ YASAK: Negatif yaş, küsüratlı insan sayısı, imkansız senaryo, yanlış ma
   const usr=`Konu: "${topic.n}" — Kademe ${kademe}/5 (${kDesc})${retryPart}
 ${recentQ.length>0?'Son sorular (tekrarlama!): '+recentQ.slice(-5).join(' | '):''}
 
+ADIMLAR:
+1. Soruyu taslak yaz
+2. Kendi çöz (tüm adımlar)
+3. Cevap gerçekçi mi kontrol et
+4. Onaylandıysa JSON ver
+
+JSON (başka hiçbir şey yazma):
+{"soru":"...","cevap":"net sayısal cevap","cozum":"adım adım","tip":"[problem tipi]","zorluk":"kolay/orta/zor"}`;
+
+  const raw=await ai(sys,usr,true);
+  const obj=pj(raw);
+  if(!obj||!obj.soru||!obj.cevap) return null;
+  return obj;
+}
 ADIMLAR:
 1. Soruyu taslak yaz
 2. Kendi çöz (tüm adımlar)
@@ -714,7 +910,7 @@ async function renderNextQ(){
   document.getElementById('learnContent').innerHTML=
     `<div class="card">${dots()} Soru hazırlanıyor...</div>`;
 
-  const qData=await aiQuestion(t,ST.kademe,h.wrongType,h.wrongCount,h.recentQ);
+  const qData = await aiQuestion(t, ST.kademe, h.wrongType, h.wrongCount, h.recentQ);
   if(!qData){
     document.getElementById('learnContent').innerHTML=`
       <div class="err">⚠️ Soru üretilemedi.<br>Hata: ${lastErr||'Bilinmeyen'}<br>→ <span style="color:var(--acc);cursor:pointer" onclick="openModal('api')">API anahtarını kontrol et</span></div>
