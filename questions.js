@@ -6,7 +6,7 @@
 
 const QUESTION_TEMPLATES = {
 
-  // ==========================================
+   // ==========================================
   // KONU 1: TOPLAMA & ÇIKARMA (17 alt dal)
   // ==========================================
   1: [
@@ -75,10 +75,11 @@ const QUESTION_TEMPLATES = {
     { id: "t1_073", s: "Gelir: {a} TL, Gider: {b} TL. Kar/zarar durumu nedir? (Kar +, zarar -)", c: "{a}-{b}", v: {a:[100,500], b:[50,450]}, z:"orta", alt:"tablo" },
     { id: "t1_074", s: "İlk ay {a}, ikinci ay {b} soru çözüldü. İkinci ay ilk aydan kaç fazla/eksik soru çözülmüştür?", c: "{b}-{a}", v: {a:[20,80], b:[20,100]}, z:"zor", alt:"tablo" },
 
-    { id: "t1_080", s: "İki sayının toplamı {s}, farkı {f} ise büyük sayı kaçtır?", c: "({s}+{f})/2", v: {s:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"mantik" },
-    { id: "t1_081", s: "İki sayının toplamı {s}, farkı {f} ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"mantik" },
-    { id: "t1_082", s: "Toplamları {s} olan iki sayıdan biri diğerinden {f} fazla ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20]}, z:"orta", alt:"mantik", kural:"s>f" },
-    { id: "t1_083", s: "İki sayının toplamı {s}'dir. Büyük sayı küçük sayının {k} katı ise küçük sayı kaçtır?", c: "{s}/({k}+1)", v: {k:[2,5], s:["({k}+1)*2","({k}+1)*30"]}, z:"zor", alt:"mantik" },
+    // ★ Bölünebilme kuralları eklendi
+    { id: "t1_080", s: "İki sayının toplamı {s}, farkı {f} ise büyük sayı kaçtır?", c: "({s}+{f})/2", v: {s:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"mantik", kural:"s>f && (s-f)%2==0" },
+    { id: "t1_081", s: "İki sayının toplamı {s}, farkı {f} ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"mantik", kural:"s>f && (s-f)%2==0" },
+    { id: "t1_082", s: "Toplamları {s} olan iki sayıdan biri diğerinden {f} fazla ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20]}, z:"orta", alt:"mantik", kural:"s>f && (s-f)%2==0" },
+    { id: "t1_083", s: "İki sayının toplamı {s}'dir. Büyük sayı küçük sayının {k} katı ise küçük sayı kaçtır?", c: "{s}/({k}+1)", v: {k:[2,5], s:"({k}+1)*2"}, z:"zor", alt:"mantik" },
     { id: "t1_084", s: "İki sayının farkı {f}'tir. Büyük sayı küçük sayının {k} katı ise büyük sayı kaçtır?", c: "({f}*{k})/({k}-1)", v: {f:[2,10], k:[2,4]}, z:"zor", alt:"mantik", kural:"k>1" },
 
     { id: "t1_090", s: "Bir mağazada tanesi {a} TL olan gömlekten {b} tane, tanesi {c} TL olan pantolondan {d} tane alan müşteri toplam kaç TL öder?", c: "{a}*{b}+{c}*{d}", v: {a:[30,100], b:[1,3], c:[50,150], d:[1,3]}, z:"orta", alt:"yeni_nesil" },
@@ -93,8 +94,8 @@ const QUESTION_TEMPLATES = {
     { id: "t1_103", s: "{a} + 9 = ?", c: "{a}+9", v: {a:[10,90]}, z:"kolay", alt:"hizli" },
   ],
 
-  // ==========================================
-  // KONU 2: ÇARPMA & BÖLME (8 alt dal)
+// ==========================================
+  // KONU 2: ÇARPMA & BÖLME (8 alt dal) – DEĞİŞMEDİ
   // ==========================================
   2: [
 
@@ -130,8 +131,8 @@ const QUESTION_TEMPLATES = {
     { id: "t2_041", s: "Hangi sayının {k} katı {s} eder?", c: "{s}/{k}", v: {k:[3,9], s:["{k}*3","{k}*30"]}, z:"orta", alt:"verilmeyen" },
     { id: "t2_042", s: "? × {a} = {s} ise ? kaçtır?", c: "{s}/{a}", v: {a:[2,10], s:["{a}*2","{a}*20"]}, z:"kolay", alt:"verilmeyen" },
     { id: "t2_043", s: "{a} × ? = {s} ise ? kaçtır?", c: "{s}/{a}", v: {a:[3,12], s:["{a}*2","{a}*25"]}, z:"orta", alt:"verilmeyen" },
-    { id: "t2_044", s: "Hangi sayının {k1} katı ile {k2} katının toplamı {s} eder?", c: "{s}/({k1}+{k2})", v: {k1:[2,4], k2:[3,5], s:["({k1}+{k2})*2","({k1}+{k2})*20"]}, z:"zor", alt:"verilmeyen", kural:"k1!=k2" },
-    { id: "t2_045", s: "Hangi sayının {k1} katı, {k2} katından {f} fazladır?", c: "{f}/({k1}-{k2})", v: {k1:[3,6], k2:[1,"{k1}-1"], f:["({k1}-{k2})*1","({k1}-{k2})*15"]}, z:"zor", alt:"verilmeyen", kural:"k1>k2" },
+    { id: "t2_044", s: "Hangi sayının {k1} katı ile {k2} katının toplamı {s} eder?", c: "{s}/({k1}+{k2})", v: {k1:[2,4], k2:[3,5], s:"({k1}+{k2})*2"}, z:"zor", alt:"verilmeyen", kural:"k1!=k2" },
+    { id: "t2_045", s: "Hangi sayının {k1} katı, {k2} katından {f} fazladır?", c: "{f}/({k1}-{k2})", v: {k1:[3,6], k2:[1,"{k1}-1"], f:"({k1}-{k2})*1"}, z:"zor", alt:"verilmeyen", kural:"k1>k2" },
 
     // ALT DAL 6: PROBLEM
     { id: "t2_050", s: "Tanesi {a} TL olan kalemlerden {b} tane alan kaç TL öder?", c: "{a}*{b}", v: {a:[3,15], b:[2,10]}, z:"kolay", alt:"problem" },
@@ -157,10 +158,10 @@ const QUESTION_TEMPLATES = {
     { id: "t2_074", s: "{a} × 9 = ? (İpucu: 10 ile çarpıp 1 çıkar)", c: "{a}*9", v: {a:[2,15]}, z:"orta", alt:"hizli" },
   ],
 
-// ==========================================
-// KONU 3: SAYILAR (TEMEL KAVRAMLAR)
-// ==========================================
-3: [
+  // ==========================================
+  // KONU 3: SAYILAR (TEMEL KAVRAMLAR) – t3_044 düzeltildi
+  // ==========================================
+  3: [
 
     // ALT DAL 1: TEK & ÇİFT > SORGULAMA
     { id: "t3_001", s: "{a} sayısı tek midir çift midir?", c: "{a}%2==0?'Çift':'Tek'", v: {a:[1,99]}, z:"kolay", alt:"tek_cift", inputType:"choice", choices:["Tek","Çift"] },
@@ -203,61 +204,50 @@ const QUESTION_TEMPLATES = {
     { id: "t3_041", s: "AB iki basamaklı sayısında A={a} ve B={b} ise AB kaçtır?", c: "{a}*10+{b}", v: {a:[1,9], b:[0,9]}, z:"kolay", alt:"problem" },
     { id: "t3_042", s: "Rakamları toplamı {t} olan iki basamaklı kaç sayı vardır?", c: "{t}<=9?{t}:19-{t}", v: {t:[2,15]}, z:"zor", alt:"problem" },
     { id: "t3_043", s: "{a} sayısından bir önce ve bir sonra gelen sayıların toplamı kaçtır?", c: "2*{a}", v: {a:[5,50]}, z:"orta", alt:"problem" },
-    { id: "t3_044", s: "İki sayıdan biri diğerinden {f} fazla ve toplamları {t} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {f:[2,20,"cift"], t:["{f}+20","{f}+80","cift"]}, z:"orta", alt:"problem" },
+    // ★ t3_044 düzeltildi: t bağımsız yapıldı, bölünebilme kuralı eklendi
+    { id: "t3_044", s: "İki sayıdan biri diğerinden {f} fazla ve toplamları {t} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {f:[2,20,"cift"], t:[22,100]}, z:"orta", alt:"problem", kural:"(t-f)%2==0 && t>f" },
 
     // ALT DAL 7: MANTIK & YENİ NESİL
-    { id: "t3_050", s: "Ardışık {n} tam sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:["{n}*5","{n}*50"]}, z:"zor", alt:"mantik" },
+    { id: "t3_050", s: "Ardışık {n} tam sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:"{n}*5"}, z:"zor", alt:"mantik" },
     { id: "t3_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı en az kaçtır?", c: "{t}<=9?{t}+9:10*{t}-81", v: {t:[2,15]}, z:"orta", alt:"mantik" },
     { id: "t3_052", s: "{a} sayısının {b} katı bir tek sayı ise {a} nasıl bir sayıdır?", c: "{b}%2==0?'Bilinemez':'Tek'", v: {a:[1,19,"tek"], b:[3,7,"tek"]}, z:"zor", alt:"mantik", inputType:"choice", choices:["Tek","Çift","Bilinemez","Değişir"] },
     { id: "t3_053", s: "Bir ABC üç basamaklı sayısında A+B+C={t} ise bu sayı en az kaçtır?", c: "function(){var t={t};var A=Math.max(1,t-18);var r=t-A;var B=Math.max(0,r-9);var C=r-B;return 100*A+10*B+C}()", v: {t:[2,20]}, z:"zor", alt:"yeni_nesil" },
     { id: "t3_054", s: "{a} sayfalık bir kitabı numaralandırmak için kaç rakam kullanılır?", c: "function(){var a={a};if(a<10)return a;if(a<100)return 9+(a-9)*2;return 9+180+(a-99)*3}()", v: {a:[5,150]}, z:"zor", alt:"yeni_nesil" },
-],
+  ],
 
-// ==========================================
-// KONU 4: BÖLÜNEBİLME KURALLARI
-// ==========================================
-4: [
-
-    // ALT DAL 1: 2 İLE BÖLÜNEBİLME
+  // ==========================================
+  // KONU 4: BÖLÜNEBİLME KURALLARI – DEĞİŞMEDİ
+  // ==========================================
+  4: [
     { id: "t4_001", s: "{a} sayısı 2 ile bölünebilir mi?", c: "{a}%2==0?'Evet':'Hayır'", v: {a:[10,999]}, z:"kolay", alt:"iki_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_002", s: "{a} sayısı 2 ile bölündüğünde kalan kaçtır?", c: "{a}%2", v: {a:[10,999]}, z:"kolay", alt:"iki_bolunebilme" },
     { id: "t4_003", s: "Aşağıdakilerden hangisi 2 ile tam bölünür?", c: "{cift}", v: {cift:[2,100,"cift"], tek:[1,99,"tek"]}, z:"kolay", alt:"iki_bolunebilme", inputType:"choice", choices:["{cift}","{tek}","İkisi de","Hiçbiri"] },
     { id: "t4_004", s: "İki basamaklı en büyük çift sayı kaçtır?", c: "98", v: {}, z:"kolay", alt:"iki_bolunebilme" },
-
-    // ALT DAL 2: 3 İLE BÖLÜNEBİLME
     { id: "t4_010", s: "{a} sayısı 3 ile bölünebilir mi?", c: "{a}%3==0?'Evet':'Hayır'", v: {a:[10,999]}, z:"kolay", alt:"uc_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_011", s: "{a} sayısının 3 ile bölümünden kalan kaçtır?", c: "{a}%3", v: {a:[10,999]}, z:"orta", alt:"uc_bolunebilme" },
     { id: "t4_012", s: "Rakamları toplamı {t} olan bir sayı 3 ile bölünebilir mi?", c: "{t}%3==0?'Evet':'Hayır'", v: {t:[3,30]}, z:"orta", alt:"uc_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_013", s: "İki basamaklı 3 ile bölünebilen en büyük sayı kaçtır?", c: "99", v: {}, z:"kolay", alt:"uc_bolunebilme" },
     { id: "t4_014", s: "İki basamaklı 3 ile bölünebilen en küçük sayı kaçtır?", c: "12", v: {}, z:"orta", alt:"uc_bolunebilme" },
-
-    // ALT DAL 3: 5 İLE BÖLÜNEBİLME
     { id: "t4_020", s: "{a} sayısı 5 ile bölünebilir mi?", c: "{a}%5==0?'Evet':'Hayır'", v: {a:[10,999]}, z:"kolay", alt:"bes_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_021", s: "{a} sayısının 5 ile bölümünden kalan kaçtır?", c: "{a}%5", v: {a:[10,999]}, z:"kolay", alt:"bes_bolunebilme" },
     { id: "t4_022", s: "Son rakamı {r} olan bir sayı 5 ile bölünebilir mi?", c: "{r}==0||{r}==5?'Evet':'Hayır'", v: {r:[0,9]}, z:"kolay", alt:"bes_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_023", s: "İki basamaklı 5 ile bölünebilen kaç sayı vardır?", c: "18", v: {}, z:"orta", alt:"bes_bolunebilme", inputType:"choice", choices:["18","19","20","17"] },
-
-    // ALT DAL 4: DİĞER BÖLÜNEBİLME (4, 6, 9, 10)
     { id: "t4_030", s: "{a} sayısı 4 ile bölünebilir mi?", c: "{a}%4==0?'Evet':'Hayır'", v: {a:[100,999]}, z:"orta", alt:"diger_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_031", s: "{a} sayısı 9 ile bölünebilir mi?", c: "{a}%9==0?'Evet':'Hayır'", v: {a:[100,999]}, z:"orta", alt:"diger_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_032", s: "{a} sayısının 9 ile bölümünden kalan kaçtır?", c: "{a}%9", v: {a:[100,999]}, z:"orta", alt:"diger_bolunebilme" },
     { id: "t4_033", s: "{a} sayısı 10 ile bölünebilir mi?", c: "{a}%10==0?'Evet':'Hayır'", v: {a:[10,999]}, z:"kolay", alt:"diger_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
     { id: "t4_034", s: "{a} sayısı 6 ile bölünebilir mi? (2 ve 3'e bölünmeli)", c: "({a}%2==0&&{a}%3==0)?'Evet':'Hayır'", v: {a:[10,200]}, z:"zor", alt:"diger_bolunebilme", inputType:"choice", choices:["Evet","Hayır"] },
-
-    // ALT DAL 5: KALAN BULMA & PROBLEM
     { id: "t4_040", s: "{a} sayısının {b} ile bölümünden kalan kaçtır?", c: "{a}%{b}", v: {a:[10,500], b:[2,9]}, z:"orta", alt:"kalan" },
     { id: "t4_041", s: "{a} sayısının {b} ile bölümünden bölüm {c} ise kalan kaçtır?", c: "{a}-{b}*{c}", v: {b:[3,9], c:[2,10], a:["{b}*{c}+1","{b}*{c}+{b}-1"]}, z:"zor", alt:"kalan", kural:"a>b*c" },
     { id: "t4_042", s: "Bir sayının 3 ile bölümünden kalan {k} ise bu sayının 5 fazlasının 3 ile bölümünden kalan kaçtır?", c: "({k}+5)%3", v: {k:[0,2]}, z:"zor", alt:"kalan" },
     { id: "t4_043", s: "Bir çiftlikte {a} yumurta 6'şarlı paketlenirse kaç yumurta artar?", c: "{a}%6", v: {a:[20,200]}, z:"orta", alt:"kalan" },
-
-    // ALT DAL 6: MANTIK & RAKAM YERLEŞTİRME
     { id: "t4_050", s: "4A3B dört basamaklı sayısı 5 ile bölünebildiğine göre B kaçtır?", c: "0 veya 5", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["0 veya 5","0","5","2"] },
     { id: "t4_051", s: "2A5 üç basamaklı sayısı 3 ile bölünebildiğine göre A kaç olabilir?", c: "2,5,8", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["2,5,8","1,4,7","3,6,9","0,3,6"] },
     { id: "t4_052", s: "5A2B sayısı 4 ile bölünebildiğine göre B kaçtır? (Son iki rakam 4'ün katı)", c: "0,4,8", v: {}, z:"zor", alt:"rakam_yerlestirme", inputType:"choice", choices:["0,4,8","0,2,6","2,4,8","0,5"] },
     { id: "t4_053", s: "{a} basamaklı rakamları farklı 5 ile bölünebilen en büyük sayı kaçtır?", c: "{a}==2?95:{a}==3?985:{a}==4?9875:98765", v: {a:[2,5]}, z:"zor", alt:"rakam_yerlestirme" },
     { id: "t4_054", s: "Hem 3 hem 5 ile bölünebilen iki basamaklı en büyük sayı kaçtır?", c: "90", v: {}, z:"orta", alt:"rakam_yerlestirme" },
     { id: "t4_055", s: "Hem 2 hem 9 ile bölünebilen üç basamaklı en küçük sayı kaçtır?", c: "108", v: {}, z:"zor", alt:"rakam_yerlestirme" },
-],
+  ],
 
 // ==========================================
 // KONU 5: ASAL SAYILAR & ÇARPANLAR
@@ -559,90 +549,67 @@ const QUESTION_TEMPLATES = {
     { id: "t13_043", s: "Bir araç saatte en fazla {v} km hız yapabiliyor. {x} km'lik yolu en az kaç saatte alır?", c: "Math.ceil({x}/{v})", v: {v:[60,100], x:[150,500]}, z:"orta", alt:"problem" },
 ],
 
+   // ==========================================
+  // KONU 14: ORAN & ORANTI – Bağımlı değişkenler string yapıldı
   // ==========================================
-// KONU 14: ORAN & ORANTI
-// ==========================================
-14: [
-
-    // ALT DAL 1: ORAN KAVRAMI
+  14: [
     { id: "t14_001", s: "{a} sayısının {b} sayısına oranı kaçtır?", c: "{a}/{b}", v: {a:[2,20], b:[3,15]}, z:"kolay", alt:"oran_kavram" },
     { id: "t14_002", s: "{a} TL'nin {b} TL'ye oranı kaçtır?", c: "{a}/{b}", v: {a:[5,50], b:[10,100]}, z:"kolay", alt:"oran_kavram" },
     { id: "t14_003", s: "Bir sınıfta {a} kız, {b} erkek var. Kızların erkeklere oranı kaçtır?", c: "{a}/{b}", v: {a:[8,20], b:[10,25]}, z:"kolay", alt:"oran_kavram" },
     { id: "t14_004", s: "{a} km'de {b} litre yakan araç 1 km'de kaç litre yakar?", c: "Math.round(({b}/{a})*1000)/1000", v: {a:[100,500], b:[5,20]}, z:"orta", alt:"oran_kavram" },
-
-    // ALT DAL 2: DOĞRU ORANTI
-    { id: "t14_010", s: "a/b = {a}/{b} ve a+b = {t} ise a kaçtır?", c: "{t}*{a}/({a}+{b})", v: {a:[1,5], b:[2,7], t:["({a}+{b})*2","({a}+{b})*15"]}, z:"orta", alt:"dogru_oranti", kural:"a!=b" },
+    { id: "t14_010", s: "a/b = {a}/{b} ve a+b = {t} ise a kaçtır?", c: "{t}*{a}/({a}+{b})", v: {a:[1,5], b:[2,7], t:"({a}+{b})*2"}, z:"orta", alt:"dogru_oranti", kural:"a!=b" },
     { id: "t14_011", s: "{a} kg elma {b} TL ise {c} kg elma kaç TL'dir?", c: "({b}*{c})/{a}", v: {a:[2,8], b:[5,20], c:["{a}+1","{a}*4"]}, z:"kolay", alt:"dogru_oranti" },
     { id: "t14_012", s: "{a} işçi bir işi {b} günde yaparsa, {c} işçi kaç günde yapar? (doğru orantı)", c: "({b}*{c})/{a}", v: {a:[2,5], b:[6,15], c:["{a}+2","{a}*3"]}, z:"orta", alt:"dogru_oranti" },
-    { id: "t14_013", s: "x/{a} = y/{b} = z/{c} ve x+y+z = {t} ise x kaçtır?", c: "{t}*{a}/({a}+{b}+{c})", v: {a:[1,5], b:[2,6], c:[3,7], t:["({a}+{b}+{c})*2","({a}+{b}+{c})*10"]}, z:"zor", alt:"dogru_oranti" },
+    { id: "t14_013", s: "x/{a} = y/{b} = z/{c} ve x+y+z = {t} ise x kaçtır?", c: "{t}*{a}/({a}+{b}+{c})", v: {a:[1,5], b:[2,6], c:[3,7], t:"({a}+{b}+{c})*2"}, z:"zor", alt:"dogru_oranti" },
     { id: "t14_014", s: "a sayısı b ile doğru orantılı. b={b1} iken a={a1} ise b={b2} iken a kaçtır?", c: "({a1}*{b2})/{b1}", v: {a1:[2,10], b1:[3,8], b2:["{b1}+2","{b1}*3"]}, z:"orta", alt:"dogru_oranti" },
-
-    // ALT DAL 3: TERS ORANTI
     { id: "t14_020", s: "{a} işçi bir işi {b} günde bitirirse, {c} işçi kaç günde bitirir?", c: "({a}*{b})/{c}", v: {a:[3,10], b:[6,20], c:[2,"{a}*2"]}, z:"orta", alt:"ters_oranti" },
     { id: "t14_021", s: "{a} işçi bir işi {b} günde bitirirse, aynı işi {c} günde bitirmek için kaç işçi gerekir?", c: "({a}*{b})/{c}", v: {a:[4,10], b:[8,20], c:[4,"{b}-2"]}, z:"orta", alt:"ters_oranti", kural:"c<b" },
     { id: "t14_022", s: "x ile y ters orantılı. x={x1} iken y={y1} ise x={x2} iken y kaçtır?", c: "({x1}*{y1})/{x2}", v: {x1:[3,8], y1:[4,12], x2:[2,"{x1}+3"]}, z:"orta", alt:"ters_oranti" },
     { id: "t14_023", s: "Bir havuzu eşit kapasiteli {a} musluk {b} saatte dolduruyor. {c} musluk kaç saatte doldurur?", c: "({a}*{b})/{c}", v: {a:[3,8], b:[6,15], c:[2,"{a}*2"]}, z:"orta", alt:"ters_oranti" },
-
-    // ALT DAL 4: BİLEŞİK ORANTI
     { id: "t14_030", s: "{a} işçi {b} günde {c} parça üretiyor. {d} işçi {e} günde kaç parça üretir?", c: "{c}*{d}*{e}/({a}*{b})", v: {a:[2,5], b:[3,8], c:[10,30], d:[3,8], e:[4,10]}, z:"zor", alt:"bilesik" },
     { id: "t14_031", s: "{a} işçi {b} m² duvarı {c} günde örüyor. {d} işçi {e} m² duvarı kaç günde örer?", c: "({a}*{c}*{e})/({d}*{b})", v: {a:[2,5], b:[20,60], c:[3,8], d:[3,6], e:[30,80]}, z:"zor", alt:"bilesik" },
-    { id: "t14_032", s: "x, y ile doğru; z ile ters orantılı. y={y1}, z={z1} iken x={x1} ise y={y2}, z={z2} iken x kaçtır?", c: "{x1}*({y2}/{y1})*({z1}/{z2})", v: {x1:[4,12], y1:[2,8], z1:[3,9], y2:["{y1}*2","{y1}*3"], z2:[1,"{z1}-2"]}, z:"zor", alt:"bilesik" },
-
-    // ALT DAL 5: PROBLEM
+    { id: "t14_032", s: "x, y ile doğru; z ile ters orantılı. y={y1}, z={z1} iken x={x1} ise y={y2}, z={z2} iken x kaçtır?", c: "{x1}*({y2}/{y1})*({z1}/{z2})", v: {x1:[4,12], y1:[2,8], z1:[3,9], y2:"{y1}*2", z2:"{z1}-2"}, z:"zor", alt:"bilesik" },
     { id: "t14_040", s: "Bir sınıfta kızların erkeklere oranı {a}/{b}. Sınıfta {c} kız varsa kaç erkek vardır?", c: "({c}*{b})/{a}", v: {a:[2,5], b:[3,7], c:["{a}*2","{a}*10"]}, z:"orta", alt:"problem", kural:"a!=b" },
-    { id: "t14_041", s: "Bir karışımda A maddesinin B maddesine oranı {a}/{b}. {c} gram karışımda kaç gram A vardır?", c: "({c}*{a})/({a}+{b})", v: {a:[1,4], b:[2,5], c:["({a}+{b})*5","({a}+{b})*30"]}, z:"orta", alt:"problem" },
+    { id: "t14_041", s: "Bir karışımda A maddesinin B maddesine oranı {a}/{b}. {c} gram karışımda kaç gram A vardır?", c: "({c}*{a})/({a}+{b})", v: {a:[1,4], b:[2,5], c:"({a}+{b})*5"}, z:"orta", alt:"problem" },
     { id: "t14_042", s: "Bir araç {a} km yolu {b} saatte alıyor. Aynı hızla {c} km yolu kaç saatte alır?", c: "({b}*{c})/{a}", v: {a:[100,400], b:[2,6], c:[150,600]}, z:"kolay", alt:"problem" },
-
-    // ALT DAL 6: MANTIK
     { id: "t14_050", s: "a/b = c/d = {k} ise (a+c)/(b+d) = ?", c: "{k}", v: {k:[2,5]}, z:"orta", alt:"mantik", inputType:"choice", choices:["{k}","{k*2}","1","{k/2}"] },
     { id: "t14_051", s: "a/b = {a}/{b} ve b/a = ?", c: "{b}/{a}", v: {a:[2,7], b:[3,8]}, z:"kolay", alt:"mantik" },
     { id: "t14_052", s: "2a = 3b ise a/b = ?", c: "3/2", v: {}, z:"orta", alt:"mantik", inputType:"choice", choices:["3/2","2/3","1","6"] },
-],
+  ],
 
 // ==========================================
-// KONU 15: SAYI PROBLEMLERİ
-// ==========================================
-15: [
-
-    // ALT DAL 1: KAT
+  // KONU 15: SAYI PROBLEMLERİ – Düzeltmeler yapıldı
+  // ==========================================
+  15: [
     { id: "t15_001", s: "Bir sayının {k} katı {s} ise bu sayı kaçtır?", c: "{s}/{k}", v: {k:[2,7], s:["{k}*3","{k}*25"]}, z:"kolay", alt:"kat" },
     { id: "t15_002", s: "Bir sayının {k} katının {f} fazlası {s} ise sayı kaçtır?", c: "({s}-{f})/{k}", v: {k:[2,5], f:[3,15], s:["{k}*3+{f}","{k}*20+{f}"]}, z:"kolay", alt:"kat" },
     { id: "t15_003", s: "Bir sayının {k} katının {f} eksiği {s} ise sayı kaçtır?", c: "({s}+{f})/{k}", v: {k:[2,5], f:[3,15], s:["{k}*3-{f}","{k}*20-{f}"]}, z:"orta", alt:"kat", kural:"k*3>f" },
-    { id: "t15_004", s: "Bir sayının {k1} katı ile {k2} katının toplamı {s} ise sayı kaçtır?", c: "{s}/({k1}+{k2})", v: {k1:[2,5], k2:[3,6], s:["({k1}+{k2})*2","({k1}+{k2})*20"]}, z:"orta", alt:"kat" },
-    { id: "t15_005", s: "Bir sayının {k1} katı, {k2} katından {f} fazla ise sayı kaçtır?", c: "{f}/({k1}-{k2})", v: {k1:[3,8], k2:[1,"{k1}-1"], f:["({k1}-{k2})*2","({k1}-{k2})*15"]}, z:"orta", alt:"kat", kural:"k1>k2" },
-
-    // ALT DAL 2: ARDIŞIK
+    { id: "t15_004", s: "Bir sayının {k1} katı ile {k2} katının toplamı {s} ise sayı kaçtır?", c: "{s}/({k1}+{k2})", v: {k1:[2,5], k2:[3,6], s:"({k1}+{k2})*2"}, z:"orta", alt:"kat" },
+    { id: "t15_005", s: "Bir sayının {k1} katı, {k2} katından {f} fazla ise sayı kaçtır?", c: "{f}/({k1}-{k2})", v: {k1:[3,8], k2:[1,"{k1}-1"], f:"({k1}-{k2})*2"}, z:"orta", alt:"kat", kural:"k1>k2" },
     { id: "t15_010", s: "Ardışık iki sayının toplamı {s} ise büyük sayı kaçtır?", c: "({s}+1)/2", v: {s:[5,99,"tek"]}, z:"kolay", alt:"ardisik" },
     { id: "t15_011", s: "Ardışık iki sayının toplamı {s} ise küçük sayı kaçtır?", c: "({s}-1)/2", v: {s:[5,99,"tek"]}, z:"kolay", alt:"ardisik" },
     { id: "t15_012", s: "Ardışık üç sayının toplamı {s} ise ortanca sayı kaçtır?", c: "{s}/3", v: {s:[6,99,"3kati"]}, z:"orta", alt:"ardisik" },
     { id: "t15_013", s: "Ardışık üç sayının toplamı {s} ise en büyük sayı kaçtır?", c: "({s}/3)+1", v: {s:[6,99,"3kati"]}, z:"orta", alt:"ardisik" },
     { id: "t15_014", s: "Ardışık üç çift sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}/3)-2", v: {s:[12,198]}, z:"zor", alt:"ardisik", kural:"s%6==0" },
-    { id: "t15_015", s: "Ardışık {n} sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:["{n}*3","{n}*30"]}, z:"zor", alt:"ardisik" },
-
-    // ALT DAL 3: İKİ SAYI
-    { id: "t15_020", s: "İki sayının toplamı {t}, farkı {f} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"iki_sayi" },
-    { id: "t15_021", s: "İki sayının toplamı {t}, farkı {f} ise küçük sayı kaçtır?", c: "({t}-{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"iki_sayi" },
-    { id: "t15_022", s: "İki sayıdan biri diğerinin {k} katı. Toplamları {t} ise küçük sayı kaçtır?", c: "{t}/({k}+1)", v: {k:[2,5], t:["({k}+1)*2","({k}+1)*30"]}, z:"orta", alt:"iki_sayi" },
-    { id: "t15_023", s: "İki sayıdan biri diğerinin {k} katından {f} fazla. Toplamları {t} ise küçük sayı kaçtır?", c: "({t}-{f})/({k}+1)", v: {k:[2,4], f:[1,10], t:["({k}+1)*2+{f}","({k}+1)*20+{f}"]}, z:"zor", alt:"iki_sayi" },
+    { id: "t15_015", s: "Ardışık {n} sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:"{n}*3"}, z:"zor", alt:"ardisik" },
+    // ★ Bölünebilme kuralları eklendi
+    { id: "t15_020", s: "İki sayının toplamı {t}, farkı {f} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"iki_sayi", kural:"t>f && (t-f)%2==0" },
+    { id: "t15_021", s: "İki sayının toplamı {t}, farkı {f} ise küçük sayı kaçtır?", c: "({t}-{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"iki_sayi", kural:"t>f && (t-f)%2==0" },
+    { id: "t15_022", s: "İki sayıdan biri diğerinin {k} katı. Toplamları {t} ise küçük sayı kaçtır?", c: "{t}/({k}+1)", v: {k:[2,5], t:"({k}+1)*2"}, z:"orta", alt:"iki_sayi" },
+    { id: "t15_023", s: "İki sayıdan biri diğerinin {k} katından {f} fazla. Toplamları {t} ise küçük sayı kaçtır?", c: "({t}-{f})/({k}+1)", v: {k:[2,4], f:[1,10], t:"({k}+1)*2+{f}"}, z:"zor", alt:"iki_sayi" },
     { id: "t15_024", s: "İki sayının çarpımı {c}, toplamları {t} ise kareleri toplamı kaçtır?", c: "{t}*{t}-2*{c}", v: {t:[5,12], c:[6,35]}, z:"zor", alt:"iki_sayi" },
-
-    // ALT DAL 4: DENKLEM KURMA
     { id: "t15_030", s: "Bir sayının {a} fazlasının {b} katı {c} ise sayı kaçtır?", c: "({c}/{b})-{a}", v: {a:[2,10], b:[2,5], c:["{b}*({a}+3)","{b}*({a}+20)"]}, z:"orta", alt:"denklem" },
     { id: "t15_031", s: "Bir sayının {a} eksiğinin {b} katı {c} ise sayı kaçtır?", c: "({c}/{b})+{a}", v: {a:[2,10], b:[2,5], c:["{b}*3","{b}*15"]}, z:"orta", alt:"denklem" },
     { id: "t15_032", s: "Hangi sayının {a} eksiğinin yarısı {b} eder?", c: "2*{b}+{a}", v: {a:[2,10], b:[3,15]}, z:"orta", alt:"denklem" },
     { id: "t15_033", s: "Bir sayının {k1} katının {a} fazlası, aynı sayının {k2} katının {b} eksiğine eşit ise sayı kaçtır?", c: "({a}+{b})/({k2}-{k1})", v: {k1:[1,3], k2:[3,6], a:[2,10], b:[2,10]}, z:"zor", alt:"denklem", kural:"k2>k1" },
-
-    // ALT DAL 5: PROBLEM (HİKAYE)
     { id: "t15_040", s: "Bir sınıftaki öğrenciler sıralara {a}'ar oturursa {b} kişi ayakta kalıyor. {c}'er oturursa {d} sıra boş kalıyor. Sınıf mevcudu kaçtır?", c: "sinavMevcut({a},{b},{c},{d})", v: {a:[2,3], b:[1,5], c:[3,5], d:[1,3]}, z:"zor", alt:"problem", kural:"c>a" },
-    { id: "t15_041", s: "Bir çiftlikte toplam {t} hayvan var. Tavşan ve tavuklardan toplam {a} ayak var. Kaç tavşan vardır?", c: "({a}-2*{t})/2", v: {t:[10,30], a:["2*{t}+4","2*{t}+20"]}, z:"orta", alt:"problem", kural:"a>2*t" },
-    { id: "t15_042", s: "{a} TL ve {b} TL'lik biletlerden toplam {c} adet satılıp {d} TL gelir elde ediliyor. {a} TL'lik biletten kaç adet satılmıştır?", c: "({d}-{b}*{c})/({a}-{b})", v: {a:[8,15], b:[3,"{a}-3"], c:[20,50], d:["{a}*5+{b}*({c}-5)","{a}*{c}"]}, z:"zor", alt:"problem", kural:"a>b" },
+    { id: "t15_041", s: "Bir çiftlikte toplam {t} hayvan var. Tavşan ve tavuklardan toplam {a} ayak var. Kaç tavşan vardır?", c: "({a}-2*{t})/2", v: {t:[10,30], a:"2*{t}+4"}, z:"orta", alt:"problem", kural:"a>2*t" },
+    { id: "t15_042", s: "{a} TL ve {b} TL'lik biletlerden toplam {c} adet satılıp {d} TL gelir elde ediliyor. {a} TL'lik biletten kaç adet satılmıştır?", c: "({d}-{b}*{c})/({a}-{b})", v: {a:[8,15], b:[3,"{a}-3"], c:[20,50], d:"{a}*5+{b}*({c}-5)"}, z:"zor", alt:"problem", kural:"a>b" },
     { id: "t15_043", s: "Bir baba {b} yaşında, çocuğu {c} yaşındadır. Kaç yıl sonra babanın yaşı çocuğunun yaşının {k} katı olur?", c: "({b}-{k}*{c})/({k}-1)", v: {b:[30,50], c:[3,12], k:[2,4]}, z:"orta", alt:"problem", kural:"b>k*c" },
-
-    // ALT DAL 6: YENİ NESİL & MANTIK
     { id: "t15_050", s: "Bir sayının {a} ile bölümünden bölüm {b}, kalan {c} ise bu sayı kaçtır?", c: "{a}*{b}+{c}", v: {a:[3,9], b:[3,10], c:[1,"{a}-1"]}, z:"orta", alt:"yeni_nesil", kural:"c<a" },
     { id: "t15_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı rakamları toplamının {k} katından {f} fazla ise sayı kaçtır?", c: "function(){var t={t},k={k},f={f};for(var i=10;i<=99;i++){var rt=rakamToplam(i);if(rt==t&&i==k*rt+f)return i}return 0}()", v: {t:[5,12], k:[3,6], f:[1,10]}, z:"zor", alt:"yeni_nesil" },
     { id: "t15_052", s: "Bir öğrenci {a} soruluk sınavda {b} doğru, {c} yanlış yapıyor. {d} doğru 1 yanlışı götürüyor. Net kaçtır?", c: "{b}-({c}/{d})", v: {a:[40,80], b:[15,40], c:[3,15], d:[3,4]}, z:"orta", alt:"yeni_nesil", kural:"b+c<=a" },
-],
+  ],
 
 // ==========================================
 // KONU 16: YAŞ PROBLEMLERİ
