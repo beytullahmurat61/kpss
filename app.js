@@ -322,7 +322,6 @@ function calculateAnswer(formula, vars) {
 function determineInputType(template, answer) {
     if (template.inputType && template.inputType !== 'auto') return template.inputType;
     const s = String(answer);
-    // Sözel cevaplar
     if (['Tek','Çift','Evet','Hayır','Artar','Azalır','Doğru','Yanlış'].includes(s)) return 'choice';
     if (/[√π∞\[\{]/.test(s)) return 'choice';
     if (isNaN(Number(s.replace(/[+\-*/]/g,''))) && !/^-?\d+\.?\d*\/?-?\d*$/.test(s)) return 'choice';
@@ -331,8 +330,6 @@ function determineInputType(template, answer) {
 
 function autoGenerateChoices(correctAnswer, template, vars) {
     const s = String(correctAnswer);
-    
-    // Sözel cevap eşleştirmeleri
     const verbalPairs = { 'Tek':'Çift','Çift':'Tek','Evet':'Hayır','Hayır':'Evet','Artar':'Azalır','Azalır':'Artar','Doğru':'Yanlış','Yanlış':'Doğru' };
     if (verbalPairs[s]) {
         return [
@@ -340,8 +337,6 @@ function autoGenerateChoices(correctAnswer, template, vars) {
             { label: 'B', text: verbalPairs[s], isCorrect: false }
         ];
     }
-    
-    // Sayısal
     const correct = Number(s.includes('/') ? eval(s) : s);
     if (!isNaN(correct)) {
         const offsets = [correct, correct + randomInt(1,5)*(Math.random()>0.5?1:-1), correct + randomInt(2,8)*(Math.random()>0.5?1:-1), Math.round(correct*randomInt(1,3)-randomInt(1,3))];
@@ -349,7 +344,6 @@ function autoGenerateChoices(correctAnswer, template, vars) {
         while (unique.length < 4) unique.push(Math.round((correct + randomInt(-10,10))*100)/100);
         return shuffleArray(unique.slice(0,4)).map((val, i) => ({ label: String.fromCharCode(65+i), text: String(val), isCorrect: Math.abs(val-correct) < 0.001 }));
     }
-    
     return [{ label: 'A', text: s, isCorrect: true }, { label: 'B', text: 'Diğer', isCorrect: false }];
 }
 
@@ -361,9 +355,8 @@ function generateChoicesFromTemplate(choiceTemplates, vars, correctAnswer) {
     });
 }
 
-// EKSİK FONKSİYONLAR - TAMAMLANDI
+// ============ TEMEL YARDIMCI FONKSİYONLAR ============
 
-// getSolvedIds - Çözülmüş soru ID'lerini getir
 function getSolvedIds(topicId, level, mode) {
     if (mode === 'questionBank') {
         const p = getQBProgress(topicId);
@@ -374,67 +367,64 @@ function getSolvedIds(topicId, level, mode) {
     return lh.solvedIds || [];
 }
 
-// getRecentTemplateIds - Son kullanılan şablon ID'leri
 let recentTemplatesCache = {};
-function getRecentTemplateIds(topicId, count = 3) {
+
+function getRecentTemplateIds(topicId, count) {
+    count = count || 3;
     if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
     return recentTemplatesCache[topicId].slice(-count);
 }
 
-// addRecentTemplateId - Şablon ID'sini geçmişe ekle
 function addRecentTemplateId(topicId, templateId) {
     if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
     recentTemplatesCache[topicId].push(templateId);
-    // Son 20'yi tut
     if (recentTemplatesCache[topicId].length > 20) recentTemplatesCache[topicId].shift();
 }
 
-// filterTemplatesByLevel - Seviyeye göre şablon filtrele
 function filterTemplatesByLevel(templates, level) {
     const zMap = { 'KOLAY': 'kolay', 'ORTA': 'orta', 'ZOR': 'zor' };
     const targetZ = zMap[level] || 'orta';
-    // Ağırlıklı: hedef seviyeye uygun olanları önce al
-    const matching = templates.filter(t => (t.z || 'orta') === targetZ);
+    const matching = templates.filter(function(t) { return (t.z || 'orta') === targetZ; });
     if (matching.length >= 3) return matching;
-    // Yetmezse tümünü döndür
     return templates;
 }
 
-// generateQuestionId - Soruya benzersiz ID üret
 function generateQuestionId(templateId, vars) {
-    const varsStr = Object.entries(vars || {}).sort().map(([k,v]) => `${k}:${v}`).join('|');
-    const hash = simpleHash(`${templateId}_${varsStr}`);
-    return `q_${templateId}_${hash}`;
+    const keys = Object.keys(vars || {}).sort();
+    let varsStr = '';
+    for (let i = 0; i < keys.length; i++) {
+        if (i > 0) varsStr += '|';
+        varsStr += keys[i] + ':' + vars[keys[i]];
+    }
+    const hash = simpleHash(templateId + '_' + varsStr);
+    return 'q_' + templateId + '_' + hash;
 }
 
-// getVarRangesForLevel - Seviyeye göre değişken aralıkları
 function getVarRangesForLevel(template, level) {
     if (!template) return {};
-    // Şablonda v (variables) alanı varsa onu kullan
     if (template.v && typeof template.v === 'object') return template.v;
-    // Yoksa varsayılan
     return template.v || {};
 }
 
-// generateVariables - Değişkenleri üret
 function generateVariables(varRanges, rule) {
-    const vars = {};
-    // Maksimum 20 deneme
     for (let attempt = 0; attempt < 20; attempt++) {
         const candidateVars = {};
-        for (const [key, range] of Object.entries(varRanges)) {
+        const keys = Object.keys(varRanges);
+        let valid = true;
+        
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const range = varRanges[key];
+            
             if (Array.isArray(range)) {
-                // [min, max] formatı
                 candidateVars[key] = randomInt(range[0], range[1]);
             } else if (typeof range === 'object' && range !== null) {
-                // Özel değişken üretimi
                 candidateVars[key] = generateSpecialVariable(key, range);
             } else {
-                candidateVars[key] = range; // Sabit değer
+                candidateVars[key] = range;
             }
         }
         
-        // Kural kontrolü
         if (!rule || checkRule(rule, candidateVars)) {
             return candidateVars;
         }
@@ -442,7 +432,6 @@ function generateVariables(varRanges, rule) {
     return null;
 }
 
-// generateSpecialVariable - Özel değişken üretimi
 function generateSpecialVariable(key, config) {
     if (config.values && Array.isArray(config.values)) {
         return config.values[Math.floor(Math.random() * config.values.length)];
@@ -456,46 +445,49 @@ function generateSpecialVariable(key, config) {
     return config.default || 0;
 }
 
-// fillTemplate - Şablon metnini doldur
 function fillTemplate(text, vars) {
     let result = String(text);
-    for (const [key, value] of Object.entries(vars || {})) {
-        result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    const keys = Object.keys(vars || {});
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const value = vars[key];
+        result = result.split('{' + key + '}').join(value);
     }
     return result;
 }
 
-// checkRule - Kural kontrolü
 function checkRule(rule, vars) {
     if (!rule) return true;
     try {
         let expr = String(rule);
-        for (const [k, v] of Object.entries(vars)) {
-            expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        const keys = Object.keys(vars);
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            expr = expr.split('{' + k + '}').join(vars[k]);
         }
-        return !!eval(expr);
+        return !!(eval(expr));
     } catch (e) {
-        return true; // Hata durumunda geçiş izni ver
+        return true;
     }
 }
 
-// generateSolution - Çözüm adımlarını üret
 function generateSolution(template, vars, answer) {
     if (template.cozum) {
         let sol = String(template.cozum);
-        for (const [k, v] of Object.entries(vars || {})) {
-            sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        const keys = Object.keys(vars || {});
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            sol = sol.split('{' + k + '}').join(vars[k]);
         }
-        return sol.replace(/\{cevap\}/g, String(answer));
+        sol = sol.split('{cevap}').join(String(answer));
+        return sol;
     }
-    return 'Çözüm: ' + String(answer);
+    return 'Cevap: ' + String(answer);
 }
 
-// formatAnswer - Cevabı formatla
 function formatAnswer(answer, inputType) {
     const s = String(answer);
     if (inputType === 'choice') return s;
-    // Sayısal formatlama
     if (!isNaN(Number(s))) {
         const n = Number(s);
         if (Number.isInteger(n)) return String(n);
@@ -504,12 +496,14 @@ function formatAnswer(answer, inputType) {
     return s;
 }
 
-// getTopicById - Konu ID'sine göre konu bilgisi
 function getTopicById(id) {
-    return TOPICS?.find(t => t.id === id) || null;
+    if (typeof TOPICS === 'undefined') return null;
+    for (let i = 0; i < TOPICS.length; i++) {
+        if (TOPICS[i].id === id) return TOPICS[i];
+    }
+    return null;
 }
 
-// getNextLevel - Sonraki seviyeyi bul
 function getNextLevel(currentLevel) {
     const order = ['KOLAY', 'ORTA', 'ZOR'];
     const idx = order.indexOf(currentLevel);
@@ -517,57 +511,53 @@ function getNextLevel(currentLevel) {
     return null;
 }
 
-// getNextTopic - Sonraki konuyu bul
 function getNextTopic(currentTopicId) {
     const current = getTopicById(currentTopicId);
     if (!current) return null;
-    const nextByOrder = TOPICS.find(t => t.order === current.order + 1);
-    if (nextByOrder && !ST.completedTopics.includes(nextByOrder.id)) return nextByOrder;
-    // Sıradaki tamamlanmamış konu
-    return TOPICS.find(t => !ST.completedTopics.includes(t.id)) || null;
-}
-
-// generateFallbackQuestion - Yedek soru üret
-function generateFallbackQuestion(topicId, level) {
-    const templates = QUESTION_TEMPLATES[topicId];
-    if (!templates?.length) return null;
-    for (let i = 0; i < 10; i++) {
-        const tpl = templates[Math.floor(Math.random() * templates.length)];
-        const vars = generateVariables(tpl.v, tpl.kural);
-        if (!vars) continue;
-        const cevapSonuc = calculateAnswer(tpl.c, vars);
-        if (cevapSonuc === null) continue;
-        const generatedId = generateQuestionId(tpl.id, vars);
-        const inputType = determineInputType(tpl, cevapSonuc);
-        let choices = null, correctChoiceIndex = 0;
-        if (inputType === 'choice') {
-            choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevapSonuc) : autoGenerateChoices(cevapSonuc, tpl, vars);
-            correctChoiceIndex = choices.findIndex(c => c.isCorrect);
-            if (correctChoiceIndex < 0) correctChoiceIndex = 0;
+    
+    for (let i = 0; i < TOPICS.length; i++) {
+        if (TOPICS[i].order === current.order + 1 && !ST.completedTopics.includes(TOPICS[i].id)) {
+            return TOPICS[i];
         }
-        return {
-            id: generatedId, templateId: tpl.id,
-            soru: fillTemplate(tpl.s, vars), cevap: formatAnswer(cevapSonuc, inputType), cevapRaw: cevapSonuc,
-            zorluk: tpl.z || 'orta', inputType, choices, correctChoiceIndex,
-            cozum: generateSolution(tpl, vars, cevapSonuc), vars, topicId
-        };
+    }
+    
+    for (let i = 0; i < TOPICS.length; i++) {
+        if (!ST.completedTopics.includes(TOPICS[i].id)) {
+            return TOPICS[i];
+        }
     }
     return null;
 }
 
-function generateQuestion(topicId, level, options = {}) {
+// ============ SORU ÜRETİM ANA FONKSİYONLARI ============
+
+function generateQuestion(topicId, level, options) {
+    if (!options) options = {};
     const templates = QUESTION_TEMPLATES[topicId];
     if (!templates || !templates.length) return null;
+    
     const solvedIds = getSolvedIds(topicId, level, options.mode);
     let eligible = filterTemplatesByLevel(templates, level);
     if (!eligible.length) eligible = templates;
+    
     const recentIds = getRecentTemplateIds(topicId, 3);
-    let fresh = eligible.filter(t => !recentIds.includes(t.id));
+    let fresh = [];
+    for (let i = 0; i < eligible.length; i++) {
+        if (recentIds.indexOf(eligible[i].id) === -1) {
+            fresh.push(eligible[i]);
+        }
+    }
     if (!fresh.length) fresh = eligible;
-    for (const template of shuffleArray(fresh)) {
+    
+    const shuffled = shuffleArray(fresh);
+    for (let i = 0; i < shuffled.length; i++) {
+        const template = shuffled[i];
         for (let a = 0; a < 5; a++) {
             const q = tryGenerateFromTemplate(template, level, solvedIds, topicId);
-            if (q && !solvedIds.includes(q.id)) { addRecentTemplateId(topicId, template.id); return q; }
+            if (q && solvedIds.indexOf(q.id) === -1) {
+                addRecentTemplateId(topicId, template.id);
+                return q;
+            }
         }
     }
     return generateFallbackQuestion(topicId, level);
@@ -576,24 +566,95 @@ function generateQuestion(topicId, level, options = {}) {
 function tryGenerateFromTemplate(template, level, solvedIds, topicId) {
     const vars = generateVariables(getVarRangesForLevel(template, level), template.kural);
     if (!vars) return null;
+    
     const questionText = fillTemplate(template.s, vars);
     const cevapSonuc = calculateAnswer(template.c, vars);
     if (cevapSonuc === null || cevapSonuc === undefined) return null;
+    
     const generatedId = generateQuestionId(template.id, vars);
-    if (solvedIds.includes(generatedId)) return null;
+    if (solvedIds.indexOf(generatedId) !== -1) return null;
+    
     const inputType = determineInputType(template, cevapSonuc);
-    let choices = null, correctChoiceIndex = 0;
+    let choices = null;
+    let correctChoiceIndex = 0;
+    
     if (inputType === 'choice') {
-        choices = template.choices && Array.isArray(template.choices) ? generateChoicesFromTemplate(template.choices, vars, cevapSonuc) : autoGenerateChoices(cevapSonuc, template, vars);
-        correctChoiceIndex = choices.findIndex(c => c.isCorrect);
-        if (correctChoiceIndex < 0) correctChoiceIndex = 0;
+        if (template.choices && Array.isArray(template.choices)) {
+            choices = generateChoicesFromTemplate(template.choices, vars, cevapSonuc);
+        } else {
+            choices = autoGenerateChoices(cevapSonuc, template, vars);
+        }
+        for (let i = 0; i < choices.length; i++) {
+            if (choices[i].isCorrect) {
+                correctChoiceIndex = i;
+                break;
+            }
+        }
     }
+    
     return {
-        id: generatedId, templateId: template.id,
-        soru: questionText, cevap: formatAnswer(cevapSonuc, inputType), cevapRaw: cevapSonuc,
-        zorluk: template.z || 'orta', inputType, choices, correctChoiceIndex,
-        cozum: generateSolution(template, vars, cevapSonuc), vars, topicId
+        id: generatedId,
+        templateId: template.id,
+        soru: questionText,
+        cevap: formatAnswer(cevapSonuc, inputType),
+        cevapRaw: cevapSonuc,
+        zorluk: template.z || 'orta',
+        inputType: inputType,
+        choices: choices,
+        correctChoiceIndex: correctChoiceIndex,
+        cozum: generateSolution(template, vars, cevapSonuc),
+        vars: vars,
+        topicId: topicId
     };
+}
+
+function generateFallbackQuestion(topicId, level) {
+    const templates = QUESTION_TEMPLATES[topicId];
+    if (!templates || !templates.length) return null;
+    
+    for (let i = 0; i < 10; i++) {
+        const tpl = templates[Math.floor(Math.random() * templates.length)];
+        const vars = generateVariables(tpl.v, tpl.kural);
+        if (!vars) continue;
+        
+        const cevapSonuc = calculateAnswer(tpl.c, vars);
+        if (cevapSonuc === null) continue;
+        
+        const generatedId = generateQuestionId(tpl.id, vars);
+        const inputType = determineInputType(tpl, cevapSonuc);
+        let choices = null;
+        let correctChoiceIndex = 0;
+        
+        if (inputType === 'choice') {
+            if (tpl.choices && Array.isArray(tpl.choices)) {
+                choices = generateChoicesFromTemplate(tpl.choices, vars, cevapSonuc);
+            } else {
+                choices = autoGenerateChoices(cevapSonuc, tpl, vars);
+            }
+            for (let j = 0; j < choices.length; j++) {
+                if (choices[j].isCorrect) {
+                    correctChoiceIndex = j;
+                    break;
+                }
+            }
+        }
+        
+        return {
+            id: generatedId,
+            templateId: tpl.id,
+            soru: fillTemplate(tpl.s, vars),
+            cevap: formatAnswer(cevapSonuc, inputType),
+            cevapRaw: cevapSonuc,
+            zorluk: tpl.z || 'orta',
+            inputType: inputType,
+            choices: choices,
+            correctChoiceIndex: correctChoiceIndex,
+            cozum: generateSolution(tpl, vars, cevapSonuc),
+            vars: vars,
+            topicId: topicId
+        };
+    }
+    return null;
 }
 
 // ============================================
