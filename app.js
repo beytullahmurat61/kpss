@@ -299,7 +299,7 @@ function calculateAnswer(formula, vars) {
         }
         
         // Özel fonksiyon listesi
-        const ozel = const ozel = ['ebob(','asalCarpan','faktoriyel(','permutasyon(','kombinasyon(','sadelestir(','sirala(','zarOlasilik(','isPrime(','basamakDegerToplam(','rakamToplam(','kokDisi(','aralikToplam(','sinavMevcut(','dogrusalDeger(','sifirSayisi(','zarEnAz(','zarFark(','rakamSayisi(','enKucukAsalCarpan(','asalCarpanCarpim(','usToplam(','aralikAsalSay(','basamakDegistir(','enAzCarpim(','enKucukAsalToplam(','ondalikKesir(','kokToplamMin(','carpanBul(','tekCozumBul(','siraIleIs(','kumeBilesim(','kumeUcBilesim(','hizBul(','rakamToplamSayi(','oranliKok(','kokBul(','carpanKok(','faktoriyelTers(','tekrarliPermutasyon('];
+        const ozel = ['ebob(','asalCarpan','faktoriyel(','permutasyon(','kombinasyon(','sadelestir(','sirala(','zarOlasilik(','isPrime(','basamakDegerToplam(','rakamToplam(','kokDisi(','aralikToplam(','sinavMevcut(','dogrusalDeger(','sifirSayisi(','zarEnAz(','zarFark(','rakamSayisi(','enKucukAsalCarpan(','asalCarpanCarpim(','usToplam(','aralikAsalSay(','basamakDegistir(','enAzCarpim(','enKucukAsalToplam(','ondalikKesir(','kokToplamMin(','carpanBul(','tekCozumBul(','siraIleIs(','kumeBilesim(','kumeUcBilesim(','hizBul(','rakamToplamSayi(','oranliKok(','kokBul(','carpanKok(','faktoriyelTers(','tekrarliPermutasyon('];
         if (ozel.some(f => expr.includes(f))) return eval(expr);
         
         expr = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/√\(/g,'Math.sqrt(').replace(/√/g,'Math.sqrt');
