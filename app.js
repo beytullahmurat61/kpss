@@ -1,3 +1,4 @@
+window.onerror = function(msg, url, line) { alert('HATA: ' + msg + ' Satır: ' + line); };
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
 // Versiyon: 4.0 Final | Tüm hatalar giderildi
