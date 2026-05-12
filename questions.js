@@ -353,6 +353,7 @@ const QUESTION_TEMPLATES = {
     { id: "t4_050", s: "4A3B dört basamaklı sayısı 5 ile bölünebildiğine göre B kaçtır?", c: "0 veya 5", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["0 veya 5","0","5","2"], cozum:"5 ile bölünme: Son rakam 0 veya 5" },
  { id: "t4_051", s: "2A5 üç basamaklı sayısı 3 ile bölünebildiğine göre A kaç olabilir?", c: "2,5,8", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["2,5,8","1,4,7","3,6,9","0,3,6"], cozum:"2+A+5=7+A, 3'ün katı olmalı" },
 { id: "t4_052", s: "5A2B sayısı 4 ile bölünebildiğine göre B kaçtır? (Son iki rakam 4'ün katı)", c: "0,4,8", v: {}, z:"zor", alt:"rakam_yerlestirme", inputType:"choice", choices:["0,4,8","0,2,6","2,4,8","0,5"] },
+{ id: "t4_053", s: "{a} basamaklı rakamları farklı 5 ile bölünebilen en büyük sayı kaçtır?", c: "{a}==2?95:{a}==3?985:{a}==4?9875:98765", v: {a:[2,5]}, z:"zor", alt:"rakam_yerlestirme" },
     { id: "t4_054", s: "Hem 3 hem 5 ile bölünebilen iki basamaklı en büyük sayı kaçtır?", c: "90", v: {}, z:"orta", alt:"rakam_yerlestirme" },
     { id: "t4_055", s: "Hem 2 hem 9 ile bölünebilen üç basamaklı en küçük sayı kaçtır?", c: "108", v: {}, z:"zor", alt:"rakam_yerlestirme" },
 
