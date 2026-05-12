@@ -266,7 +266,7 @@ const QUESTION_TEMPLATES = {
     { id: "t3_021", s: "En küçük pozitif tam sayı kaçtır?", c: "1", v: {}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["1","0","-1","2"] },
     { id: "t3_022", s: "En büyük negatif tam sayı kaçtır?", c: "-1", v: {}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["-1","0","-2","-∞"] },
     { id: "t3_023", s: "İki basamaklı en küçük tam sayı kaçtır?", c: "-99", v: {}, z:"orta", alt:"sayi_turleri", inputType:"choice", choices:["-99","10","-10","-90"] },
- { id: "t3_024", s: "{a} hangi sayı kümesine aittir?", c: "{a}<0?'Negatif':({a}>0?'Pozitif':'Sıfır')", v: {a:[-20,20]}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["Pozitif","Negatif","Sıfır","Doğal"], kural:"a!=0" }
+ { id: "t3_024", s: "{a} hangi sayı kümesine aittir?", c: "{a}<0?'Negatif':({a}>0?'Pozitif':'Sıfır')", v: {a:[-20,20]}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["Pozitif","Negatif","Sıfır","Doğal"], kural:"a!=0" },
 
     // ==========================================
     // ALT DAL 5: SIRALAMA
@@ -351,8 +351,8 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 6: MANTIK & RAKAM YERLEŞTİRME
     // ==========================================
     { id: "t4_050", s: "4A3B dört basamaklı sayısı 5 ile bölünebildiğine göre B kaçtır?", c: "0 veya 5", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["0 veya 5","0","5","2"], cozum:"5 ile bölünme: Son rakam 0 veya 5" },
- { id: "t4_051", s: "2A5 üç basamaklı sayısı 3 ile bölünebildiğine göre A kaç olabilir?", c: "2,5,8", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["2,5,8","1,4,7","3,6,9","0,3,6"], cozum:"2+A+5=7+A, 3'ün katı olmalı" }
-{ id: "t4_052", s: "5A2B sayısı 4 ile bölünebildiğine göre B kaçtır? (Son iki rakam 4'ün katı)", c: "0,4,8", v: {}, z:"zor", alt:"rakam_yerlestirme", inputType:"choice", choices:["0,4,8","0,2,6","2,4,8","0,5"] }
+ { id: "t4_051", s: "2A5 üç basamaklı sayısı 3 ile bölünebildiğine göre A kaç olabilir?", c: "2,5,8", v: {}, z:"orta", alt:"rakam_yerlestirme", inputType:"choice", choices:["2,5,8","1,4,7","3,6,9","0,3,6"], cozum:"2+A+5=7+A, 3'ün katı olmalı" },
+{ id: "t4_052", s: "5A2B sayısı 4 ile bölünebildiğine göre B kaçtır? (Son iki rakam 4'ün katı)", c: "0,4,8", v: {}, z:"zor", alt:"rakam_yerlestirme", inputType:"choice", choices:["0,4,8","0,2,6","2,4,8","0,5"] },
     { id: "t4_054", s: "Hem 3 hem 5 ile bölünebilen iki basamaklı en büyük sayı kaçtır?", c: "90", v: {}, z:"orta", alt:"rakam_yerlestirme" },
     { id: "t4_055", s: "Hem 2 hem 9 ile bölünebilen üç basamaklı en küçük sayı kaçtır?", c: "108", v: {}, z:"zor", alt:"rakam_yerlestirme" },
 
