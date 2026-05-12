@@ -286,7 +286,7 @@ const QUESTION_TEMPLATES = {
     { id: "t3_041", s: "AB iki basamaklı sayısında A={a} ve B={b} ise AB kaçtır?", c: "{a}*10+{b}", v: {a:[1,9], b:[0,9]}, z:"kolay", alt:"problem" },
     { id: "t3_042", s: "Rakamları toplamı {t} olan iki basamaklı kaç sayı vardır?", c: "{t}<=9?{t}:19-{t}", v: {t:[2,15]}, z:"zor", alt:"problem" },
     { id: "t3_043", s: "{a} sayısından bir önce ve bir sonra gelen sayıların toplamı kaçtır?", c: "2*{a}", v: {a:[5,50]}, z:"orta", alt:"problem", cozum:"({a}-1)+({a}+1) = 2×{a}" },
-    { id: "t3_044", s: "İki sayıdan biri diğerinden {f} fazla ve toplamları {t} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"problem" },
+  { id: "t3_044", s: "İki sayıdan biri diğerinden {f} fazla ve toplamları {t} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {f:[2,20,"cift"], t:["{f}+20","{f}+80","cift"]}, z:"orta", alt:"problem" },
 
     // ==========================================
     // ALT DAL 7: MANTIK & YENİ NESİL
