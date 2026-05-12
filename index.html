@@ -80,19 +80,19 @@
                 </div>
 
                 <div class="stats-row" id="homeStatsRow">
-                    <div class="stat-mini">
+                    <div class="stat-mini" onclick="goStats()">
                         <span class="stat-mini-val" id="statTopics">0</span>
                         <span class="stat-mini-lbl">Konu</span>
                     </div>
-                    <div class="stat-mini">
+                    <div class="stat-mini" onclick="goStats()">
                         <span class="stat-mini-val" id="statQuestions">0</span>
                         <span class="stat-mini-lbl">Soru</span>
                     </div>
-                    <div class="stat-mini">
+                    <div class="stat-mini" onclick="goStats()">
                         <span class="stat-mini-val" id="statAccuracy">%0</span>
                         <span class="stat-mini-lbl">Doğruluk</span>
                     </div>
-                    <div class="stat-mini">
+                    <div class="stat-mini" onclick="goStats()">
                         <span class="stat-mini-val" id="statStreak">0</span>
                         <span class="stat-mini-lbl">Seri</span>
                     </div>
@@ -104,16 +104,16 @@
 
                 <div class="btn-group-vertical">
                     <button class="btn btn-primary btn-full" onclick="goTopics()">
-                        📚 Konu Çalış
+                        <span class="btn-icon-left">📚</span> Konu Çalış
                     </button>
                     <button class="btn btn-accent btn-full" onclick="goQuestionBank()">
-                        📝 Soru Bankası
+                        <span class="btn-icon-left">📝</span> Soru Bankası
                     </button>
-                    <button class="btn btn-secondary btn-full" onclick="goExamList()">
-                        📋 Deneme Sınavı
+                    <button class="btn btn-exam btn-full" onclick="goExamList()">
+                        <span class="btn-icon-left">📋</span> Deneme Sınavı
                     </button>
-                    <button class="btn btn-ghost btn-full" onclick="goStats()">
-                        📊 İstatistikler
+                    <button class="btn btn-stats btn-full" onclick="goStats()">
+                        <span class="btn-icon-left">📊</span> İstatistikler
                     </button>
                 </div>
             </div>
@@ -243,7 +243,5 @@
     <script src="config.js"></script>
     <script src="questions.js"></script>
     <script src="app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </body>
 </html>
