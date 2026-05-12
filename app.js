@@ -293,7 +293,7 @@ function calculateAnswer(formula, vars) {
         let expr = formula;
         for (const [k, v] of Object.entries(vars)) expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
         
-        // 🔧 String ifade kontrolü (ternary, tırnak, backtick)
+        // String ifade kontrolü (ternary, tırnak, backtick)
         if (expr.includes("'") || expr.includes('"') || expr.includes('`') || expr.includes('?')) {
             return eval(expr);
         }
@@ -332,7 +332,7 @@ function determineInputType(template, answer) {
 function autoGenerateChoices(correctAnswer, template, vars) {
     const s = String(correctAnswer);
     
-    // 🔧 Sözel cevap eşleştirmeleri
+    // Sözel cevap eşleştirmeleri
     const verbalPairs = { 'Tek':'Çift','Çift':'Tek','Evet':'Hayır','Hayır':'Evet','Artar':'Azalır','Azalır':'Artar','Doğru':'Yanlış','Yanlış':'Doğru' };
     if (verbalPairs[s]) {
         return [
@@ -361,8 +361,199 @@ function generateChoicesFromTemplate(choiceTemplates, vars, correctAnswer) {
     });
 }
 
-// Diğer motor fonksiyonları aynen korundu (generateQuestion, tryGenerateFromTemplate, vb.)
-// ... (önceki v3.0'daki motor fonksiyonları burada)
+// EKSİK FONKSİYONLAR - TAMAMLANDI
+
+// getSolvedIds - Çözülmüş soru ID'lerini getir
+function getSolvedIds(topicId, level, mode) {
+    if (mode === 'questionBank') {
+        const p = getQBProgress(topicId);
+        return p.solved || [];
+    }
+    const hist = getHist(topicId);
+    const lh = hist.levels?.[level] || {};
+    return lh.solvedIds || [];
+}
+
+// getRecentTemplateIds - Son kullanılan şablon ID'leri
+let recentTemplatesCache = {};
+function getRecentTemplateIds(topicId, count = 3) {
+    if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
+    return recentTemplatesCache[topicId].slice(-count);
+}
+
+// addRecentTemplateId - Şablon ID'sini geçmişe ekle
+function addRecentTemplateId(topicId, templateId) {
+    if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
+    recentTemplatesCache[topicId].push(templateId);
+    // Son 20'yi tut
+    if (recentTemplatesCache[topicId].length > 20) recentTemplatesCache[topicId].shift();
+}
+
+// filterTemplatesByLevel - Seviyeye göre şablon filtrele
+function filterTemplatesByLevel(templates, level) {
+    const zMap = { 'KOLAY': 'kolay', 'ORTA': 'orta', 'ZOR': 'zor' };
+    const targetZ = zMap[level] || 'orta';
+    // Ağırlıklı: hedef seviyeye uygun olanları önce al
+    const matching = templates.filter(t => (t.z || 'orta') === targetZ);
+    if (matching.length >= 3) return matching;
+    // Yetmezse tümünü döndür
+    return templates;
+}
+
+// generateQuestionId - Soruya benzersiz ID üret
+function generateQuestionId(templateId, vars) {
+    const varsStr = Object.entries(vars || {}).sort().map(([k,v]) => `${k}:${v}`).join('|');
+    const hash = simpleHash(`${templateId}_${varsStr}`);
+    return `q_${templateId}_${hash}`;
+}
+
+// getVarRangesForLevel - Seviyeye göre değişken aralıkları
+function getVarRangesForLevel(template, level) {
+    if (!template) return {};
+    // Şablonda v (variables) alanı varsa onu kullan
+    if (template.v && typeof template.v === 'object') return template.v;
+    // Yoksa varsayılan
+    return template.v || {};
+}
+
+// generateVariables - Değişkenleri üret
+function generateVariables(varRanges, rule) {
+    const vars = {};
+    // Maksimum 20 deneme
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const candidateVars = {};
+        for (const [key, range] of Object.entries(varRanges)) {
+            if (Array.isArray(range)) {
+                // [min, max] formatı
+                candidateVars[key] = randomInt(range[0], range[1]);
+            } else if (typeof range === 'object' && range !== null) {
+                // Özel değişken üretimi
+                candidateVars[key] = generateSpecialVariable(key, range);
+            } else {
+                candidateVars[key] = range; // Sabit değer
+            }
+        }
+        
+        // Kural kontrolü
+        if (!rule || checkRule(rule, candidateVars)) {
+            return candidateVars;
+        }
+    }
+    return null;
+}
+
+// generateSpecialVariable - Özel değişken üretimi
+function generateSpecialVariable(key, config) {
+    if (config.values && Array.isArray(config.values)) {
+        return config.values[Math.floor(Math.random() * config.values.length)];
+    }
+    if (config.min !== undefined && config.max !== undefined) {
+        if (config.type === 'float') {
+            return parseFloat(randomFloat(config.min, config.max).toFixed(config.decimals || 1));
+        }
+        return randomInt(config.min, config.max);
+    }
+    return config.default || 0;
+}
+
+// fillTemplate - Şablon metnini doldur
+function fillTemplate(text, vars) {
+    let result = String(text);
+    for (const [key, value] of Object.entries(vars || {})) {
+        result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    }
+    return result;
+}
+
+// checkRule - Kural kontrolü
+function checkRule(rule, vars) {
+    if (!rule) return true;
+    try {
+        let expr = String(rule);
+        for (const [k, v] of Object.entries(vars)) {
+            expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
+        return !!eval(expr);
+    } catch (e) {
+        return true; // Hata durumunda geçiş izni ver
+    }
+}
+
+// generateSolution - Çözüm adımlarını üret
+function generateSolution(template, vars, answer) {
+    if (template.cozum) {
+        let sol = String(template.cozum);
+        for (const [k, v] of Object.entries(vars || {})) {
+            sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
+        return sol.replace(/\{cevap\}/g, String(answer));
+    }
+    return 'Çözüm: ' + String(answer);
+}
+
+// formatAnswer - Cevabı formatla
+function formatAnswer(answer, inputType) {
+    const s = String(answer);
+    if (inputType === 'choice') return s;
+    // Sayısal formatlama
+    if (!isNaN(Number(s))) {
+        const n = Number(s);
+        if (Number.isInteger(n)) return String(n);
+        return parseFloat(n.toFixed(3)).toString();
+    }
+    return s;
+}
+
+// getTopicById - Konu ID'sine göre konu bilgisi
+function getTopicById(id) {
+    return TOPICS?.find(t => t.id === id) || null;
+}
+
+// getNextLevel - Sonraki seviyeyi bul
+function getNextLevel(currentLevel) {
+    const order = ['KOLAY', 'ORTA', 'ZOR'];
+    const idx = order.indexOf(currentLevel);
+    if (idx >= 0 && idx < order.length - 1) return order[idx + 1];
+    return null;
+}
+
+// getNextTopic - Sonraki konuyu bul
+function getNextTopic(currentTopicId) {
+    const current = getTopicById(currentTopicId);
+    if (!current) return null;
+    const nextByOrder = TOPICS.find(t => t.order === current.order + 1);
+    if (nextByOrder && !ST.completedTopics.includes(nextByOrder.id)) return nextByOrder;
+    // Sıradaki tamamlanmamış konu
+    return TOPICS.find(t => !ST.completedTopics.includes(t.id)) || null;
+}
+
+// generateFallbackQuestion - Yedek soru üret
+function generateFallbackQuestion(topicId, level) {
+    const templates = QUESTION_TEMPLATES[topicId];
+    if (!templates?.length) return null;
+    for (let i = 0; i < 10; i++) {
+        const tpl = templates[Math.floor(Math.random() * templates.length)];
+        const vars = generateVariables(tpl.v, tpl.kural);
+        if (!vars) continue;
+        const cevapSonuc = calculateAnswer(tpl.c, vars);
+        if (cevapSonuc === null) continue;
+        const generatedId = generateQuestionId(tpl.id, vars);
+        const inputType = determineInputType(tpl, cevapSonuc);
+        let choices = null, correctChoiceIndex = 0;
+        if (inputType === 'choice') {
+            choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevapSonuc) : autoGenerateChoices(cevapSonuc, tpl, vars);
+            correctChoiceIndex = choices.findIndex(c => c.isCorrect);
+            if (correctChoiceIndex < 0) correctChoiceIndex = 0;
+        }
+        return {
+            id: generatedId, templateId: tpl.id,
+            soru: fillTemplate(tpl.s, vars), cevap: formatAnswer(cevapSonuc, inputType), cevapRaw: cevapSonuc,
+            zorluk: tpl.z || 'orta', inputType, choices, correctChoiceIndex,
+            cozum: generateSolution(tpl, vars, cevapSonuc), vars, topicId
+        };
+    }
+    return null;
+}
 
 function generateQuestion(topicId, level, options = {}) {
     const templates = QUESTION_TEMPLATES[topicId];
@@ -404,11 +595,6 @@ function tryGenerateFromTemplate(template, level, solvedIds, topicId) {
         cozum: generateSolution(template, vars, cevapSonuc), vars, topicId
     };
 }
-
-// ... (kalan motor fonksiyonları v3.0'daki gibi)
-// getVarRangesForLevel, generateVariables, generateSingleVariable, generateSpecialVariable,
-// fillTemplate, generateQuestionId, getSolvedIds, filterTemplatesByLevel, checkRule,
-// generateSolution, formatAnswer, generateFallbackQuestion, recentTemplatesCache
 
 // ============================================
 // BÖLÜM 7: SORU GÖSTERİM & CEVAP
@@ -520,10 +706,9 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 8-13: API, SORU BANKASI, DENEME, İSTATİSTİK, MODAL, TEST, BAŞLAT
+// BÖLÜM 8: API (Groq)
 // ============================================
 
-// Groq API
 async function fetchTopicSummary(topic) {
     checkApiDate();
     if (ST.apiCallCount >= CONSTANTS.API_DAILY_LIMIT) throw new Error('Limit doldu');
@@ -559,7 +744,10 @@ window.sendAsk = async function() {
     inp.disabled = false;
 };
 
-// Soru Bankası
+// ============================================
+// BÖLÜM 9: SORU BANKASI
+// ============================================
+
 function renderQuestionBankList() {
     const el = document.getElementById('qbTopicsList');
     if (!el) return;
@@ -642,7 +830,10 @@ function processQBAnswer(isCorrect, q) {
 window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQBProgress(q.topicId||ST.topic); if(!p.solved.includes(q.id))p.solved.push(q.id); saveState(); renderQBSolveHeader(); nextQBQuestion(); };
 window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
-// Deneme Sınavı
+// ============================================
+// BÖLÜM 10: DENEME SINAVI
+// ============================================
+
 function renderExamList() {
     const el = document.getElementById('examListContent');
     if (!el) return;
@@ -727,7 +918,10 @@ function finishExam() {
 window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.currentExam.timer); if(confirm('İptal?')){ST.currentExam=null;goExamList();} };
 window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
 
-// İstatistik
+// ============================================
+// BÖLÜM 11: İSTATİSTİK
+// ============================================
+
 function renderStats() {
     const el=document.getElementById('statsContent'); if(!el)return;
     const done=ST.completedTopics.length, acc=ST.totalQ>0?Math.round((ST.totalCorrect/ST.totalQ)*100):0;
@@ -737,17 +931,25 @@ function renderStats() {
     el.innerHTML=`<div class="net-box"><div style="font-size:12px;color:var(--text-muted)">Tahmini KPSS Netin</div><div class="net-num">${estNet}</div><div class="net-lbl">${done===CONSTANTS.TOTAL_TOPICS?'Tüm konular bitti! 🏆':'Konuları tamamladıkça artacak'}</div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:var(--accent)">${done}</div><div class="stat-lbl">Konu Bitti</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--danger)">${ST.totalQ}</div><div class="stat-lbl">Toplam Soru</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--success)">%${acc}</div><div class="stat-lbl">Doğruluk</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--warning)">${ST.maxStreak}</div><div class="stat-lbl">En İyi Seri</div></div></div><div class="card"><h3>Genel İlerleme</h3><div class="prog-bar-wrap"><div class="prog-bar-label"><span>Konular</span><span>${done}/${CONSTANTS.TOTAL_TOPICS}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${Math.round((done/CONSTANTS.TOTAL_TOPICS)*100)}%"></div></div></div><div class="prog-bar-wrap" style="margin-top:12px"><div class="prog-bar-label"><span>Soru Bankası</span><span>${qbs}/${qba}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${qba>0?Math.round((qbs/qba)*100):0}%"></div></div></div></div>${weak.length?`<div class="card"><h3>⚠️ Zayıf Konular</h3>${weak.slice(0,5).map(w=>`<div class="weak-row" onclick="openTopic(${w.id})" style="cursor:pointer"><span class="weak-name">${w.name}</span><span class="weak-pct" style="color:var(--danger)">%${w.pct} (${w.total} soru)</span></div>`).join('')}</div>`:''}${exams.length?`<div class="card"><h3>📝 Son Denemeler</h3>${exams.map(e=>`<div class="weak-row"><span>${e.type}</span><span style="color:var(--accent)">${e.net} net</span><span style="font-size:10px;color:var(--text-muted)">${e.date}</span></div>`).join('')}</div>`:''}<div class="card"><h3>⚙️ Yönetim</h3><div class="btn-group-vertical" style="margin-top:8px"><button class="btn btn-ghost btn-full" onclick="openModal('api')">🔑 API Anahtarı</button><button class="btn btn-ghost btn-full" onclick="resetQuestionBankProgress()">🔄 Soru Bankası Sıfırla</button><button class="btn btn-danger btn-full" onclick="openModal('reset')">🗑️ Verileri Sıfırla</button></div></div>`;
 }
 
-// Modal & Sıfırlama
+// ============================================
+// BÖLÜM 12: MODAL & SIFIRLAMA
+// ============================================
+
 window.openModal = function(id) { const el=document.getElementById(id+'Modal'); if(el)el.classList.remove('hidden'); if(id==='api')document.getElementById('apiInp').value=ST.apiKey; };
 window.closeModal = function(id) { document.getElementById(id+'Modal')?.classList.add('hidden'); };
 window.saveKey = function() { const k=document.getElementById('apiInp')?.value?.trim(); if(!k)return; ST.apiKey=k; localStorage.setItem(CONSTANTS.API_KEY_STORAGE,k); closeModal('api'); alert('✅ Kaydedildi!'); };
 window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!confirm('Tüm veriler silinecek. Emin misin?'))return;const ak=ST.apiKey;ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};initMissingFields();initExamSets();saveState();goHome();updateHomeStats();alert('✅ Sıfırlandı!');}else if(type==='topic'){const t=getTopicById(ST.topic);if(!confirm(`${t?.n} sıfırlansın mı?`))return;ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};ST.currentLevel='KOLAY';ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);saveState();renderPreStudySummary();alert(`✅ ${t?.n} sıfırlandı!`);}};
 window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
 
-// Test Modu
-let tmc=0,tmt=null;
-document.addEventListener('DOMContentLoaded',()=>{const ht=document.getElementById('headerTitle');if(ht)ht.addEventListener('click',()=>{tmc++;if(tmc>=5){ST.testMode=!ST.testMode;tmc=0;ST.testMode?celebrate('🧪 Test Modu Açık',1500):alert('🧪 Test Modu Kapalı');saveState();}if(tmt)clearTimeout(tmt);tmt=setTimeout(()=>{tmc=0},2000);});});
+// ============================================
+// BÖLÜM 13: TEST MODU & BAŞLATMA
+// ============================================
 
-// Başlat
+let tmc=0,tmt=null;
+document.addEventListener('DOMContentLoaded',()=>{
+    const ht=document.getElementById('headerTitle');
+    if(ht)ht.addEventListener('click',()=>{tmc++;if(tmc>=5){ST.testMode=!ST.testMode;tmc=0;ST.testMode?celebrate('🧪 Test Modu Açık',1500):alert('🧪 Test Modu Kapalı');saveState();}if(tmt)clearTimeout(tmt);tmt=setTimeout(()=>{tmc=0},2000);});
+    initApp();
+});
+
 function initApp() { loadState(); showView('vHome',false); updateHomeStats(); initExamSets(); ST.lastSession=todayStr(); saveState(); console.log('✅ app.js v4.0 hazır!'); }
-document.addEventListener('DOMContentLoaded', initApp);
