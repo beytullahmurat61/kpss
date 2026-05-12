@@ -25,6 +25,8 @@
     --warning: #ffb347;
     --warning-bg: rgba(255, 179, 71, 0.08);
     --info: #45b7d1;
+    --exam-from: #ff6584;
+    --exam-to: #ff8e53;
     
     /* Metin Renkleri */
     --text-primary: #e8e8f0;
@@ -291,11 +293,17 @@ body {
     padding: 14px 8px;
     text-align: center;
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .stat-mini:hover {
     border-color: var(--border-accent);
     box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+.stat-mini:active {
+    transform: scale(0.95);
 }
 
 .stat-mini-val {
@@ -368,6 +376,7 @@ body {
     font-size: 13px;
 }
 
+/* Ana buton - Konu Çalış */
 .btn-primary {
     background: var(--accent);
     color: #fff;
@@ -380,6 +389,7 @@ body {
     transform: translateY(-1px);
 }
 
+/* Yeşil buton - Soru Bankası */
 .btn-accent {
     background: linear-gradient(135deg, #43e97b, #38f9d7);
     color: #0b0b1a;
@@ -391,6 +401,45 @@ body {
     transform: translateY(-1px);
 }
 
+/* Turuncu-Kırmızı buton - Deneme Sınavı */
+.btn-exam {
+    background: linear-gradient(135deg, #ff6584, #ff8e53);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(255, 101, 132, 0.35);
+    font-size: 16px;
+    padding: 16px 20px;
+}
+
+.btn-exam:hover {
+    box-shadow: 0 6px 28px rgba(255, 101, 132, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-exam:active {
+    transform: scale(0.97);
+}
+
+/* Mor kenarlı buton - İstatistikler */
+.btn-stats {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-accent);
+    font-size: 15px;
+    padding: 14px 20px;
+}
+
+.btn-stats:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-stats:active {
+    transform: scale(0.97);
+}
+
+/* Gri kenarlı buton */
 .btn-secondary {
     background: var(--bg-card);
     color: var(--text-primary);
@@ -402,6 +451,7 @@ body {
     border-color: var(--border-accent);
 }
 
+/* Ghost buton */
 .btn-ghost {
     background: transparent;
     color: var(--text-secondary);
@@ -413,6 +463,7 @@ body {
     color: var(--text-primary);
 }
 
+/* Kırmızı buton */
 .btn-danger {
     background: var(--danger);
     color: #fff;
@@ -420,6 +471,11 @@ body {
 
 .btn-danger:hover {
     opacity: 0.9;
+}
+
+/* Buton ikon */
+.btn-icon-left {
+    font-size: 18px;
 }
 
 /* ==================== BÖLÜM BAŞLIĞI ==================== */
