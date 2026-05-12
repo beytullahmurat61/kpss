@@ -266,7 +266,7 @@ const QUESTION_TEMPLATES = {
     { id: "t3_021", s: "En küçük pozitif tam sayı kaçtır?", c: "1", v: {}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["1","0","-1","2"] },
     { id: "t3_022", s: "En büyük negatif tam sayı kaçtır?", c: "-1", v: {}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["-1","0","-2","-∞"] },
     { id: "t3_023", s: "İki basamaklı en küçük tam sayı kaçtır?", c: "-99", v: {}, z:"orta", alt:"sayi_turleri", inputType:"choice", choices:["-99","10","-10","-90"] },
-    { id: "t3_024", s: "{a} hangi sayı kümesine aittir?", c: "{a}<0?'Negatif tam sayı':'Pozitif tam sayı'", v: {a:[-20,20]}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["Pozitif","Negatif","Sıfır","Doğal"] },
+    { id: "t3_024", s: "{a} hangi sayı kümesine aittir?", c: "{a}<0?'Negatif':'Pozitif'", v: {a:[-20,20]}, z:"kolay", alt:"sayi_turleri", inputType:"choice", choices:["Pozitif","Negatif","Sıfır","Doğal"] },
 
     // ==========================================
     // ALT DAL 5: SIRALAMA
