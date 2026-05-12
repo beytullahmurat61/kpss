@@ -777,7 +777,7 @@ async function fetchTopicSummary(topic) {
     ST.apiCallCount++; saveState();
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ST.apiKey},
-        body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:`"${topic.n}" konusunu max 150 kelime Türkçe özetle.`},{role:'user',content:`${topic.n} özeti?`}], temperature:0.5, max_tokens:500 })
+        body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:'Sen bir KPSS matematik öğretmenisin. Güncel MEB müfredatına göre: Doğal sayılar 0\'dan başlar (0,1,2,3...). Sayma sayıları 1\'den başlar. En küçük doğal sayı 0, en küçük pozitif tam sayı 1\'dir. 1 asal sayı değildir. En küçük asal sayı 2\'dir. 0! = 1\'dir. Tüm cevaplarını bu güncel bilgilere göre ver.'},{role:'user',content:`"${topic.n}" konusunu max 150 kelime Türkçe özetle.`}], temperature:0.5, max_tokens:500 })
     });
     const d = await r.json();
     return d?.choices?.[0]?.message?.content?.trim() || null;
@@ -798,7 +798,7 @@ window.sendAsk = async function() {
         const t = getTopicById(ST.topic);
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ST.apiKey},
-            body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:'KPSS matematik öğretmeni. Türkçe, net, max 120 kelime.'},{role:'user',content:`Konu: ${t?.n||'Matematik'}\nSoru: ${ST.cq?.soru||''}\nÖğrenci: ${q}`}], temperature:0.7, max_tokens:600 })
+            body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:'Sen bir KPSS matematik öğretmenisin. Güncel MEB müfredatına göre hareket et: Doğal sayılar 0\'dan başlar (0,1,2,3...). Sayma sayıları 1\'den başlar. En küçük doğal sayı 0\'dır. En küçük pozitif tam sayı 1\'dir. 1 asal sayı değildir. En küçük asal sayı 2\'dir. 0! (sıfır faktöriyel) = 1\'dir. 0⁰ (sıfırın sıfırıncı kuvveti) tanımsızdır. Tüm bu bilgileri öğrenciye açıklarken net ve doğru cevaplar ver. Türkçe, max 120 kelime.'},{role:'user',content:`Konu: ${t?.n||'Matematik'}\nSoru: ${ST.cq?.soru||''}\nDoğru cevap: ${ST.cq?.cevap||''}\nÖğrenci: ${q}`}], temperature:0.7, max_tokens:600 })
         });
         const d = await r.json();
         if (re) re.innerHTML = (d?.choices?.[0]?.message?.content?.trim()||'Cevap alınamadı').replace(/\n/g,'<br>');
