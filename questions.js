@@ -284,7 +284,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t3_040", s: "AB iki basamaklı sayısında A+B={t} ise AB en fazla kaçtır?", c: "{t}<=9?{t}*10:90+({t}-9)", v: {t:[3,15]}, z:"orta", alt:"problem", cozum:"Onlar basamağı en büyük: A={t} (max 9), B={t}-A" },
     { id: "t3_041", s: "AB iki basamaklı sayısında A={a} ve B={b} ise AB kaçtır?", c: "{a}*10+{b}", v: {a:[1,9], b:[0,9]}, z:"kolay", alt:"problem" },
-    { id: "t3_042", s: "Rakamları toplamı {t} olan iki basamaklı kaç sayı vardır?", c: "{t}<=9?{t}+1:19-{t}", v: {t:[2,15]}, z:"zor", alt:"problem", inputType:"choice" },
+    { id: "t3_042", s: "Rakamları toplamı {t} olan iki basamaklı kaç sayı vardır?", c: "{t}<=9?{t}:19-{t}", v: {t:[2,15]}, z:"zor", alt:"problem" },
     { id: "t3_043", s: "{a} sayısından bir önce ve bir sonra gelen sayıların toplamı kaçtır?", c: "2*{a}", v: {a:[5,50]}, z:"orta", alt:"problem", cozum:"({a}-1)+({a}+1) = 2×{a}" },
     { id: "t3_044", s: "İki sayıdan biri diğerinden {f} fazla ve toplamları {t} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {t:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"problem" },
 
@@ -292,10 +292,10 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 7: MANTIK & YENİ NESİL
     // ==========================================
     { id: "t3_050", s: "Ardışık {n} tam sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:["{n}*5","{n}*50"]}, z:"zor", alt:"mantik" },
-    { id: "t3_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı en az kaçtır?", c: "{t}<=9?{t}:19", v: {t:[2,15]}, z:"orta", alt:"mantik" },
+    { id: "t3_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı en az kaçtır?", c: "{t}<=9?{t}+9:10*{t}-81", v: {t:[2,15]}, z:"orta", alt:"mantik" },
     { id: "t3_052", s: "{a} sayısının {b} katı bir tek sayı ise {a} nasıl bir sayıdır?", c: "{b}%2==0?'Bilinemez':'Tek'", v: {a:[3,15], b:[2,5]}, z:"zor", alt:"mantik", inputType:"choice", choices:["Tek","Çift","Bilinemez","Değişir"] },
-    { id: "t3_053", s: "Bir ABC üç basamaklı sayısında A+B+C={t} ise bu sayı en az kaçtır?", c: "100+Math.max(0,{t}-9)*10+Math.max(0,{t}-18)", v: {t:[2,20]}, z:"zor", alt:"yeni_nesil" },
-    { id: "t3_054", s: "{a} sayfalık bir kitabı numaralandırmak için kaç rakam kullanılır?", c: "rakamSayisi({a})", v: {a:[5,150]}, z:"zor", alt:"yeni_nesil" },
+    { id: "t3_053", s: "Bir ABC üç basamaklı sayısında A+B+C={t} ise bu sayı en az kaçtır?", c: "function(){var t={t};var A=Math.max(1,t-18);var r=t-A;var B=Math.max(0,r-9);var C=r-B;return 100*A+10*B+C}()", v: {t:[2,20]}, z:"zor", alt:"yeni_nesil" },
+    { id: "t3_054", s: "{a} sayfalık bir kitabı numaralandırmak için kaç rakam kullanılır?", c: "function(){var a={a};if(a<10)return a;if(a<100)return 9+(a-9)*2;return 9+180+(a-99)*3}()", v: {a:[5,150]}, z:"zor", alt:"yeni_nesil" },
 
 ],
 
@@ -384,7 +384,7 @@ const QUESTION_TEMPLATES = {
     { id: "t5_011", s: "{a} sayısının asal çarpanlarının toplamı kaçtır?", c: "asalCarpanToplam({a})", v: {a:[12,72]}, z:"orta", alt:"asal_carpan" },
     { id: "t5_012", s: "{a} sayısının kaç tane asal çarpanı vardır?", c: "asalCarpanSayisi({a})", v: {a:[18,100]}, z:"orta", alt:"asal_carpan" },
     { id: "t5_013", s: "{a} sayısının asal çarpanlarının çarpımı kaçtır?", c: "asalCarpanCarpim({a})", v: {a:[12,60]}, z:"zor", alt:"asal_carpan" },
-    { id: "t5_014", s: "{a} = 2ˣ × 3ʸ ise x+y kaçtır?", c: "usToplam({a})", v: {a:[6,72]}, z:"zor", alt:"asal_carpan", cozum:"6=2×3 → 1+1=2, 12=2²×3 → 2+1=3" },
+    { id: "t5_014", s: "{a} = 2ˣ × 3ʸ ise x+y kaçtır?", c: "function(){var n={a};var x=0;while(n%2==0){x++;n/=2}var y=0;while(n%3==0){y++;n/=3}return x+y}()", v: {a:[6,72]}, z:"zor", alt:"asal_carpan", cozum:"6=2×3 → 1+1=2, 12=2²×3 → 2+1=3" },
 
     // ==========================================
     // ALT DAL 3: ARALARINDA ASAL
@@ -398,8 +398,8 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 4: ASAL SAYI PROBLEMLERİ
     // ==========================================
     { id: "t5_030", s: "{a} ile {b} arasında kaç asal sayı vardır?", c: "aralikAsalSay({a},{b})", v: {a:[1,10], b:[10,30]}, z:"orta", alt:"asal_problem", kural:"b>a" },
-    { id: "t5_031", s: "İki asal sayının toplamı {s} ise çarpımları en az kaçtır?", c: "enAzCarpim({s})", v: {s:[5,20]}, z:"zor", alt:"asal_problem" },
-    { id: "t5_032", s: "x ve y asal sayı, x+y={s} ise x kaç olabilir? (En küçük)", c: "enKucukAsalToplam({s})", v: {s:[5,20]}, z:"zor", alt:"asal_problem" },
+    { id: "t5_031", s: "İki asal sayının toplamı {s} ise çarpımları en az kaçtır?", c: "function(){var s={s};for(var a=2;a<=s/2;a++){if(isPrime(a)&&isPrime(s-a))return a*(s-a)}return 0}()", v: {s:[5,20]}, z:"zor", alt:"asal_problem" },
+    { id: "t5_032", s: "x ve y asal sayı, x+y={s} ise x kaç olabilir? (En küçük)", c: "function(){var s={s};for(var a=2;a<=s/2;a++){if(isPrime(a)&&isPrime(s-a))return a}return 0}()", v: {s:[5,20]}, z:"zor", alt:"asal_problem" },
 
     // ==========================================
     // ALT DAL 5: MANTIK
@@ -429,7 +429,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t6_010", s: "{a} ve {b} sayılarının EKOK'u kaçtır?", c: "({a}*{b})/ebob({a},{b})", v: {a:[4,15], b:[6,20]}, z:"kolay", alt:"ekok", cozum:"EKOK = a×b ÷ EBOB" },
     { id: "t6_011", s: "{a} ve {b} sayılarının EKOK'u kaçtır?", c: "({a}*{b})/ebob({a},{b})", v: {a:[8,30], b:[12,45]}, z:"orta", alt:"ekok" },
-    { id: "t6_012", s: "{a}, {b} ve {c} sayılarının EKOK'u kaçtır?", c: "ekokUc({a},{b},{c})", v: {a:[4,12], b:[6,18], c:[8,24]}, z:"zor", alt:"ekok" },
+    { id: "t6_012", s: "{a}, {b} ve {c} sayılarının EKOK'u kaçtır?", c: "function(){var a={a},b={b},c={c};var e1=(a*b)/ebob(a,b);return (e1*c)/ebob(e1,c)}()", v: {a:[4,12], b:[6,18], c:[8,24]}, z:"zor", alt:"ekok" },
     { id: "t6_013", s: "Biri diğerinin katı olan iki sayının EKOK'u hangisidir?", c: "Büyük sayı", v: {}, z:"kolay", alt:"ekok", inputType:"choice", choices:["Büyük sayı","Küçük sayı","Çarpımları","Toplamları"] },
 
     // ==========================================
@@ -474,7 +474,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 2: DENK KESİRLER
     // ==========================================
-    { id: "t7_010", s: "{a}/{b} kesrine denk bir kesir yazın (payda {d} olacak)", c: "{a}*({d}/{b})/{d}", v: {a:[1,3], b:[2,5], d:["{b}*2","{b}*4"]}, z:"orta", alt:"denk_kesir" },
+    { id: "t7_010", s: "{a}/{b} kesrine denk bir kesir yazın (payda {d} olacak)", c: "{a}*{d}/{b}", v: {a:[1,3], b:[2,5], d:["{b}*2","{b}*4"]}, z:"orta", alt:"denk_kesir" },
     { id: "t7_011", s: "{a}/{b} = ?/10 ise ? kaçtır?", c: "({a}*10)/{b}", v: {b:[2,5], a:[1,"{b}-1"]}, z:"orta", alt:"denk_kesir", kural:"10%b==0" },
     { id: "t7_012", s: "Hangisi {a}/{b} kesrine denktir?", c: "{dogru}", v: {a:[1,4], b:[2,6], dogru:"{a}*2/{b}*2"}, z:"kolay", alt:"denk_kesir", inputType:"choice", choices:["{a}×2/{b}×2","{a}+1/{b}+1","{a}×{b}/{b}×{a}","{a}-1/{b}-1"] },
 
@@ -506,7 +506,7 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 6: SIRALAMA
     // ==========================================
     { id: "t7_050", s: "{a}/{b} mi büyük {c}/{d} mi?", c: "{a}*{d}>{c}*{b}?'{a}/{b}':'{c}/{d}'", v: {a:[1,5], b:[2,7], c:[1,5], d:[2,7]}, z:"orta", alt:"siralama", kural:"(a/b)!=(c/d)" },
-    { id: "t7_051", s: "{a}/{b}, {c}/{d}, 1/2 kesirlerini büyükten küçüğe sırala (En büyük hangisi?)", c: "enBuyukKesir({a}/{b},{c}/{d},1/2)", v: {a:[1,5], b:[2,7], c:[1,5], d:[2,7]}, z:"zor", alt:"siralama" },
+    { id: "t7_051", s: "{a}/{b}, {c}/{d}, 1/2 kesirlerini büyükten küçüğe sırala (En büyük hangisi?)", c: "function(){var k1={a}/{b},k2={c}/{d},k3=1/2;var m=Math.max(k1,k2,k3);if(m==k1)return'{a}/{b}';if(m==k2)return'{c}/{d}';return'1/2'}()", v: {a:[1,5], b:[2,7], c:[1,5], d:[2,7]}, z:"zor", alt:"siralama" },
 
     // ==========================================
     // ALT DAL 7: PROBLEM
@@ -530,7 +530,7 @@ const QUESTION_TEMPLATES = {
     { id: "t8_001", s: "{a} ondalık sayısının tam kısmı kaçtır?", c: "Math.floor({a})", v: {a:["1.2","9.8"]}, z:"kolay", alt:"ondalik_kavram" },
     { id: "t8_002", s: "{a} ondalık sayısının ondalık kısmı kaçtır?", c: "Math.round(({a}%1)*100)/100", v: {a:["1.2","9.8"]}, z:"kolay", alt:"ondalik_kavram" },
     { id: "t8_003", s: "{a}/{b} kesrini ondalık olarak yazın", c: "Math.round(({a}/{b})*100)/100", v: {a:[1,5], b:[2,8]}, z:"orta", alt:"ondalik_kavram", kural:"a<b" },
-    { id: "t8_004", s: "{a} ondalık sayısını kesir olarak yazın", c: "ondalikKesir({a})", v: {a:["0.25","0.5","0.75","0.2","0.4","0.6","0.8","0.125"]}, z:"orta", alt:"ondalik_kavram" },
+    { id: "t8_004", s: "{a} ondalık sayısını kesir olarak yazın", c: "ondalikKesir({a},{b})", v: {a:[1,9], b:[2,9]}, z:"orta", alt:"ondalik_kavram" },
 
     // ==========================================
     // ALT DAL 2: ONDALIK İŞLEMLERİ > TOPLAMA & ÇIKARMA
@@ -575,7 +575,7 @@ const QUESTION_TEMPLATES = {
     { id: "t9_003", s: "{a}³ = ?", c: "{a}*{a}*{a}", v: {a:[1,6]}, z:"kolay", alt:"us_kavram" },
     { id: "t9_004", s: "{a}³ = ?", c: "{a}*{a}*{a}", v: {a:[7,10]}, z:"orta", alt:"us_kavram" },
     { id: "t9_005", s: "{a}⁴ = ?", c: "Math.pow({a},4)", v: {a:[1,5]}, z:"orta", alt:"us_kavram" },
-    { id: "t9_006", s: "2ⁿ = {s} ise n kaçtır?", c: "Math.log2({s})", v: {s:[2,4,8,16,32,64]}, z:"orta", alt:"us_kavram" },
+    { id: "t9_006", s: "2ⁿ = {s} ise n kaçtır?", c: "Math.round(Math.log({s})/Math.log(2))", v: {s:[2,4,8,16,32,64]}, z:"orta", alt:"us_kavram" },
 
     // ALT DAL 2: ÜS ÖZELLİKLERİ
     { id: "t9_010", s: "{a}² × {a}³ = ? (tabanlar aynı)", c: "Math.pow({a},5)", v: {a:[2,5]}, z:"kolay", alt:"us_ozellik", cozum:"{a}²⁺³ = {a}⁵" },
@@ -658,19 +658,19 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 1: ORTAK ÇARPAN PARANTEZİ
     // ==========================================
-    { id: "t11_001", s: "{a}x + {b}x = ? (ortak çarpan)", c: "{a}+{b}x", v: {a:[2,7], b:[3,8]}, z:"kolay", alt:"ortak_carpan", cozum:"({a}+{b})x" },
-    { id: "t11_002", s: "{a}x + {b}x + {c}x = ?", c: "{a}+{b}+{c}x", v: {a:[2,5], b:[3,6], c:[1,4]}, z:"kolay", alt:"ortak_carpan" },
-    { id: "t11_003", s: "{a}x + {b} ifadesini çarpanlarına ayırın", c: "{ebob(a,b)}({a/ebob(a,b)}x+{b/ebob(a,b)})", v: {a:[4,12], b:[6,18]}, z:"orta", alt:"ortak_carpan", kural:"ebob(a,b)>1" },
+    { id: "t11_001", s: "{a}x + {b}x = ? (ortak çarpan)", c: "({a}+{b})x", v: {a:[2,7], b:[3,8]}, z:"kolay", alt:"ortak_carpan", cozum:"({a}+{b})x" },
+    { id: "t11_002", s: "{a}x + {b}x + {c}x = ?", c: "({a}+{b}+{c})x", v: {a:[2,5], b:[3,6], c:[1,4]}, z:"kolay", alt:"ortak_carpan" },
+    { id: "t11_003", s: "{a}x + {b} ifadesini çarpanlarına ayırın", c: "function(){var e=ebob({a},{b});return e+'('+({a}/e)+'x+'+({b}/e)+')'}()", v: {a:[4,12], b:[6,18]}, z:"orta", alt:"ortak_carpan", kural:"ebob(a,b)>1" },
     { id: "t11_004", s: "{a}ab + {b}ac = ?", c: "{a}a(b+{b/a}c)", v: {a:[2,6], b:["{a}*2","{a}*5"]}, z:"orta", alt:"ortak_carpan" },
     { id: "t11_005", s: "x² + {a}x ifadesini çarpanlarına ayırın", c: "x(x+{a})", v: {a:[2,10]}, z:"kolay", alt:"ortak_carpan" },
-    { id: "t11_006", s: "{a}x²y + {b}xy² = ?", c: "{ebob(a,b)}xy({a/ebob(a,b)}x+{b/ebob(a,b)}y)", v: {a:[4,12], b:[6,18]}, z:"zor", alt:"ortak_carpan", kural:"ebob(a,b)>1" },
+    { id: "t11_006", s: "{a}x²y + {b}xy² = ?", c: "function(){var e=ebob({a},{b});return e+'xy('+({a}/e)+'x+'+({b}/e)+'y)'}()", v: {a:[4,12], b:[6,18]}, z:"zor", alt:"ortak_carpan", kural:"ebob(a,b)>1" },
 
     // ==========================================
     // ALT DAL 2: İKİ KARE FARKI
     // ==========================================
-    { id: "t11_010", s: "x² - {a} = ? (çarpanlarına ayırın)", c: "(x-{sqrt(a)})(x+{sqrt(a)})", v: {a:[4,9,16,25,36,49,64,81]}, z:"kolay", alt:"iki_kare", cozum:"x² - {a} = (x-√{a})(x+√{a})" },
+    { id: "t11_010", s: "x² - {a} = ? (çarpanlarına ayırın)", c: "function(){var s=Math.sqrt({a});return '(x-'+s+')(x+'+s+')'}()", v: {a:[4,9,16,25,36,49,64,81]}, z:"kolay", alt:"iki_kare", cozum:"x² - {a} = (x-√{a})(x+√{a})" },
     { id: "t11_011", s: "{a}² - {b}² = ?", c: "({a}-{b})({a}+{b})", v: {a:[5,15], b:[2,"{a}-2"]}, z:"kolay", alt:"iki_kare", kural:"a>b" },
-    { id: "t11_012", s: "{a}x² - {b} = ?", c: "({sqrt(a)}x-{sqrt(b)})({sqrt(a)}x+{sqrt(b)})", v: {a:[4,9,16], b:[9,16,25]}, z:"orta", alt:"iki_kare" },
+    { id: "t11_012", s: "{a}x² - {b} = ?", c: "function(){var sa=Math.sqrt({a}),sb=Math.sqrt({b});return '('+sa+'x-'+sb+')('+sa+'x+'+sb+')'}()", v: {a:[4,9,16], b:[9,16,25]}, z:"orta", alt:"iki_kare" },
     { id: "t11_013", s: "(x-{a})(x+{a}) = ?", c: "x²-{a*a}", v: {a:[2,8]}, z:"kolay", alt:"iki_kare" },
     { id: "t11_014", s: "{a}² - {b}² = 55 ise a+b en az kaçtır? (a,b tam sayı)", c: "11", v: {}, z:"zor", alt:"iki_kare", inputType:"choice", choices:["11","5","55","10"], cozum:"(a-b)(a+b)=55, a-b ve a+b tam sayı, çarpımları 55" },
 
@@ -697,12 +697,12 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t11_040", s: "x² - y² = {f} ve x+y = {t} ise x-y kaçtır?", c: "{f}/{t}", v: {t:[2,8], f:["{t}*2","{t}*10"]}, z:"orta", alt:"problem", cozum:"(x-y)(x+y)={f} → (x-y)·{t}={f} → x-y={f}/{t}" },
     { id: "t11_041", s: "x² + 2xy + y² = {s} ise x+y kaçtır?", c: "Math.sqrt({s})", v: {s:[4,9,16,25,36,49,64,81,100]}, z:"orta", alt:"problem", cozum:"(x+y)² = {s} → x+y = √{s}" },
-    { id: "t11_042", s: "Dikdörtgenin alanı x²-{a} ise kenar uzunlukları ne olabilir?", c: "(x-{sqrt(a)})(x+{sqrt(a)})", v: {a:[4,9,16,25]}, z:"orta", alt:"problem", inputType:"choice" },
+    { id: "t11_042", s: "Dikdörtgenin alanı x²-{a} ise kenar uzunlukları ne olabilir?", c: "function(){var s=Math.sqrt({a});return '(x-'+s+')(x+'+s+')'}()", v: {a:[4,9,16,25]}, z:"orta", alt:"problem", inputType:"choice" },
 
     // ==========================================
     // ALT DAL 6: MANTIK
     // ==========================================
-    { id: "t11_050", s: "x² - {a}x + {b} = 0 denkleminin çarpanlara ayrılmış hali (x-?)(x-?) = 0", c: "carpanBul({a},{b})", v: {a:[5,10], b:[6,24]}, z:"zor", alt:"mantik" },
+    { id: "t11_050", s: "x² - {a}x + {b} = 0 denkleminin çarpanlara ayrılmış hali (x-?)(x-?) = 0", c: "function(){var a={a},b={b};for(var i=1;i<=b;i++){if(b%i==0){var j=b/i;if(i+j==a)return'(x-'+i+')(x-'+j+')=0'}}return'Çarpan bulunamadı'}()", v: {a:[5,10], b:[6,24]}, z:"zor", alt:"mantik" },
     { id: "t11_051", s: "x² + {a}x + {b} = (x+{c})(x+{d}) ise c+d kaçtır?", c: "{c}+{d}", v: {c:[2,5], d:[3,6]}, z:"orta", alt:"mantik" },
 
 ],
@@ -751,7 +751,15 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 5: PROBLEM
     // ==========================================
     { id: "t12_040", s: "Bir sınıftaki öğrenciler {a}'ar oturunca {b} kişi ayakta kalıyor. {c}'er oturunca {d} sıra boş kalıyor. Sınıf mevcudu kaçtır?", c: "sinavMevcut({a},{b},{c},{d})", v: {a:[2,4], b:[1,5], c:[3,5], d:[1,3]}, z:"zor", alt:"problem", kural:"c>a" },
-    { id: "t12_041", s: "Bir çiftlikte {a} tavşan ve {b} tavuk var. Toplam {c} ayak var. Tavşan sayısı kaçtır?", c: "({c}-2*{b})/2", v: {a:[5,15], b:[5,15], c:"{a}*4+{b}*2"}, z:"orta", alt:"problem" },
+    { 
+    id: "t12_041", 
+    s: "Bir çiftlikte tavşan ve tavuklardan toplam {t} hayvan vardır. Ayak sayıları toplamı {c} olduğuna göre kaç tavşan vardır?", 
+    c: "({c}-2*{t})/2", 
+    v: { t: [10, 30] }, 
+    kural: "(function(){var t=parseInt('{t}');var min=t*2+2;var max=t*4-2;var c;do{c=Math.floor(Math.random()*(max-min+1))+min}while((c-2*t)%2!==0);return c})()", 
+    z: "orta", 
+    alt: "problem" 
+},
     { id: "t12_042", s: "{a} TL ve {b} TL'lik ürünlerden toplam {c} tane alınıp {d} TL ödeniyor. {a} TL'lik üründen kaç tane alınmıştır?", c: "({d}-{b}*{c})/({a}-{b})", v: {a:[5,10], b:[2,"{a}-2"], c:[10,20], d:["{b}*{c}+5","{a}*{c}-5"]}, z:"zor", alt:"problem", kural:"a>b" },
 
     // ==========================================
@@ -797,7 +805,7 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 4: ARALIK
     // ==========================================
     { id: "t13_030", s: "x < {a} ve x > {b} ise x'in alabileceği tam sayı değerleri toplamı kaçtır?", c: "aralikToplam({b}+1,{a}-1)", v: {a:[6,15], b:[1,"{a}-3"]}, z:"zor", alt:"aralik", kural:"a>b+2", cozum:"({b+1}) + ({b+2}) + ... + ({a-1})" },
-    { id: "t13_031", s: "2x - 3 < x + {a} < 3x + {b} eşitsizliğini sağlayan x tam sayısı kaçtır?", c: "tekCozumBul({a},{b})", v: {a:[5,12], b:[1,5]}, z:"zor", alt:"aralik" },
+    { id: "t13_031", s: "2x - 3 < x + {a} < 3x + {b} eşitsizliğini sağlayan x tam sayısı kaçtır?", c: "function(){var a={a},b={b};for(var x=-10;x<=20;x++){if(2*x-3<x+a&&x+a<3*x+b)return x}return 0}()", v: {a:[5,12], b:[1,5]}, z:"zor", alt:"aralik" },
     { id: "t13_032", s: "|x - {a}| < {b} eşitsizliğini sağlayan kaç tam sayı vardır?", c: "2*{b}-1", v: {a:[5,15], b:[2,6]}, z:"zor", alt:"aralik", cozum:"{a-b} < x < {a+b} → {a-b+1} ile {a+b-1} arası → {2*b-1} tane" },
 
     // ==========================================
@@ -844,7 +852,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 4: BİLEŞİK ORANTI
     // ==========================================
-    { id: "t14_030", s: "{a} işçi {b} günde {c} parça üretiyor. {d} işçi {e} günde kaç parça üretir?", c: "({a}*{b}*{d}*{e})/({a}*{b}*{c})", v: {a:[2,5], b:[3,8], c:[10,30], d:[3,8], e:[4,10]}, z:"zor", alt:"bilesik" },
+    { id: "t14_030", s: "{a} işçi {b} günde {c} parça üretiyor. {d} işçi {e} günde kaç parça üretir?", c: "{c}*{d}*{e}/({a}*{b})", v: {a:[2,5], b:[3,8], c:[10,30], d:[3,8], e:[4,10]}, z:"zor", alt:"bilesik" },
     { id: "t14_031", s: "{a} işçi {b} m² duvarı {c} günde örüyor. {d} işçi {e} m² duvarı kaç günde örer?", c: "({a}*{c}*{e})/({d}*{b})", v: {a:[2,5], b:[20,60], c:[3,8], d:[3,6], e:[30,80]}, z:"zor", alt:"bilesik" },
     { id: "t14_032", s: "x, y ile doğru; z ile ters orantılı. y={y1}, z={z1} iken x={x1} ise y={y2}, z={z2} iken x kaçtır?", c: "{x1}*({y2}/{y1})*({z1}/{z2})", v: {x1:[4,12], y1:[2,8], z1:[3,9], y2:["{y1}*2","{y1}*3"], z2:[1,"{z1}-2"]}, z:"zor", alt:"bilesik" },
 
@@ -919,7 +927,7 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 6: YENİ NESİL & MANTIK
     // ==========================================
     { id: "t15_050", s: "Bir sayının {a} ile bölümünden bölüm {b}, kalan {c} ise bu sayı kaçtır?", c: "{a}*{b}+{c}", v: {a:[3,9], b:[3,10], c:[1,"{a}-1"]}, z:"orta", alt:"yeni_nesil", kural:"c<a" },
-    { id: "t15_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı rakamları toplamının {k} katından {f} fazla ise sayı kaçtır?", c: "rakamToplamSayi({t},{k},{f})", v: {t:[5,12], k:[3,6], f:[1,10]}, z:"zor", alt:"yeni_nesil" },
+    { id: "t15_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı rakamları toplamının {k} katından {f} fazla ise sayı kaçtır?", c: "function(){var t={t},k={k},f={f};for(var i=10;i<=99;i++){var rt=rakamToplam(i);if(rt==t&&i==k*rt+f)return i}return 0}()", v: {t:[5,12], k:[3,6], f:[1,10]}, z:"zor", alt:"yeni_nesil" },
     { id: "t15_052", s: "Bir öğrenci {a} soruluk sınavda {b} doğru, {c} yanlış yapıyor. {d} doğru 1 yanlışı götürüyor. Net kaçtır?", c: "{b}-({c}/{d})", v: {a:[40,80], b:[15,40], c:[3,15], d:[3,4]}, z:"orta", alt:"yeni_nesil", kural:"b+c<=a" },
 
 ],
@@ -967,7 +975,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t16_040", s: "İki kişinin bugünkü yaşları toplamı {t}, {y} yıl önceki yaşları toplamı {e} ise y kaçtır?", c: "({t}-{e})/2", v: {t:[30,60], e:[20,50]}, z:"orta", alt:"mantik", kural:"t>e" },
     { id: "t16_041", s: "Bir kişi {a} yıl önce {x} yaşında, {b} yıl sonra kaç yaşında olur?", c: "{x}+{a}+{b}", v: {a:[3,12], x:[10,30], b:[2,10]}, z:"orta", alt:"mantik", cozum:"Bugün: {x}+{a}, {b} yıl sonra: {x}+{a}+{b}" },
-    { id: "t16_042", s: "K ve L'nin yaşları toplamı {t}'dir. K, L'nin yaşındayken L'nin doğmasına {y} yıl vardı. K kaç yaşındadır?", c: "({t}+{y})/2", v: {t:[25,50], y:[3,10]}, z:"zor", alt:"mantik", kural:"t>y" },
+    { id: "t16_042", s: "K ve L'nin yaşları toplamı {t}'dir. K, L'nin yaşındayken L'nin doğmasına {y} yıl vardı. K kaç yaşındadır?", c: "(2*{t}+{y})/3", v: {t:[25,50], y:[3,10]}, z:"zor", alt:"mantik", kural:"t>y" },
 
 ],
 
@@ -1005,7 +1013,7 @@ const QUESTION_TEMPLATES = {
     // ALT DAL 4: PROBLEM (HİKAYE)
     // ==========================================
     { id: "t17_030", s: "{v} km/sa hızla giden bir araç {t} saatte varacağı yere {g} saat geç varıyor. Normalde kaç saatte varmalıydı?", c: "{t}-{g}", v: {v:[50,90], t:[3,8], g:[1,"{t}-2"]}, z:"orta", alt:"problem", kural:"t>g" },
-    { id: "t17_031", s: "Bir araç hızını {a} km/sa artırırsa {x} km'lik yolu {b} saat erken bitiriyor. İlk hızı kaç km/sa'tir?", c: "hizBul({x},{a},{b})", v: {x:[200,600], a:[10,30], b:[1,3]}, z:"zor", alt:"problem" },
+    { id: "t17_031", s: "Bir araç hızını {a} km/sa artırırsa {x} km'lik yolu {b} saat erken bitiriyor. İlk hızı kaç km/sa'tir?", c: "function(){var x={x},a={a},b={b};var d=x*b;var v=(-a*b+Math.sqrt(a*a*b*b+4*b*a*x))/(2*b);return Math.round(v*100)/100}()", v: {x:[200,600], a:[10,30], b:[1,3]}, z:"zor", alt:"problem" },
     { id: "t17_032", s: "Bir tren {u} metrelik tüneli {t} saniyede geçiyor. Trenin boyu {b} metre ise hızı kaç km/sa'tir?", c: "Math.round(({u}+{b})/{t}*3.6)", v: {u:[200,800], t:[10,30], b:[50,200]}, z:"zor", alt:"problem" },
     { id: "t17_033", s: "{v} km/sa hızla giden bir araç, {x} km'lik yolda {d} dakika mola veriyor. Yolculuk toplam kaç saat sürer?", c: "Math.round(({x}/{v}+{d}/60)*100)/100", v: {v:[60,100], x:[200,500], d:[15,45]}, z:"orta", alt:"problem" },
 
@@ -1090,7 +1098,7 @@ const QUESTION_TEMPLATES = {
     { id: "t19_020", s: "Maliyeti {m} TL olan ürün %{k} kârla kaç TL'ye satılır?", c: "{m}+{m}*{k}/100", v: {m:[50,500], k:[10,50]}, z:"orta", alt:"kar_zarar", cozum:"Kâr: {m*k/100} TL, Satış: {m+m*k/100} TL" },
     { id: "t19_021", s: "{a} TL'ye alınan ürün {b} TL'ye satılırsa kâr % kaçtır?", c: "Math.round(({b}-{a})/{a}*100)", v: {a:[50,200], b:["{a}+10","{a}+120"]}, z:"orta", alt:"kar_zarar", kural:"b>a", cozum:"Kâr % = ({b}-{a})/{a} × 100" },
     { id: "t19_022", s: "{a} TL'ye alınan ürün {b} TL'ye satılırsa zarar % kaçtır?", c: "Math.round(({a}-{b})/{a}*100)", v: {b:[30,150], a:["{b}+10","{b}+100"]}, z:"orta", alt:"kar_zarar", kural:"a>b" },
-    { id: "t19_023", s: " Maliyeti {m} TL, satış fiyatı {s} TL olan üründe kâr/zarar % kaçtır?", c: "{s}>{m}?'%'+Math.round(({s}-{m})/{m}*100)+' kâr':'%'+Math.round(({m}-{s})/{m}*100)+' zarar'", v: {m:[50,300], s:[40,400]}, z:"orta", alt:"kar_zarar" },
+    { id: "t19_023", s: " Maliyeti {m} TL, satış fiyatı {s} TL olan üründe kâr/zarar % kaçtır?", c: "Math.round({s}>{m}?(({s}-{m})/{m}*100):(({m}-{s})/{m}*100))", v: {m:[50,300], s:[40,400]}, z:"orta", alt:"kar_zarar" },
     { id: "t19_024", s: "Etiket fiyatı {e} TL olan ürüne %{i} indirim yapılırsa kâr %{k} oluyor. Maliyet kaç TL'dir?", c: "Math.round(({e}*(100-{i})/100)/(1+{k}/100))", v: {e:[100,500], i:[10,30], k:[10,30]}, z:"zor", alt:"kar_zarar" },
 
     // ==========================================
@@ -1153,7 +1161,15 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 5: MANTIK & YENİ NESİL
     // ==========================================
-    { id: "t20_040", s: "Bir karışımdaki A maddesi oranı %{p}. Karışıma bir miktar daha A eklenince oran %{p2} oluyor. A miktarı % kaç artmıştır?", c: "Math.round(({p2}-{p})/{p}*100)", v: {p:[15,35], p2:["{p}+5","{p}+25"]}, z:"zor", alt:"mantik", kural:"p2>p" },
+{ 
+    id: "t20_040", 
+    s: "%{p} şeker içeren {m} gram şekerli suya {e} gram daha şeker eklenirse yeni karışımın şeker oranı % kaç olur?", 
+    c: "Math.round((({p}*{m}/100+{e})/({m}+{e}))*100)", 
+    v: { p: [10, 40], m: [200, 500], e: [20, 100] }, 
+    kural: "{e} < {m}", 
+    z: "orta", 
+    alt: "problem" 
+},
     { id: "t20_041", s: "%{o} tuz oranlı karışımın {a}/{b}'i dökülüp yerine saf su ekleniyor. Yeni oran % kaçtır?", c: "Math.round({o}*({b}-{a})/{b})", v: {o:[20,50], a:[1,3], b:[3,6]}, z:"zor", alt:"mantik", kural:"a<b" },
 
 ],
@@ -1207,13 +1223,13 @@ const QUESTION_TEMPLATES = {
     { id: "t22_001", s: "A = {a, b, c} kümesinin eleman sayısı kaçtır?", c: "3", v: {}, z:"kolay", alt:"kume_kavram", inputType:"choice", choices:["3","2","4","1"] },
     { id: "t22_002", s: "{a} elemanlı bir kümenin kaç tane alt kümesi vardır?", c: "Math.pow(2,{a})", v: {a:[1,6]}, z:"kolay", alt:"kume_kavram", cozum:"2^{a} = {2^a}" },
     { id: "t22_003", s: "{a} elemanlı bir kümenin kaç tane öz alt kümesi vardır?", c: "Math.pow(2,{a})-1", v: {a:[1,6]}, z:"orta", alt:"kume_kavram", cozum:"2^{a} - 1 = {2^a-1} (kendisi hariç)" },
-    { id: "t22_004", s: "Alt küme sayısı {s} olan küme kaç elemanlıdır?", c: "Math.log2({s})", v: {s:[4,8,16,32,64]}, z:"orta", alt:"kume_kavram" },
+    { id: "t22_004", s: "Alt küme sayısı {s} olan küme kaç elemanlıdır?", c: "Math.round(Math.log({s})/Math.log(2))", v: {s:[4,8,16,32,64]}, z:"orta", alt:"kume_kavram" },
     { id: "t22_005", s: "{a} elemanlı bir kümenin {b} elemanlı alt küme sayısı kaçtır?", c: "kombinasyon({a},{b})", v: {a:[4,8], b:[1,"{a}-1"]}, z:"orta", alt:"kume_kavram", kural:"b<=a", cozum:"C({a},{b})" },
 
     // ==========================================
     // ALT DAL 2: KÜME İŞLEMLERİ > BİRLEŞİM
     // ==========================================
-    { id: "t22_010", s: "A = {1,2,3,{a}}, B = {3,{a},{b},{c}} ise A∪B kaç elemanlıdır?", c: "kumeBilesim([1,2,3,{a}],[3,{a},{b},{c}])", v: {a:[4,6], b:[5,7], c:[8,9]}, z:"orta", alt:"birlesim", kural:"a!=b&&b!=c&&a!=c" },
+    { id: "t22_010", s: "A = {1,2,3,{a}}, B = {3,{a},{b},{c}} ise A∪B kaç elemanlıdır?", c: "function(){var A=[1,2,3,{a}];var B=[3,{a},{b},{c}];var birlesim=[];for(var i=0;i<A.length;i++){if(birlesim.indexOf(A[i])==-1)birlesim.push(A[i])}for(var i=0;i<B.length;i++){if(birlesim.indexOf(B[i])==-1)birlesim.push(B[i])}return birlesim.length}()", v: {a:[4,6], b:[5,7], c:[8,9]}, z:"orta", alt:"birlesim", kural:"a!=b&&b!=c&&a!=c" },
     { id: "t22_011", s: "s(A)={a}, s(B)={b}, s(A∩B)={k} ise s(A∪B) kaçtır?", c: "{a}+{b}-{k}", v: {a:[5,15], b:[5,15], k:[1,"Math.min({a},{b})-1"]}, z:"orta", alt:"birlesim", kural:"k<a&&k<b", cozum:"s(A∪B) = {a}+{b}-{k} = {a+b-k}" },
     { id: "t22_012", s: "A ve B kümeleri için s(A∪B)={t}, s(A)={a}, s(B)={b} ise s(A∩B) kaçtır?", c: "{a}+{b}-{t}", v: {a:[5,12], b:[4,10], t:["Math.max({a},{b})","{a}+{b}-1"]}, z:"orta", alt:"birlesim", kural:"t>=Math.max(a,b)&&t<=a+b" },
 
@@ -1229,7 +1245,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t22_030", s: "{n} kişilik sınıfta {m} kişi matematik, {t} kişi Türkçe kursuna gidiyor. {k} kişi ikisine de gidiyor. Kaç kişi hiçbirine gitmiyor?", c: "{n}-({m}+{t}-{k})", v: {n:[30,50], m:[12,25], t:[12,25], k:[3,10]}, z:"orta", alt:"problem", kural:"k<Math.min(m,t)&&m+t-k<=n" },
     { id: "t22_031", s: "{n} kişilik grupta {a} kişi A gazetesini, {b} kişi B gazetesini, {c} kişi her ikisini, {d} kişi hiçbirini okumuyor. Yalnız A'yı kaç kişi okur?", c: "{a}-{c}", v: {n:[40,80], a:[15,30], b:[15,30], c:[3,10], d:[3,10]}, z:"orta", alt:"problem", kural:"a+b-c+d<=n" },
-    { id: "t22_032", s: "Bir grupta {a} kişi İngilizce, {b} kişi Almanca, {c} kişi Fransızca biliyor. Her üç dili bilen {k} kişi var. En az bir dil bilen kaç kişidir? (sadece bu üç dil var)", c: "kumeUcBilesim({a},{b},{c},{k})", v: {a:[10,25], b:[10,25], c:[8,20], k:[1,5]}, z:"zor", alt:"problem", kural:"k<Math.min(a,b,c)" },
+    { id: "t22_032", s: "Bir grupta {a} kişi İngilizce, {b} kişi Almanca, {c} kişi Fransızca biliyor. Her üç dili bilen {k} kişi var. En az bir dil bilen kaç kişidir? (sadece bu üç dil var)", c: "function(){var a={a},b={b},c={c},k={k};return a+b+c-2*k}()", v: {a:[10,25], b:[10,25], c:[8,20], k:[1,5]}, z:"zor", alt:"problem", kural:"k<Math.min(a,b,c)" },
     { id: "t22_033", s: "{n} kişilik sınıfta {a} kişi basketbol, {b} kişi voleybol oynuyor. {c} kişi her ikisini de oynuyorsa sadece bir oyunu oynayan kaç kişidir?", c: "{a}+{b}-2*{c}", v: {n:[25,45], a:[10,25], b:[10,25], c:[2,8]}, z:"orta", alt:"problem", kural:"c<Math.min(a,b)" },
 
     // ==========================================
@@ -1237,7 +1253,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t22_040", s: "A ve B boş küme değil, s(A)=s(B)={a} ise s(A∪B) en çok kaçtır?", c: "2*{a}", v: {a:[3,8]}, z:"orta", alt:"mantik", cozum:"A∩B boş ise: {a}+{a} = {2*a}" },
     { id: "t22_041", s: "A ve B boş küme değil, s(A)=s(B)={a} ise s(A∪B) en az kaçtır?", c: "{a}", v: {a:[3,8]}, z:"orta", alt:"mantik", cozum:"A=B ise: s(A∪B) = s(A) = {a}" },
-    { id: "t22_042", s: "A kümesinin alt kümelerinin {p} tanesinde {x} elemanı bulunur. s(A) kaçtır? (İpucu: yarısı)", c: "Math.log2({p}*2)", v: {p:[4,8,16,32]}, z:"zor", alt:"mantik" },
+    { id: "t22_042", s: "A kümesinin alt kümelerinin {p} tanesinde {x} elemanı bulunur. s(A) kaçtır? (İpucu: yarısı)", c: "Math.round(Math.log({p}*2)/Math.log(2))", v: {p:[4,8,16,32]}, z:"zor", alt:"mantik" },
 
     // ==========================================
     // ALT DAL 6: YENİ NESİL
@@ -1358,11 +1374,11 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 1: KÖK BULMA
     // ==========================================
-    { id: "t25_001", s: "x² - {a} = 0 denkleminin kökleri nedir?", c: "-√{a} ve √{a}", v: {a:[4,9,16,25,36]}, z:"kolay", alt:"kok_bulma", inputType:"choice", choices:["-{kok} ve {kok}","-{a} ve {a}","{a}","Kök yok"] },
-    { id: "t25_002", s: "x² - {b}x = 0 denkleminin kökleri nedir?", c: "0 ve {b}", v: {b:[2,8]}, z:"kolay", alt:"kok_bulma", cozum:"x(x-{b})=0 → x=0 veya x={b}" },
-    { id: "t25_003", s: "x² - {s}x + {c} = 0 denkleminin köklerini bulun (tam sayı)", c: "kökBul({s},{c})", v: {s:[5,10], c:[6,24]}, z:"orta", alt:"kok_bulma" },
-    { id: "t25_004", s: "(x-{a})(x+{b}) = 0 denkleminin kökleri nedir?", c: "{a} ve -{b}", v: {a:[2,6], b:[2,6]}, z:"kolay", alt:"kok_bulma" },
-    { id: "t25_005", s: "x² + {a}x + {b} = 0 denklemini çarpanlara ayırarak kökleri bulun", c: "carpanKok({a},{b})", v: {a:[5,9], b:[6,20]}, z:"orta", alt:"kok_bulma" },
+    { id: "t25_001", s: "x² - {a} = 0 denkleminin kökleri nedir?", c: "function(){var s=Math.sqrt({a});return '-'+s+' ve '+s}()", v: {a:[4,9,16,25,36]}, z:"kolay", alt:"kok_bulma" },
+    { id: "t25_002", s: "x² - {b}x = 0 denkleminin kökleri nedir?", c: "'0 ve '+{b}", v: {b:[2,8]}, z:"kolay", alt:"kok_bulma", cozum:"x(x-{b})=0 → x=0 veya x={b}" },
+    { id: "t25_003", s: "x² - {s}x + {c} = 0 denkleminin köklerini bulun (tam sayı)", c: "function(){var s={s},c={c};for(var i=1;i<=c;i++){if(c%i==0){var j=c/i;if(i+j==s)return i+' ve '+j}}return 'Tam sayı kök yok'}()", v: {s:[5,10], c:[6,24]}, z:"orta", alt:"kok_bulma" },
+    { id: "t25_004", s: "(x-{a})(x+{b}) = 0 denkleminin kökleri nedir?", c: "'{a} ve -{b}'", v: {a:[2,6], b:[2,6]}, z:"kolay", alt:"kok_bulma" },
+    { id: "t25_005", s: "x² + {a}x + {b} = 0 denklemini çarpanlara ayırarak kökleri bulun", c: "function(){var a={a},b={b};for(var i=1;i<=b;i++){if(b%i==0){var j=b/i;if(i+j==a)return '-'+i+' ve -'+j}}return 'Tam sayı kök yok'}()", v: {a:[5,9], b:[6,20]}, z:"orta", alt:"kok_bulma" },
 
     // ==========================================
     // ALT DAL 2: DİSKRİMİNANT (Δ)
@@ -1376,7 +1392,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t25_020", s: "x² - {s}x + {c} = 0 denkleminin kökler toplamı kaçtır?", c: "{s}", v: {s:[3,10], c:[2,24]}, z:"kolay", alt:"kok_toplam", cozum:"Kökler toplamı = -b/a = {s}" },
     { id: "t25_021", s: "x² - {s}x + {c} = 0 denkleminin kökler çarpımı kaçtır?", c: "{c}", v: {s:[3,10], c:[2,24]}, z:"orta", alt:"kok_toplam", cozum:"Kökler çarpımı = c/a = {c}" },
-    { id: "t25_022", s: "Kökleri {k1} ve {k2} olan 2. derece denklem nedir?", c: "x²-{k1+k2}x+{k1*k2}=0", v: {k1:[2,6], k2:[3,8]}, z:"orta", alt:"kok_toplam", cozum:"x² - (kökler toplamı)x + (kökler çarpımı) = 0" },
+    { id: "t25_022", s: "Kökleri {k1} ve {k2} olan 2. derece denklem nedir?", c: "'x²-'+({k1}+{k2})+'x+'+({k1}*{k2})+'=0'", v: {k1:[2,6], k2:[3,8]}, z:"orta", alt:"kok_toplam", cozum:"x² - (kökler toplamı)x + (kökler çarpımı) = 0" },
     { id: "t25_023", s: "x² - {s}x + {c} = 0 denkleminin kökleri x₁ ve x₂ ise x₁² + x₂² kaçtır?", c: "{s}*{s}-2*{c}", v: {s:[4,10], c:[3,20]}, z:"zor", alt:"kok_toplam", cozum:"x₁²+x₂² = (x₁+x₂)² - 2x₁x₂ = {s}² - 2×{c}" },
     { id: "t25_024", s: "Kökler toplamı {t}, kökler çarpımı {c} olan denklemde kökler farkı kaçtır? (mutlak)", c: "Math.sqrt(Math.abs({t}*{t}-4*{c}))", v: {t:[5,10], c:[4,20]}, z:"zor", alt:"kok_toplam", kural:"t*t>4*c" },
 
@@ -1390,7 +1406,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 5: PROBLEM
     // ==========================================
-    { id: "t25_040", s: "x² - {s}x + {c} = 0 denkleminin kökleri {oran} oranında ise kökler kaçtır?", c: "oranliKok({s},{c},{oran})", v: {s:[7,15], c:[10,50], oran:[2,3]}, z:"zor", alt:"problem" },
+    { id: "t25_040", s: "x² - {s}x + {c} = 0 denkleminin kökleri {oran} oranında ise kökler kaçtır?", c: "function(){var s={s},c={c},o={oran};var k1=s/(o+1);var k2=o*k1;if(k1*k2==c)return k1+' ve '+k2;return 'Uygun değil'}()", v: {s:[7,15], c:[10,50], oran:[2,3]}, z:"zor", alt:"problem" },
     { id: "t25_041", s: "x² - (m+{a})x + {b}m = 0 denkleminin kökler toplamı {t} ise m kaçtır?", c: "{t}-{a}", v: {a:[2,6], b:[1,4], t:[5,12]}, z:"zor", alt:"problem", kural:"t>a" },
 
 ],
@@ -1413,25 +1429,25 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     // ALT DAL 2: TERS FONKSİYON
     // ==========================================
-    { id: "t26_010", s: "f(x) = {a}x + {b} ise f⁻¹(x) nedir?", c: "(x-{b})/{a}", v: {a:[2,5], b:[1,8]}, z:"orta", alt:"ters", cozum:"y = {a}x+{b} → x = (y-{b})/{a} → f⁻¹(x) = (x-{b})/{a}" },
+    { id: "t26_010", s: "f(x) = {a}x + {b} ise f⁻¹(x) nedir?", c: "'(x-{b})/{a}'", v: {a:[2,5], b:[1,8]}, z:"orta", alt:"ters", cozum:"y = {a}x+{b} → x = (y-{b})/{a} → f⁻¹(x) = (x-{b})/{a}" },
     { id: "t26_011", s: "f(x) = {a}x + {b} ise f⁻¹({c}) kaçtır?", c: "({c}-{b})/{a}", v: {a:[2,5], b:[1,8], c:["{a}+{b}","{a}*5+{b}"]}, z:"orta", alt:"ters", cozum:"f⁻¹({c}) = ({c}-{b})/{a}" },
-    { id: "t26_012", s: "f(x) = (x+{a})/{b} ise f⁻¹(x) nedir?", c: "{b}x-{a}", v: {a:[2,8], b:[2,5]}, z:"orta", alt:"ters", cozum:"y = (x+{a})/{b} → {b}y = x+{a} → x = {b}y-{a}" },
+    { id: "t26_012", s: "f(x) = (x+{a})/{b} ise f⁻¹(x) nedir?", c: "'{b}x-{a}'", v: {a:[2,8], b:[2,5]}, z:"orta", alt:"ters", cozum:"y = (x+{a})/{b} → {b}y = x+{a} → x = {b}y-{a}" },
     { id: "t26_013", s: "f(x) = {a}x + {b}, f⁻¹({c}) = {d} ise a kaçtır?", c: "({c}-{b})/{d}", v: {b:[2,6], c:[10,30], d:[2,6]}, z:"zor", alt:"ters", cozum:"f⁻¹({c})={d} → f({d})={c} → {a}×{d}+{b}={c}" },
 
     // ==========================================
     // ALT DAL 3: BİLEŞKE FONKSİYON
     // ==========================================
-    { id: "t26_020", s: "f(x) = {a}x + {b}, g(x) = {c}x - {d} ise (f∘g)(x) nedir?", c: "{a}*{c}x+{a}*(-{d})+{b}", v: {a:[2,4], b:[1,5], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske", cozum:"f(g(x)) = {a}({c}x-{d})+{b} = {a*c}x + ({b-a*d})" },
-    { id: "t26_021", s: "f(x) = {a}x + {b}, g(x) = {c}x - {d} ise (g∘f)(x) nedir?", c: "{c}*{a}x+{c}*{b}-{d}", v: {a:[2,4], b:[1,5], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske" },
+    { id: "t26_020", s: "f(x) = {a}x + {b}, g(x) = {c}x - {d} ise (f∘g)(x) nedir?", c: "'{a*c}x+'+({b-a*d})", v: {a:[2,4], b:[1,5], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske", cozum:"f(g(x)) = {a}({c}x-{d})+{b} = {a*c}x + ({b-a*d})" },
+    { id: "t26_021", s: "f(x) = {a}x + {b}, g(x) = {c}x - {d} ise (g∘f)(x) nedir?", c: "'{c*a}x+'+({c*b-d})", v: {a:[2,4], b:[1,5], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske" },
     { id: "t26_022", s: "f(x) = {a}x + {b}, g(x) = {c}x - {d} ise (f∘g)({k}) kaçtır?", c: "{a}*({c}*{k}-{d})+{b}", v: {a:[2,4], b:[1,5], c:[2,4], d:[1,5], k:[1,8]}, z:"zor", alt:"bileske" },
-    { id: "t26_023", s: "(f∘g)(x) = {a}x + {b} ve g(x) = {c}x + {d} ise f(x) nedir?", c: "({a}/{c})x+({b}-{a}*{d}/{c})", v: {a:[4,12], b:[3,15], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske" },
+    { id: "t26_023", s: "(f∘g)(x) = {a}x + {b} ve g(x) = {c}x + {d} ise f(x) nedir?", c: "'({a}/{c})x+'+({b}-{a}*{d}/{c})", v: {a:[4,12], b:[3,15], c:[2,4], d:[1,5]}, z:"zor", alt:"bileske" },
 
     // ==========================================
     // ALT DAL 4: FONKSİYON GRAFİĞİ
     // ==========================================
     { id: "t26_030", s: "f(x) = {a}x + {b} doğrusunun eğimi kaçtır?", c: "{a}", v: {a:[2,6], b:[1,8]}, z:"kolay", alt:"grafik", cozum:"y = mx + n → Eğim = m = {a}" },
-    { id: "t26_031", s: "f(x) = {a}x + {b} doğrusu y eksenini hangi noktada keser?", c: "{b}", v: {a:[2,6], b:[1,8]}, z:"orta", alt:"grafik", cozum:"x=0 için y={b}, nokta: (0,{b})" },
-    { id: "t26_032", s: "f(x) = {a}x + {b} doğrusu x eksenini hangi noktada keser?", c: "-{b}/{a}", v: {a:[2,5], b:[2,10]}, z:"orta", alt:"grafik", cozum:"y=0 → {a}x+{b}=0 → x=-{b}/{a}" },
+    { id: "t26_031", s: "f(x) = {a}x + {b} doğrusu y eksenini hangi noktada keser?", c: "'(0,{b})'", v: {a:[2,6], b:[1,8]}, z:"orta", alt:"grafik", cozum:"x=0 için y={b}, nokta: (0,{b})" },
+    { id: "t26_032", s: "f(x) = {a}x + {b} doğrusu x eksenini hangi noktada keser?", c: "'('+(-{b}/{a})+',0)'", v: {a:[2,5], b:[2,10]}, z:"orta", alt:"grafik", cozum:"y=0 → {a}x+{b}=0 → x=-{b}/{a}" },
     { id: "t26_033", s: "f(x) = {a}x + {b} fonksiyonu artan mı azalan mı?", c: "{a}>0?'Artan':'Azalan'", v: {a:[-5,5]}, z:"kolay", alt:"grafik", inputType:"choice", choices:["Artan","Azalan","Sabit","Bilinemez"], kural:"a!=0" },
 
     // ==========================================
@@ -1472,7 +1488,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t27_020", s: "MATEMATİK kelimesinin harfleri kaç farklı şekilde sıralanır? (M:{m}, A:{a}, T:{t})", c: "tekrarliPermutasyon(9,[{m},{a},{t}])", v: {m:[2,2], a:[2,3], t:[2,2]}, z:"zor", alt:"tekrarli", cozum:"9!/(2!×2!×2!)" },
     { id: "t27_021", s: "{a} tane A, {b} tane B harfi kaç farklı şekilde sıralanır?", c: "faktoriyel({a}+{b})/(faktoriyel({a})*faktoriyel({b}))", v: {a:[2,4], b:[2,4]}, z:"orta", alt:"tekrarli", cozum:"({a}+{b})!/({a}!×{b}!)" },
-    { id: "t27_022", s: "3 tane 1, 2 tane 2 rakamıyla kaç farklı 5 basamaklı sayı yazılır?", c: "faktoriyel(5)/(faktoriyel(3)*faktoriyel(2))", v: {}, z:"orta", alt:"tekrarli", inputType:"choice", choices:["10","60","120","20"] },
+    { id: "t27_022", s: "3 tane 1, 2 tane 2 rakamıyla kaç farklı 5 basamaklı sayı yazılır?", c: "10", v: {}, z:"orta", alt:"tekrarli", inputType:"choice", choices:["10","60","120","20"] },
 
     // ==========================================
     // ALT DAL 4: KOMBİNASYON (SEÇME)
@@ -1636,6 +1652,16 @@ function rakamToplam(n) {
     return toplam;
 }
 
+function basamakDegistir(n) {
+    const s = String(n).split('');
+    [s[0], s[s.length - 1]] = [s[s.length - 1], s[0]];
+    return parseInt(s.join('')) || n;
+}
+
+function rakamSayisi(n) {
+    return String(Math.abs(Math.floor(n))).length;
+}
+
 function kokDisi(n) {
     let disari = 1, iceri = n;
     for (let i = 2; i * i <= iceri; i++) {
@@ -1677,7 +1703,7 @@ function zarEnAz(t) {
         for (let j = 1; j <= 6; j++)
             if (i + j >= t) count++;
     const gcd = ebob(count, 36);
-    return (count/gcd) + '/' + (36/gcd);
+    return (count / gcd) + '/' + (36 / gcd);
 }
 
 function zarFark(f) {
@@ -1686,7 +1712,148 @@ function zarFark(f) {
         for (let j = 1; j <= 6; j++)
             if (Math.abs(i - j) === f) count++;
     const gcd = ebob(count, 36);
-    return (count/gcd) + '/' + (36/gcd);
+    return (count / gcd) + '/' + (36 / gcd);
+}
+
+function enKucukAsalCarpan(n) {
+    if (n < 2) return 1;
+    if (n % 2 === 0) return 2;
+    for (let i = 3; i * i <= n; i += 2) {
+        if (n % i === 0 && isPrime(i)) return i;
+    }
+    return n;
+}
+
+function asalCarpanCarpim(n) {
+    let carpim = 1, temp = n;
+    for (let i = 2; i <= temp; i++) {
+        if (temp % i === 0 && isPrime(i)) {
+            carpim *= i;
+            while (temp % i === 0) temp /= i;
+        }
+    }
+    return carpim || 1;
+}
+
+function usToplam(taban, maxUs) {
+    let toplam = 0;
+    for (let i = 0; i <= maxUs; i++) toplam += Math.pow(taban, i);
+    return toplam;
+}
+
+function aralikAsalSay(bas, son) {
+    let sayac = 0;
+    for (let i = Math.max(2, Math.ceil(bas)); i <= son; i++) {
+        if (isPrime(i)) sayac++;
+    }
+    return sayac;
+}
+
+function enAzCarpim(sayi1, sayi2, hedef) {
+    for (let i = 1; i <= 100; i++) {
+        if ((sayi1 * i) % sayi2 === 0 && (sayi1 * i) >= hedef) return i;
+    }
+    return 1;
+}
+
+function enKucukAsalToplam(n) {
+    let toplam = 0, sayac = 0, i = 2;
+    while (sayac < n) {
+        if (isPrime(i)) { toplam += i; sayac++; }
+        i++;
+    }
+    return toplam;
+}
+
+function ondalikKesir(pay, payda) {
+    if (payda === 0) return '0';
+    const bolum = pay / payda;
+    if (Number.isInteger(bolum)) return bolum.toString();
+    return parseFloat(bolum.toFixed(4)).toString();
+}
+
+function kokToplamMin(a, b) {
+    return Math.floor(Math.sqrt(Math.abs(a))) + Math.floor(Math.sqrt(Math.abs(b)));
+}
+
+function carpanBul(n) {
+    const carpanlar = [];
+    for (let i = 1; i * i <= n; i++) {
+        if (n % i === 0) {
+            carpanlar.push(i);
+            if (i !== n / i) carpanlar.push(n / i);
+        }
+    }
+    return carpanlar.sort((a, b) => a - b);
+}
+
+function tekCozumBul(katsayi, toplam) {
+    for (let x = 1; x <= toplam; x++) {
+        const y = toplam - katsayi * x;
+        if (y > 0 && Number.isInteger(y)) return { x, y };
+    }
+    return { x: 0, y: 0 };
+}
+
+function siraIleIs(a, b, c) {
+    return Math.ceil((a * b) / c);
+}
+
+function kumeBilesim(k1, k2) {
+    return k1 + k2;
+}
+
+function kumeUcBilesim(k1, k2, k3) {
+    return k1 + k2 + k3;
+}
+
+function hizBul(mesafe, zaman) {
+    if (zaman === 0) return 0;
+    return Math.round((mesafe / zaman) * 100) / 100;
+}
+
+function rakamToplamSayi(n) {
+    let toplam = 0, sayi = Math.abs(Math.floor(n));
+    while (sayi > 0) {
+        toplam += sayi % 10;
+        sayi = Math.floor(sayi / 10);
+    }
+    return toplam;
+}
+
+function oranliKok(deger, oran) {
+    return Math.sqrt(deger * oran);
+}
+
+function kokBul(sayi) {
+    return Math.sqrt(Math.abs(sayi));
+}
+
+function carpanKok(sayi) {
+    for (let i = Math.floor(Math.sqrt(Math.abs(sayi))); i >= 1; i--) {
+        if (sayi % (i * i) === 0) return i;
+    }
+    return 1;
+}
+
+function faktoriyelTers(n) {
+    let carpim = 1, i = 1;
+    while (carpim < n) { i++; carpim *= i; }
+    return carpim === n ? i : i - 1;
+}
+
+function tekrarliPermutasyon(n, tekrarlar) {
+    let pay = 1;
+    for (let i = 2; i <= n; i++) pay *= i;
+    let payda = 1;
+    if (Array.isArray(tekrarlar)) {
+        for (let r of tekrarlar) {
+            for (let i = 2; i <= r; i++) payda *= i;
+        }
+    } else {
+        for (let i = 2; i <= tekrarlar; i++) payda *= i;
+    }
+    return Math.round(pay / payda);
 }
 
 console.log('✅ questions.js Final yüklendi');
