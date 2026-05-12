@@ -293,7 +293,7 @@ const QUESTION_TEMPLATES = {
     // ==========================================
     { id: "t3_050", s: "Ardışık {n} tam sayının toplamı {s} ise en küçük sayı kaçtır?", c: "({s}-({n}*({n}-1)/2))/{n}", v: {n:[3,5], s:["{n}*5","{n}*50"]}, z:"zor", alt:"mantik" },
     { id: "t3_051", s: "İki basamaklı bir sayının rakamları toplamı {t}'dir. Bu sayı en az kaçtır?", c: "{t}<=9?{t}+9:10*{t}-81", v: {t:[2,15]}, z:"orta", alt:"mantik" },
-  { id: "t3_052", s: "{a} sayısının {b} katı bir tek sayı ise {a} nasıl bir sayıdır?", c: "{b}%2==0?'Bilinemez':'Tek'", v: {a:[1,19,"tek"], b:[3,7,"tek"]}, z:"zor", alt:"mantik", inputType:"choice", choices:["Tek","Çift","Bilinemez","Değişir"] }
+  { id: "t3_052", s: "{a} sayısının {b} katı bir tek sayı ise {a} nasıl bir sayıdır?", c: "{b}%2==0?'Bilinemez':'Tek'", v: {a:[1,19,"tek"], b:[3,7,"tek"]}, z:"zor", alt:"mantik", inputType:"choice", choices:["Tek","Çift","Bilinemez","Değişir"] },
     { id: "t3_053", s: "Bir ABC üç basamaklı sayısında A+B+C={t} ise bu sayı en az kaçtır?", c: "function(){var t={t};var A=Math.max(1,t-18);var r=t-A;var B=Math.max(0,r-9);var C=r-B;return 100*A+10*B+C}()", v: {t:[2,20]}, z:"zor", alt:"yeni_nesil" },
     { id: "t3_054", s: "{a} sayfalık bir kitabı numaralandırmak için kaç rakam kullanılır?", c: "function(){var a={a};if(a<10)return a;if(a<100)return 9+(a-9)*2;return 9+180+(a-99)*3}()", v: {a:[5,150]}, z:"zor", alt:"yeni_nesil" },
 
