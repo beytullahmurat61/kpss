@@ -403,15 +403,15 @@ body {
 
 /* Turuncu-Kırmızı buton - Deneme Sınavı */
 .btn-exam {
-    background: linear-gradient(135deg, #ff6584, #ff8e53);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(255, 101, 132, 0.35);
+    background: linear-gradient(135deg, #f7971d, #f7c948);
+    color: #1a1a2e;
+    box-shadow: 0 4px 20px rgba(247, 151, 29, 0.3);
     font-size: 16px;
     padding: 16px 20px;
 }
 
 .btn-exam:hover {
-    box-shadow: 0 6px 28px rgba(255, 101, 132, 0.5);
+    box-shadow: 0 6px 28px rgba(247, 151, 29, 0.45);
     transform: translateY(-2px);
 }
 
