@@ -352,7 +352,7 @@ function generateChoicesFromTemplate(choiceTemplates, vars, correctAnswer) {
     return choiceTemplates.map((ct, i) => {
         let text = String(ct);
         for (const [k, v] of Object.entries(vars)) text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-        return { label: String.fromCharCode(65+i), text, isCorrect: i === 0 };
+        return { label: String.fromCharCode(65+i), text, isCorrect: String(text).trim() === String(correctAnswer).trim() };
     });
 }
 
