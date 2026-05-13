@@ -1,8 +1,6 @@
 // geometry_and_graphs.js - Geometri ve Grafik Şablonları
-// Mevcut QUESTION_TEMPLATES'i bozmadan yeni konular ekler
-if (typeof QUESTION_TEMPLATES === 'undefined') {
-    var QUESTION_TEMPLATES = {};
-}
+// Mevcut QUESTION_TEMPLATES'i bozmadan ekleme yapar
+var QUESTION_TEMPLATES = window.QUESTION_TEMPLATES || {};
 
 // Konu 29: GEOMETRİ
 if (!QUESTION_TEMPLATES[29]) QUESTION_TEMPLATES[29] = [];
@@ -37,6 +35,26 @@ QUESTION_TEMPLATES[29].push(
     draw: "rectangle",
     drawParams: { width: "{a}", height: "{b}" },
     cozum: "Dikdörtgen alanı = kısa kenar × uzun kenar = {a} × {b} = {cevap} cm²"
+  },
+  {
+    id: "geo_rect_perimeter",
+    z: "kolay",
+    s: "Bir dikdörtgenin kısa kenarı {a} cm, uzun kenarı {b} cm ise çevresi kaç cm'dir?",
+    c: "2*({a}+{b})",
+    v: { a: [2, 15], b: [3, 20] },
+    draw: "rectangle",
+    drawParams: { width: "{a}", height: "{b}" },
+    cozum: "Dikdörtgen çevresi = 2×(kısa kenar + uzun kenar) = 2×({a}+{b}) = {cevap} cm"
+  },
+  {
+    id: "geo_circle_area",
+    z: "orta",
+    s: "Yarıçapı {r} cm olan dairenin alanı kaç cm²'dir? (π = 3 alınız)",
+    c: "3 * {r} * {r}",
+    v: { r: [2, 10] },
+    draw: "circle",
+    drawParams: { radius: "{r}" },
+    cozum: "Daire alanı = π×r² = 3×{r}² = {cevap} cm²"
   }
 );
 
@@ -53,6 +71,14 @@ QUESTION_TEMPLATES[30].push(
     cozum: "Merkez açı = (b/ t) × 360 → t = (b × 360) / angle = {cevap}"
   },
   {
+    id: "graph_bar_001",
+    z: "kolay",
+    s: "Aşağıdaki sütun grafiğinde A: {a}, B: {b}, C: {c} değerleri verilmiştir. En büyük ve en küçük değer arasındaki fark kaçtır?",
+    c: "Math.max({a},{b},{c}) - Math.min({a},{b},{c})",
+    v: { a: [50, 200], b: [30, 180], c: [40, 220] },
+    cozum: "En büyük - en küçük = {cevap}"
+  },
+  {
     id: "graph_mean_001",
     z: "kolay",
     s: "{a}, {b}, {c} sayılarının aritmetik ortalaması kaçtır?",
@@ -62,4 +88,4 @@ QUESTION_TEMPLATES[30].push(
   }
 );
 
-console.log('✅ geometry_and_graphs.js yüklendi');
+console.log('✅ geometry_and_graphs.js yüklendi (konu 29 ve 30 eklendi)');
