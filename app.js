@@ -1,9 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Yenileme sorunu çözüldü + Groq prompt'ları güncellendi
-// Müsvedde (karalama defteri) eklendi
-// Hatalar düzeltildi, fingerprint sistemi iyileştirildi
-// Soru bankası generateQuestion motorunu kullanıyor
+// Geometri çizim desteği eklendi (konu 29)
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -15,6 +12,71 @@ console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
 function normAns(s) {
     return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.')
         .replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m/g,'').trim();
+}
+
+// ========== GEOMETRİ ÇİZİM FONKSİYONU ==========
+function drawGeometry(canvasId, drawType, vars, params) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#6c63ff';
+  ctx.fillStyle = '#e8e8f0';
+  ctx.lineWidth = 2;
+  ctx.font = '14px Inter';
+  ctx.fillStyle = '#e8e8f0';
+
+  if (drawType === 'triangle') {
+    const a = parseFloat(fillTemplate(params.angles[0], vars));
+    const b = parseFloat(fillTemplate(params.angles[1], vars));
+    const A = { x: w/2, y: 30 };
+    const B = { x: 40, y: h - 50 };
+    const C = { x: w - 40, y: h - 50 };
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.lineTo(B.x, B.y);
+    ctx.lineTo(C.x, C.y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = '#e8e8f0';
+    ctx.fillText(`${a}°`, (A.x+B.x)/2 - 20, (A.y+B.y)/2);
+    ctx.fillText(`${b}°`, (A.x+C.x)/2 + 10, (A.y+C.y)/2);
+    ctx.fillStyle = '#ffb347';
+    const xVal = 180 - a - b;
+    ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 10);
+  }
+  else if (drawType === 'rectangle') {
+    const width = parseFloat(fillTemplate(params.width, vars));
+    const height = parseFloat(fillTemplate(params.height, vars));
+    ctx.strokeRect(50, 50, width, height);
+    ctx.fillText(`${width} cm`, 50 + width/2 - 15, 40);
+    ctx.fillText(`${height} cm`, 20, 50 + height/2);
+  }
+  else if (drawType === 'square') {
+    const side = parseFloat(fillTemplate(params.side, vars));
+    ctx.strokeRect(50, 50, side, side);
+    ctx.fillText(`${side} cm`, 50 + side/2 - 10, 40);
+  }
+  else if (drawType === 'circle') {
+    const r = parseFloat(fillTemplate(params.radius, vars));
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
+    ctx.stroke();
+    ctx.fillText(`r = ${r}`, w/2 - 10, h/2 - 10);
+  }
+  else if (drawType === 'right_triangle') {
+    const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
+    const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
+    ctx.beginPath();
+    ctx.moveTo(50, h-50);
+    ctx.lineTo(50+leg1, h-50);
+    ctx.lineTo(50, h-50-leg2);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillText(`${leg1} cm`, 50+leg1/2, h-35);
+    ctx.fillText(`${leg2} cm`, 30, h-50-leg2/2);
+  }
 }
 
 function checkEqual(userAns, correctAns) {
@@ -691,7 +753,9 @@ function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, o
         correctChoiceIndex: correctChoiceIndex,
         cozum: generateSolution(template, vars, cevapSonuc),
         vars: vars,
-        topicId: topicId
+        topicId: topicId,
+        draw: template.draw,
+        drawParams: template.drawParams
     };
 }
 
@@ -730,7 +794,9 @@ function generateFallbackQuestion(topicId, level, options) {
             correctChoiceIndex,
             cozum: generateSolution(tpl, vars, cevapSonuc),
             vars,
-            topicId
+            topicId,
+            draw: tpl.draw,
+            drawParams: tpl.drawParams
         };
     }
     return { id: 'joker_1', soru: '1 + 1 kaçtır?', cevap: '2', cevapRaw: 2, zorluk: 'kolay', inputType: 'keyboard', choices: null, cozum: '1+1=2', topicId };
@@ -765,6 +831,18 @@ function renderQuestionUI(q, level, levelInfo) {
     const el = document.getElementById('learnContent');
     if (!el) return;
 
+    // Geometri çizimi için canvas oluştur
+    let geometryHtml = '';
+    if (q.draw) {
+        const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
+        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        setTimeout(() => {
+            if (typeof drawGeometry === 'function') {
+                drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
+            }
+        }, 50);
+    }
+
     const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
     const ansHTML = hasChoices
         ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i) => `<button class="btn btn-secondary btn-full choice-btn" onclick="submitChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
@@ -772,7 +850,9 @@ function renderQuestionUI(q, level, levelInfo) {
 
     el.innerHTML = `
         <div class="prog-bar-wrap"><div class="prog-bar-label"><span>📊 ${levelInfo.name}</span><span>${lh.correct||0}/${lh.total||0} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${((lh.total||0)/limit)*100}%"></div></div></div>
-        <div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${(lh.total||0)+1}/${limit}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${levelInfo.name}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>
+        <div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${(lh.total||0)+1}/${limit}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${levelInfo.name}</span></div></div>
+        ${geometryHtml}
+        <div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>
         <div class="ask-section"><button class="ask-toggle" onclick="toggleAsk()">🤖 Anlamadım — Öğretmene sor</button><div class="ask-form" id="askForm"><input id="askInp" class="ask-inp" type="text" placeholder="Ne anlamadın?" onkeydown="if(event.key==='Enter')sendAsk()"><button class="btn btn-primary" onclick="sendAsk()">Sor</button></div><div class="ask-result" id="askResult"></div></div>`;
 
     if (!hasChoices) setTimeout(() => document.getElementById('ansInp')?.focus(), 100);
@@ -963,11 +1043,24 @@ function renderNextQBQuestion() {
     const zc = qData.zorluk === 'kolay' ? 'badge-grn' : qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
     const t = getTopicById(topicId);
     const hasChoices = qData.inputType === 'choice' && qData.choices && qData.choices.length >= 2;
+    
+    // Geometri çizimi için canvas oluştur (soru bankasında da)
+    let geometryHtml = '';
+    if (qData.draw) {
+        const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
+        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        setTimeout(() => {
+            if (typeof drawGeometry === 'function') {
+                drawGeometry(canvasId, qData.draw, qData.vars, qData.drawParams);
+            }
+        }, 50);
+    }
+    
     const ansHTML = hasChoices
         ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${qData.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
         : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
     
-    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${qData.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div>${geometryHtml}<div class="q-text">${qData.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
     if (!hasChoices) setTimeout(()=>document.getElementById('qbAnsInp')?.focus(), 100);
 }
 
@@ -1050,7 +1143,7 @@ function generateExamQuestions(seed) {
                 if (correctIdx !== -1) choices[correctIdx].isCorrect = true;
                 else if (choices.length > 0) choices[0].isCorrect = true;
             }
-            all.push({ id: generateQuestionId(tpl.id,vars), s:fillTemplate(tpl.s,vars), c:formatAnswer(cevap,it), cRaw:cevap, z:tpl.z||'orta', inputType:it, choices, correctChoiceIndex:choices?choices.findIndex(c=>c.isCorrect):0, topicId:t.id, topicName:t.n });
+            all.push({ id: generateQuestionId(tpl.id,vars), s:fillTemplate(tpl.s,vars), c:formatAnswer(cevap,it), cRaw:cevap, z:tpl.z||'orta', inputType:it, choices, correctChoiceIndex:choices?choices.findIndex(c=>c.isCorrect):0, topicId:t.id, topicName:t.n, draw:tpl.draw, drawParams:tpl.drawParams });
         }
     });
     return shuffleWithSeed(all, seed+999).slice(0, ST.testMode?5:CONSTANTS.EXAM_QUESTIONS);
@@ -1072,9 +1165,22 @@ function loadExamQuestion(idx) {
     if(!el)return;
     const zc=q.z==='kolay'?'badge-grn':q.z==='zor'?'badge-red':'badge-warn';
     const hasChoices=q.inputType==='choice'&&q.choices&&q.choices.length>=2;
+    
+    // Geometri çizimi için canvas oluştur (denemede de)
+    let geometryHtml = '';
+    if (q.draw) {
+        const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
+        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        setTimeout(() => {
+            if (typeof drawGeometry === 'function') {
+                drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
+            }
+        }, 50);
+    }
+    
     const ansHTML=hasChoices?`<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full exam-choice-btn" onclick="submitExamChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
         :`<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipExamAnswer()">Boş Bırak →</button>`;
-    el.innerHTML=`<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${idx+1}/${ST.currentExam.questions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.z||'orta'}</span><span class="badge badge-acc">${q.topicName||''}</span></div></div><div class="q-text">${q.s.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    el.innerHTML=`<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${idx+1}/${ST.currentExam.questions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.z||'orta'}</span><span class="badge badge-acc">${q.topicName||''}</span></div></div>${geometryHtml}<div class="q-text">${q.s.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
     if(!hasChoices)setTimeout(()=>document.getElementById('examAnsInp')?.focus(),100);
 }
 
