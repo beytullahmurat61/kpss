@@ -1,6 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Yenileme sorunu çözüldü + Groq prompt'ları güncellendi
+// Müsvedde (scratchpad) + tüm düzeltmeler
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -229,12 +229,11 @@ function getQBProgress(topicId) {
 }
 
 // ============================================
-// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİLEME SORUNU ÇÖZÜLDÜ)
+// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİLEME + BACK DÜZELTİLDİ)
 // ============================================
 
 let currentView = 'vHome';
 
-// Her view için yenileme anında çağrılacak render fonksiyonları
 const viewRenderers = {
     vHome: updateHomeStats,
     vTopics: renderTopicsList,
@@ -251,7 +250,6 @@ const viewRenderers = {
     vQBSolve: function() {
         renderQBSolveHeader();
         if (ST.phase === 'question' && ST.cq) {
-            // Soru bankası sorusu gösterimdeyse yeniden göster
             const el = document.getElementById('qbSolveContent');
             if (el && ST.cq) {
                 const q = ST.cq;
@@ -260,7 +258,8 @@ const viewRenderers = {
                 const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
                     : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
                 const t = getTopicById(ST.topic);
-                el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${getQBProgress(ST.topic).solved.length}/${CONSTANTS.QUESTION_BANK_SIZE}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(getQBProgress(ST.topic).solved.length/CONSTANTS.QUESTION_BANK_SIZE)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${getQBProgress(ST.topic).solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+                const progress = getQBProgress(ST.topic);
+                el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${progress.solved.length}/${CONSTANTS.QUESTION_BANK_SIZE}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/CONSTANTS.QUESTION_BANK_SIZE)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
             }
         } else {
             renderNextQBQuestion();
@@ -290,7 +289,6 @@ function showView(id, addToHistory = true) {
         history.pushState({ view: id }, '', '#/' + id);
     }
     
-    // Yenileme anında içerik kaybolmasın diye hemen render et
     if (viewRenderers[id]) {
         viewRenderers[id]();
     }
@@ -306,9 +304,7 @@ function updateHeader(viewId) {
     b.style.visibility = viewId === 'vHome' ? 'hidden' : 'visible';
 }
 
-window.goBack = function() {
-    history.back();
-};
+window.goBack = function() { history.back(); };
 
 window.goHome = function() { showView('vHome'); };
 window.goTopics = function() { showView('vTopics'); };
@@ -331,14 +327,10 @@ window.addEventListener('popstate', function(event) {
 // ============================================
 
 function updateHomeStats() {
-    const elTopics = document.getElementById('statTopics');
-    const elQuestions = document.getElementById('statQuestions');
-    const elAccuracy = document.getElementById('statAccuracy');
-    const elStreak = document.getElementById('statStreak');
-    if (elTopics) elTopics.textContent = ST.completedTopics.length;
-    if (elQuestions) elQuestions.textContent = ST.totalQ;
-    if (elAccuracy) elAccuracy.textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
-    if (elStreak) elStreak.textContent = ST.maxStreak;
+    document.getElementById('statTopics').textContent = ST.completedTopics.length;
+    document.getElementById('statQuestions').textContent = ST.totalQ;
+    document.getElementById('statAccuracy').textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
+    document.getElementById('statStreak').textContent = ST.maxStreak;
     
     const nt = TOPICS.find(t => !ST.completedTopics.includes(t.id) && (!TOPICS.find(pt => pt.order === t.order-1) || ST.completedTopics.includes(TOPICS.find(pt => pt.order === t.order-1).id)));
     const b = document.getElementById('nextTopicBadge');
@@ -419,7 +411,7 @@ function setLearnHeader() {
 }
 
 // ============================================
-// BÖLÜM 6: SORU ÜRETİM MOTORU
+// BÖLÜM 6: SORU ÜRETİM MOTORU (YENİLENDİ)
 // ============================================
 
 function valueMatchesFilter(val, filter) {
@@ -786,7 +778,7 @@ function generateFallbackQuestion(topicId, level) {
 }
 
 // ============================================
-// BÖLÜM 7: SORU GÖSTERİM & CEVAP
+// BÖLÜM 7: SORU GÖSTERİM & CEVAP (Müsvedde butonu eklendi)
 // ============================================
 
 function renderNextQuestion() {
@@ -823,6 +815,7 @@ function renderQuestionUI(q, level, levelInfo) {
     el.innerHTML = `
         <div class="prog-bar-wrap"><div class="prog-bar-label"><span>📊 ${levelInfo.name}</span><span>${lh.correct||0}/${lh.total||0} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${((lh.total||0)/limit)*100}%"></div></div></div>
         <div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${(lh.total||0)+1}/${limit}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${levelInfo.name}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>
+        <div class="musvedde-toggle"><button class="btn btn-ghost" onclick="toggleMusvedde()">📝 Müsvedde</button></div>
         <div class="ask-section"><button class="ask-toggle" onclick="toggleAsk()">🤖 Anlamadım — Öğretmene sor</button><div class="ask-form" id="askForm"><input id="askInp" class="ask-inp" type="text" placeholder="Ne anlamadın?" onkeydown="if(event.key==='Enter')sendAsk()"><button class="btn btn-primary" onclick="sendAsk()">Sor</button></div><div class="ask-result" id="askResult"></div></div>`;
 
     if (!hasChoices) setTimeout(() => document.getElementById('ansInp')?.focus(), 100);
@@ -895,10 +888,9 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 8: API (Groq) - PROMPT'LAR İYİLEŞTİRİLDİ
+// BÖLÜM 8: API (Groq) - İYİLEŞTİRİLDİ
 // ============================================
 
-// Konu özeti için gelişmiş prompt
 async function fetchTopicSummary(topic) {
     checkApiDate();
     if (ST.apiCallCount >= CONSTANTS.API_DAILY_LIMIT) throw new Error('Limit doldu');
@@ -926,7 +918,6 @@ Yanıtın Türkçe, max 250 kelime olsun. Güncel MEB müfredatına uygun hareke
 
 window.toggleAsk = function() { document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); };
 
-// Soru çözümü için gelişmiş prompt
 window.sendAsk = async function() {
     const inp = document.getElementById('askInp'), q = inp?.value?.trim();
     if (!q) return;
@@ -962,7 +953,7 @@ Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150
 };
 
 // ============================================
-// BÖLÜM 9: SORU BANKASI
+// BÖLÜM 9: SORU BANKASI (Müsvedde butonu eklendi)
 // ============================================
 function renderQuestionBankList() {
     const el = document.getElementById('qbTopicsList');
@@ -1024,7 +1015,7 @@ function renderNextQBQuestion() {
     const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
     const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
         : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
-    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div><div class="musvedde-toggle"><button class="btn btn-ghost" onclick="toggleMusvedde()">📝 Müsvedde</button></div>`;
     if (!hasChoices) setTimeout(()=>document.getElementById('qbAnsInp')?.focus(), 100);
 }
 
@@ -1176,3 +1167,122 @@ function initApp() {
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
 }
+
+// ============================================
+// MÜSVEDDE (KARALAMA ALANI)
+// ============================================
+let musveddeCanvas = null;
+let musveddeCtx = null;
+let musveddeDrawing = false;
+
+function initMusvedde() {
+    if (document.getElementById('musveddeArea')) return;
+    
+    const html = `
+    <div id="musveddeArea" class="musvedde-area">
+        <div class="musvedde-toolbar">
+            <span style="font-weight:700;">📝 Müsvedde</span>
+            <div>
+                <button onclick="clearMusvedde()" style="background:#fee2e2;color:#dc2626;">🗑️ Sil</button>
+                <button onclick="toggleMusvedde()" style="background:#e2e8f0;">✖️ Kapat</button>
+            </div>
+        </div>
+        <div class="musvedde-canvas-wrap" id="musveddeWrap">
+            <canvas id="musveddeCanvas"></canvas>
+        </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+    
+    musveddeCanvas = document.getElementById('musveddeCanvas');
+    musveddeCtx = musveddeCanvas.getContext('2d');
+    
+    resizeMusvedde();
+    window.addEventListener('resize', resizeMusvedde);
+    
+    musveddeCanvas.addEventListener('touchstart', startMusvedde);
+    musveddeCanvas.addEventListener('touchend', stopMusvedde);
+    musveddeCanvas.addEventListener('touchmove', drawMusvedde);
+    musveddeCanvas.addEventListener('mousedown', startMusveddeMouse);
+    musveddeCanvas.addEventListener('mouseup', stopMusvedde);
+    musveddeCanvas.addEventListener('mouseleave', stopMusvedde);
+    musveddeCanvas.addEventListener('mousemove', drawMusveddeMouse);
+}
+
+function resizeMusvedde() {
+    if (!musveddeCanvas) return;
+    const wrap = document.getElementById('musveddeWrap');
+    musveddeCanvas.width = wrap.offsetWidth * 2;
+    musveddeCanvas.height = wrap.offsetHeight * 2;
+    musveddeCtx.scale(2, 2);
+    musveddeCtx.strokeStyle = '#1e293b';
+    musveddeCtx.lineWidth = 2;
+    musveddeCtx.lineCap = 'round';
+    musveddeCtx.lineJoin = 'round';
+}
+
+function getMusveddePos(e) {
+    const rect = musveddeCanvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return {
+        x: (touch.clientX - rect.left),
+        y: (touch.clientY - rect.top)
+    };
+}
+
+function startMusvedde(e) {
+    e.preventDefault();
+    musveddeDrawing = true;
+    const pos = getMusveddePos(e);
+    musveddeCtx.beginPath();
+    musveddeCtx.moveTo(pos.x, pos.y);
+}
+
+function drawMusvedde(e) {
+    if (!musveddeDrawing) return;
+    e.preventDefault();
+    const pos = getMusveddePos(e);
+    musveddeCtx.lineTo(pos.x, pos.y);
+    musveddeCtx.stroke();
+}
+
+function stopMusvedde() {
+    musveddeDrawing = false;
+    musveddeCtx.closePath();
+}
+
+function startMusveddeMouse(e) {
+    musveddeDrawing = true;
+    const pos = getMusveddePos(e);
+    musveddeCtx.beginPath();
+    musveddeCtx.moveTo(pos.x, pos.y);
+}
+
+function drawMusveddeMouse(e) {
+    if (!musveddeDrawing) return;
+    const pos = getMusveddePos(e);
+    musveddeCtx.lineTo(pos.x, pos.y);
+    musveddeCtx.stroke();
+}
+
+window.toggleMusvedde = function() {
+    const area = document.getElementById('musveddeArea');
+    if (!area) { initMusvedde(); }
+    const el = document.getElementById('musveddeArea');
+    if (el) {
+        const isOpen = el.classList.contains('open');
+        if (isOpen) {
+            el.classList.remove('open');
+        } else {
+            el.classList.add('open');
+            if (!musveddeCanvas) initMusvedde();
+            setTimeout(resizeMusvedde, 100);
+        }
+    }
+};
+
+window.clearMusvedde = function() {
+    if (musveddeCanvas && musveddeCtx) {
+        musveddeCtx.clearRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+    }
+};
