@@ -80,7 +80,10 @@ const QUESTION_TEMPLATES = {
     { id: "t1_081", s: "İki sayının toplamı {s}, farkı {f} ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20,"cift"]}, z:"orta", alt:"mantik", kural:"s>f && (s-f)%2==0" },
     { id: "t1_082", s: "Toplamları {s} olan iki sayıdan biri diğerinden {f} fazla ise küçük sayı kaçtır?", c: "({s}-{f})/2", v: {s:[20,100], f:[2,20]}, z:"orta", alt:"mantik", kural:"s>f && (s-f)%2==0" },
     { id: "t1_083", s: "İki sayının toplamı {s}'dir. Büyük sayı küçük sayının {k} katı ise küçük sayı kaçtır?", c: "{s}/({k}+1)", v: {k:[2,5], s:"({k}+1)*2"}, z:"zor", alt:"mantik" },
-    { id: "t1_084", s: "İki sayının farkı {f}'tir. Büyük sayı küçük sayının {k} katı ise büyük sayı kaçtır?", c: "({f}*{k})/({k}-1)", v: {f:[2,10], k:[2,4]}, z:"zor", alt:"mantik", kural:"k>1" },
+{ id: "t1_084", s: "İki sayının farkı {f}'tir. Büyük sayı küçük sayının {k} katı ise büyük sayı kaçtır?",
+  c: "({f}*{k})/({k}-1)",
+  v: {f:[2,10], k:[2,4]},
+  z:"zor", alt:"mantik", kural:"k>1 && f%(k-1)==0" },
 
     { id: "t1_090", s: "Bir mağazada tanesi {a} TL olan gömlekten {b} tane, tanesi {c} TL olan pantolondan {d} tane alan müşteri toplam kaç TL öder?", c: "{a}*{b}+{c}*{d}", v: {a:[30,100], b:[1,3], c:[50,150], d:[1,3]}, z:"orta", alt:"yeni_nesil" },
     { id: "t1_091", s: "Bir çiftlikte {a} tavuk ve {b} inek var. Toplam ayak sayısı kaçtır?", c: "{a}*2+{b}*4", v: {a:[5,20], b:[3,10]}, z:"orta", alt:"yeni_nesil" },
