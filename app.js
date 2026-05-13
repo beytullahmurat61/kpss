@@ -1,11 +1,4 @@
 // ============================================
-// app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Müsvedde (scratchpad) + Tüm düzeltmeler
-// ============================================
-
-console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
-
-// ============================================
 // BÖLÜM 1: YARDIMCI FONKSİYONLAR (TÜMÜ)
 // ============================================
 
@@ -172,7 +165,6 @@ function siraIleIs(a, b) {
     return gun;
 }
 
-
 // ============================================
 // BÖLÜM 2: STATE YÖNETİMİ
 // ============================================
@@ -230,7 +222,7 @@ function getQBProgress(topicId) {
 }
 
 // ============================================
-// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİLEME + BACK DÜZELTİLDİ)
+// BÖLÜM 3: SAYFA GEÇİŞLERİ
 // ============================================
 
 let currentView = 'vHome';
@@ -310,10 +302,14 @@ window.addEventListener('popstate', function(event) {
 // ============================================
 
 function updateHomeStats() {
-    document.getElementById('statTopics').textContent = ST.completedTopics.length;
-    document.getElementById('statQuestions').textContent = ST.totalQ;
-    document.getElementById('statAccuracy').textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
-    document.getElementById('statStreak').textContent = ST.maxStreak;
+    const elTopics = document.getElementById('statTopics');
+    const elQuestions = document.getElementById('statQuestions');
+    const elAccuracy = document.getElementById('statAccuracy');
+    const elStreak = document.getElementById('statStreak');
+    if (elTopics) elTopics.textContent = ST.completedTopics.length;
+    if (elQuestions) elQuestions.textContent = ST.totalQ;
+    if (elAccuracy) elAccuracy.textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
+    if (elStreak) elStreak.textContent = ST.maxStreak;
     
     const nt = TOPICS.find(t => !ST.completedTopics.includes(t.id) && (!TOPICS.find(pt => pt.order === t.order-1) || ST.completedTopics.includes(TOPICS.find(pt => pt.order === t.order-1).id)));
     const b = document.getElementById('nextTopicBadge');
@@ -394,7 +390,7 @@ function setLearnHeader() {
 }
 
 // ============================================
-// BÖLÜM 6: SORU ÜRETİM MOTORU (YENİLENDİ)
+// BÖLÜM 6: SORU ÜRETİM MOTORU
 // ============================================
 
 function valueMatchesFilter(val, filter) {
@@ -761,7 +757,7 @@ function generateFallbackQuestion(topicId, level) {
 }
 
 // ============================================
-// BÖLÜM 7: SORU GÖSTERİM & CEVAP (Müsvedde butonu eklendi)
+// BÖLÜM 7: SORU GÖSTERİM & CEVAP
 // ============================================
 
 function renderNextQuestion() {
@@ -798,7 +794,6 @@ function renderQuestionUI(q, level, levelInfo) {
     el.innerHTML = `
         <div class="prog-bar-wrap"><div class="prog-bar-label"><span>📊 ${levelInfo.name}</span><span>${lh.correct||0}/${lh.total||0} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${((lh.total||0)/limit)*100}%"></div></div></div>
         <div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${(lh.total||0)+1}/${limit}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${levelInfo.name}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>
-        <div class="musvedde-toggle"><button class="btn btn-ghost" onclick="toggleMusvedde()">📝 Müsvedde</button></div>
         <div class="ask-section"><button class="ask-toggle" onclick="toggleAsk()">🤖 Anlamadım — Öğretmene sor</button><div class="ask-form" id="askForm"><input id="askInp" class="ask-inp" type="text" placeholder="Ne anlamadın?" onkeydown="if(event.key==='Enter')sendAsk()"><button class="btn btn-primary" onclick="sendAsk()">Sor</button></div><div class="ask-result" id="askResult"></div></div>`;
 
     if (!hasChoices) setTimeout(() => document.getElementById('ansInp')?.focus(), 100);
@@ -871,9 +866,10 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 8: API (Groq) - İYİLEŞTİRİLDİ
+// BÖLÜM 8: API (Groq) - PROMPT'LAR İYİLEŞTİRİLDİ
 // ============================================
 
+// Konu özeti için gelişmiş prompt
 async function fetchTopicSummary(topic) {
     checkApiDate();
     if (ST.apiCallCount >= CONSTANTS.API_DAILY_LIMIT) throw new Error('Limit doldu');
@@ -901,6 +897,7 @@ Yanıtın Türkçe, max 250 kelime olsun. Güncel MEB müfredatına uygun hareke
 
 window.toggleAsk = function() { document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); };
 
+// Soru çözümü için gelişmiş prompt
 window.sendAsk = async function() {
     const inp = document.getElementById('askInp'), q = inp?.value?.trim();
     if (!q) return;
@@ -936,7 +933,7 @@ Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150
 };
 
 // ============================================
-// BÖLÜM 9: SORU BANKASI (Müsvedde butonu eklendi)
+// BÖLÜM 9: SORU BANKASI
 // ============================================
 function renderQuestionBankList() {
     const el = document.getElementById('qbTopicsList');
@@ -998,7 +995,7 @@ function renderNextQBQuestion() {
     const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
     const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
         : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
-    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div><div class="musvedde-toggle"><button class="btn btn-ghost" onclick="toggleMusvedde()">📝 Müsvedde</button></div>`;
+    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
     if (!hasChoices) setTimeout(()=>document.getElementById('qbAnsInp')?.focus(), 100);
 }
 
@@ -1133,8 +1130,6 @@ window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerl
 // ============================================
 // BÖLÜM 13: BAŞLATMA
 // ============================================
-
-
 let tmc=0,tmt=null;
 document.addEventListener('DOMContentLoaded',()=>{
     const ht=document.getElementById('headerTitle');
