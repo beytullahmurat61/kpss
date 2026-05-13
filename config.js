@@ -1,7 +1,7 @@
 // ============================================
 // config.js - KPSS & DGS MATEMATİK
 // Sabitler, Konular, Seviyeler, Formüller
-// Versiyon: 2.1
+// Versiyon: 3.1 (Geometri ve Grafik eklendi)
 // ============================================
 
 // ==================== STATE VERSİYON ====================
@@ -77,205 +77,50 @@ const TOPICS = [
     { id: 25, order: 25, p: 'İLERİ KONULAR (DGS)',      n: '2. Dereceden Denklemler',         e: '📉', kpss: 'YOK',      dgs: '1-2 soru' },
     { id: 26, order: 26, p: 'İLERİ KONULAR (DGS)',      n: 'Fonksiyonlar',                    e: '𝑓',  kpss: 'YOK',      dgs: '2-3 soru' },
     { id: 27, order: 27, p: 'İLERİ KONULAR (DGS)',      n: 'Permütasyon & Kombinasyon',       e: '🎯', kpss: 'YOK',      dgs: '1-2 soru' },
-    { id: 28, order: 28, p: 'İLERİ KONULAR (DGS)',      n: 'Olasılık',                        e: '🎲', kpss: '1 soru',   dgs: '1-2 soru' }
-	
-	// ========== FAZ 11: GRAFİK VE TABLO ==========
-    { id: 29, order: 29, p: 'GEOMETRİ', n: 'Temel Geometri', e: '📐', kpss: '1-2 soru', dgs: '1-2 soru' },
-    { id: 30, order: 30, p: 'VERİ & GRAFİK', n: 'Grafik ve Veri Analizi', e: '📊', kpss: '1-2 soru', dgs: '1-2 soru' },
-	
+    { id: 28, order: 28, p: 'İLERİ KONULAR (DGS)',      n: 'Olasılık',                        e: '🎲', kpss: '1 soru',   dgs: '1-2 soru' },
+
+    // ========== YENİ EKLENEN KONULAR ==========
+    { id: 29, order: 29, p: 'GEOMETRİ',                 n: 'Temel Geometri',                  e: '📐', kpss: '1-2 soru', dgs: '1-2 soru' },
+    { id: 30, order: 30, p: 'VERİ & GRAFİK',            n: 'Grafik ve Veri Analizi',          e: '📊', kpss: '1-2 soru', dgs: '1-2 soru' }
 ];
 
 // ==================== FORMÜLLER ====================
 const FORMULAS = {
-    1: [
-        "➕ Toplama: a + b = c",
-        "➖ Çıkarma: a - b = c",
-        "🔄 Değişme özelliği: a + b = b + a",
-        "🔗 Birleşme: (a + b) + c = a + (b + c)"
-    ],
-    2: [
-        "✖️ Çarpma: a × b = c",
-        "➗ Bölme: a ÷ b = c (b ≠ 0)",
-        "🔄 Değişme: a × b = b × a",
-        "📐 Dağılma: a × (b + c) = a×b + a×c"
-    ],
-    3: [
-        "🔤 Rakam: 0'dan 9'a kadar semboller (10 tane)",
-        "📗 Doğal sayı (N): 0, 1, 2, 3, ...",
-        "📘 Tam sayı (Z): ..., -2, -1, 0, 1, 2, ...",
-        "🏗️ Basamak değeri: 234 = 2×100 + 3×10 + 4×1",
-        "🔢 Tek sayı: 2n+1 | Çift sayı: 2n",
-        "📏 Ardışık sayılar: n, n+1, n+2, ..."
-    ],
-    4: [
-        "✌️ 2 ile: Son rakam çift (0,2,4,6,8)",
-        "3️⃣ 3 ile: Rakamlar toplamı 3'ün katı",
-        "4️⃣ 4 ile: Son iki rakam 4'ün katı",
-        "5️⃣ 5 ile: Son rakam 0 veya 5",
-        "9️⃣ 9 ile: Rakamlar toplamı 9'un katı"
-    ],
-    5: [
-        "🔐 Asal sayı: 1 ve kendisi hariç böleni olmayan sayı",
-        "📋 İlk asallar: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29...",
-        "🧩 Her tam sayı asal çarpanların çarpımıdır",
-        "⚠️ 1 asal değildir! En küçük asal 2'dir"
-    ],
-    6: [
-        "📦 EBOB: En Büyük Ortak Bölen",
-        "📋 EKOK: En Küçük Ortak Kat",
-        "🔗 a × b = EBOB(a,b) × EKOK(a,b)",
-        "📐 EBOB bulma: Asal çarpanlardan ortak olanların en küçük üslüleri"
-    ],
-    7: [
-        "🍕 Kesir: a/b (pay/payda), b≠0",
-        "➕ Toplama: a/b + c/d = (ad+bc)/bd",
-        "✖️ Çarpma: a/b × c/d = ac/bd",
-        "➗ Bölme: a/b ÷ c/d = a/b × d/c",
-        "📏 Rasyonel sayı: a/b şeklinde yazılabilen (b≠0)"
-    ],
-    8: [
-        "💯 Ondalık: Paydası 10'un kuvveti olan kesir",
-        "➕➖ Toplama/çıkarma: Virgüller alt alta",
-        "✖️ Çarpma: Virgül yok say, sonra virgül koy",
-        "➗ Bölme: Payda 10'un katı yapılır"
-    ],
-    9: [
-        "⬆️ aⁿ: a'nın n kere kendisiyle çarpımı",
-        "📐 aⁿ × aᵐ = aⁿ⁺ᵐ",
-        "📐 aⁿ ÷ aᵐ = aⁿ⁻ᵐ",
-        "📐 (aⁿ)ᵐ = aⁿˣᵐ",
-        "⚠️ a⁰ = 1 (a≠0), 0⁰ tanımsız"
-    ],
-    10: [
-        "√a: Karesi a olan sayı",
-        "📐 √a × √b = √(a×b)",
-        "📐 √a ÷ √b = √(a/b)",
-        "📐 √(a²) = |a|",
-        "⚠️ Kök içi negatif olmaz (reel sayılarda)"
-    ],
-    11: [
-        "🔍 Ortak çarpan: ax+bx = x(a+b)",
-        "📐 İki kare farkı: a²-b² = (a-b)(a+b)",
-        "📐 Tam kare: (a+b)² = a²+2ab+b²",
-        "📐 Tam kare: (a-b)² = a²-2ab+b²",
-        "🧩 Gruplandırma: ac+ad+bc+bd = (a+b)(c+d)"
-    ],
-    12: [
-        "⚖️ ax + b = 0 → x = -b/a",
-        "⚖️ ax + b = cx + d → x = (d-b)/(a-c)",
-        "📐 Yok etme metodu",
-        "📐 Yerine koyma metodu"
-    ],
-    13: [
-        "📊 a < b (a küçüktür b)",
-        "➕ a < b ise a+c < b+c",
-        "✖️ c>0 ise a<b → ac<bc",
-        "⚠️ c<0 ise a<b → ac>bc (yön değişir!)",
-        "📐 Çözüm kümesi: Aralık veya eşitsizlik"
-    ],
-    14: [
-        "📏 Doğru orantı: a/b = c/d (içler-dışlar çarpımı)",
-        "🔄 Ters orantı: a×b = k (sabit)",
-        "📐 Bileşik orantı",
-        "📊 Orantı sabiti: k"
-    ],
-    15: [
-        "❓ Bilinmeyene x de, denklem kur",
-        "📐 Denklem çöz, sağlama yap",
-        "🧩 Ardışık sayı: n, n+1, n+2...",
-        "🔢 Sayı problemi = sözel → matematiksel"
-    ],
-    16: [
-        "🎂 Yaş farkı sabittir, değişmez!",
-        "📅 x yıl sonra: Bugünkü yaş + x",
-        "📅 x yıl önce: Bugünkü yaş - x",
-        "👥 İki kişi: (A+x) + (B+x) = toplam"
-    ],
-    17: [
-        "🚗 Yol = Hız × Zaman (x = v·t)",
-        "⏱️ Hız = Yol ÷ Zaman",
-        "🛣️ Ortalama hız = Toplam yol ÷ Toplam zaman",
-        "🔄 Karşılaşma: (v₁+v₂)t = aradaki mesafe"
-    ],
-    18: [
-        "🔧 1/a + 1/b = 1/t (işin bitme süresi)",
-        "💧 Havuz: Dolduran musluk (+), boşaltan (-)",
-        "👥 Birlikte iş: 1/t₁ + 1/t₂ = 1/t_toplam",
-        "📊 İş = Güç × Zaman"
-    ],
-    19: [
-        "💯 %A = A/100",
-        "📊 Kısım = Bütün × Yüzde / 100",
-        "💰 Kâr = Satış - Maliyet",
-        "📉 Zarar = Maliyet - Satış",
-        "📈 Kâr yüzdesi = (Kâr/Maliyet)×100"
-    ],
-    20: [
-        "🧪 Karışım oranı = Madde miktarı / Toplam",
-        "📐 Tuz yüzdesi = Tuz/(Su+Tuz)",
-        "➕ Karışıma ekleme: (m₁·%₁ + m₂·%₂)/(m₁+m₂)",
-        "💧 Buharlaştırma: Su azalır, tuz kalır"
-    ],
-    21: [
-        "🏦 Basit faiz: F = A·n·t/100",
-        "📈 Bileşik faiz: A·(1+r/100)ⁿ",
-        "💰 A: Anapara, n: Yıl, t: Faiz oranı",
-        "📊 Faiz = Son tutar - Anapara"
-    ],
-    22: [
-        "🔵 A ∪ B: Birleşim (A veya B'de olanlar)",
-        "🔴 A ∩ B: Kesişim (Hem A hem B'de olanlar)",
-        "📐 s(A∪B) = s(A) + s(B) - s(A∩B)",
-        "📊 Alt küme: 2ⁿ (n elemanlı kümenin alt küme sayısı)"
-    ],
-    23: [
-        "✅ p ∧ q: ve (ikisi de doğruysa doğru)",
-        "✅ p ∨ q: veya (en az biri doğruysa doğru)",
-        "➡️ p → q: p ise q",
-        "🔄 p ↔ q: p ancak ve ancak q",
-        "❌ Değili (~p): Doğruluk değeri tersi"
-    ],
-    24: [
-        "📊 Aritmetik ortalama: Toplam / Adet",
-        "📈 Medyan: Sıralı veride ortadaki",
-        "🔝 Mod: En çok tekrar eden",
-        "📉 Açıklık: En büyük - En küçük",
-        "📊 Grafik: Sütun, çizgi, daire"
-    ],
-    25: [
-        "📐 ax² + bx + c = 0",
-        "Δ Delta = b² - 4ac",
-        "Δ > 0: İki reel kök",
-        "Δ = 0: Çakışık kök",
-        "Δ < 0: Reel kök yok",
-        "📝 Kökler: x = (-b ± √Δ)/2a"
-    ],
-    26: [
-        "𝑓(x): x'in fonksiyonu",
-        "📐 f(x) = ax + b (doğrusal)",
-        "📐 f(x) = ax² + bx + c (parabol)",
-        "🔢 Tanım kümesi, değer kümesi",
-        "🔄 Bileşke fonksiyon: (f∘g)(x) = f(g(x))"
-    ],
-    27: [
-        "🔢 n! = n×(n-1)×...×2×1",
-        "📋 P(n,r) = n!/(n-r)! (sıralı)",
-        "🎯 C(n,r) = n!/[r!(n-r)!] (seçme)",
-        "⚠️ 0! = 1",
-        "🧩 Kombinasyon: Sıra önemsiz"
-    ],
-    28: [
-        "🎲 Olasılık = İstenen durum / Tüm durumlar",
-        "📐 0 ≤ P(A) ≤ 1",
-        "✅ P(A) + P(A') = 1 (tümleyen)",
-        "🎯 Bağımsız olay: P(A∩B) = P(A)·P(B)",
-        "🎯 Bağımlı olay: P(A∩B) = P(A)·P(B|A)"
-    ]
+    1: [ "➕ Toplama: a + b = c", "➖ Çıkarma: a - b = c" ],
+    2: [ "✖️ Çarpma: a × b = c", "➗ Bölme: a ÷ b = c (b ≠ 0)" ],
+    3: [ "🔤 Rakam: 0'dan 9'a kadar", "📗 Doğal sayı (N): 0,1,2,3,..." ],
+    4: [ "✌️ 2 ile: Son rakam çift", "3️⃣ 3 ile: Rakamlar toplamı 3'ün katı" ],
+    5: [ "🔐 Asal sayı: 1 ve kendisi hariç böleni olmayan", "📋 İlk asallar: 2,3,5,7,11,..." ],
+    6: [ "📦 EBOB: En Büyük Ortak Bölen", "📋 EKOK: En Küçük Ortak Kat" ],
+    7: [ "🍕 Kesir: a/b (pay/payda)", "➕ Toplama: a/b + c/d = (ad+bc)/bd" ],
+    8: [ "💯 Ondalık: Paydası 10'un kuvveti olan kesir" ],
+    9: [ "⬆️ aⁿ: a'nın n kere kendisiyle çarpımı", "📐 aⁿ × aᵐ = aⁿ⁺ᵐ" ],
+    10: [ "√a: Karesi a olan sayı", "📐 √a × √b = √(a×b)" ],
+    11: [ "🔍 Ortak çarpan: ax+bx = x(a+b)", "📐 İki kare farkı: a²-b² = (a-b)(a+b)" ],
+    12: [ "⚖️ ax + b = 0 → x = -b/a" ],
+    13: [ "📊 a < b (a küçüktür b)", "⚠️ c<0 ise a<b → ac>bc (yön değişir!)" ],
+    14: [ "📏 Doğru orantı: a/b = c/d", "🔄 Ters orantı: a×b = k" ],
+    15: [ "❓ Bilinmeyene x de, denklem kur" ],
+    16: [ "🎂 Yaş farkı sabittir, değişmez!" ],
+    17: [ "🚗 Yol = Hız × Zaman (x = v·t)" ],
+    18: [ "🔧 1/a + 1/b = 1/t (işin bitme süresi)" ],
+    19: [ "💯 %A = A/100", "💰 Kâr = Satış - Maliyet" ],
+    20: [ "🧪 Karışım oranı = Madde miktarı / Toplam" ],
+    21: [ "🏦 Basit faiz: F = A·n·t/100" ],
+    22: [ "🔵 s(A∪B) = s(A) + s(B) - s(A∩B)" ],
+    23: [ "✅ p ∧ q: ve (ikisi de doğruysa doğru)" ],
+    24: [ "📊 Aritmetik ortalama: Toplam / Adet" ],
+    25: [ "📐 ax² + bx + c = 0", "Δ = b² - 4ac" ],
+    26: [ "𝑓(x): x'in fonksiyonu" ],
+    27: [ "🔢 n! = n×(n-1)×...×2×1" ],
+    28: [ "🎲 Olasılık = İstenen durum / Tüm durumlar" ],
+    29: [ "📐 Üçgen iç açıları toplamı 180°", "📐 Pisagor: a² + b² = c²" ],
+    30: [ "📊 Daire grafiğinde merkez açı = (parça/toplam)×360°" ]
 };
 
 // ==================== SABİTLER ====================
 const CONSTANTS = {
-    TOTAL_TOPICS: 30,
+    TOTAL_TOPICS: 30,  // 28'den 30'a çıkarıldı
     QUESTIONS_PER_TOPIC: 30,
     QUESTION_BANK_SIZE: 300,
     EXAM_SETS: 5,
@@ -312,4 +157,4 @@ function getNextLevel(levelName) {
     return idx < levels.length - 1 ? levels[idx + 1] : null;
 }
 
-console.log('✅ config.js (v3) yüklendi -', TOPICS.length, 'konu | KPSS → DGS sıralı');
+console.log('✅ config.js (v3.1) yüklendi -', TOPICS.length, 'konu | KPSS → DGS sıralı');
