@@ -185,7 +185,13 @@ function loadState() {
         else if (Object.keys(saved).length > 0) Object.assign(ST, saved);
     } catch (e) {}
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
-    if (!ST.lastView || ST.lastView === 'vLearn' || ST.lastView === 'vExam') ST.lastView = 'vHome'; // reset risky views
+    
+    // Yalnızca güvenli ana sayfalar hatırlansın
+    const safeViews = ['vHome', 'vTopics', 'vExamList', 'vStats', 'vQuestionBank'];
+    if (!ST.lastView || !safeViews.includes(ST.lastView)) {
+        ST.lastView = 'vHome';
+    }
+    
     initMissingFields();
     checkApiDate();
 }
@@ -1139,10 +1145,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function initApp() {
     loadState();
-    showView('vHome', false);      // her zaman ana sayfa açılsın
+    // Daima ana sayfadan başla, sonraki tıklamalarla gez
+    showView('vHome', false);
+    updateHomeStats();
     initExamSets();
     ST.lastSession = todayStr();
     saveState();
+    // Geçmişi sıfırla ve ilk state'i ana sayfa yap
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     console.log('✅ app.js hazır!');
 }
