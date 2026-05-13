@@ -1,6 +1,7 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
 // Yenileme sorunu çözüldü + Groq prompt'ları güncellendi
+// Müsvedde (karalama defteri) eklendi
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -193,6 +194,17 @@ function loadState() {
     } catch (e) {}
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
     if (!ST.lastView) ST.lastView = 'vHome';
+    
+    // Başlangıç hatasını düzelt: Son görünüm vLearn ise ve geçerli bir çalışma yoksa ana sayfaya yönlendir
+    if (ST.lastView === 'vLearn') {
+        const hasValidStudy = ST.topic && ST.phase && (ST.phase === 'pre-study' || ST.phase === 'summary' || ST.phase === 'question' || ST.phase === 'feedback');
+        if (!hasValidStudy || !getTopicById(ST.topic)) {
+            ST.lastView = 'vHome';
+            ST.phase = 'summary';
+            ST.cq = null;
+        }
+    }
+    
     initMissingFields();
     checkApiDate();
 }
@@ -1175,4 +1187,184 @@ function initApp() {
     saveState();
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
+    
+    // Müsvedde (karalama defteri) özelliğini ekle
+    initMusvedde();
+}
+
+// ============================================
+// BÖLÜM 14: MÜSVEDDE (KARALAMA DEFTERİ)
+// ============================================
+
+let musveddeActive = false;
+let musveddeCanvas = null;
+let musveddeCtx = null;
+let musveddeDrawing = false;
+let musveddeMode = 'pen'; // 'pen' or 'eraser'
+let musveddeLastX = 0, musveddeLastY = 0;
+
+function initMusvedde() {
+    // Müsvedde panelini oluştur
+    const panel = document.createElement('div');
+    panel.id = 'musveddePanel';
+    panel.className = 'musvedde-area';
+    panel.innerHTML = `
+        <div class="musvedde-toolbar">
+            <button id="musveddePenBtn" class="btn-sm" style="background:var(--accent);color:white">✏️ Kalem</button>
+            <button id="musveddeEraserBtn" class="btn-sm">🧽 Silgi</button>
+            <button id="musveddeClearBtn" class="btn-sm">🗑️ Temizle</button>
+            <button id="musveddeCloseBtn" class="btn-sm">❌ Kapat</button>
+        </div>
+        <div class="musvedde-canvas-wrap">
+            <canvas id="musveddeCanvas" width="600" height="400" style="width:100%;height:100%;background:#fff;border-radius:8px;touch-action:none"></canvas>
+        </div>
+    `;
+    document.body.appendChild(panel);
+
+    // Aç/Kapat butonu (sağ alt köşe)
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'musveddeToggle';
+    toggleBtn.innerHTML = '✏️';
+    toggleBtn.style.position = 'fixed';
+    toggleBtn.style.bottom = '20px';
+    toggleBtn.style.right = '20px';
+    toggleBtn.style.width = '56px';
+    toggleBtn.style.height = '56px';
+    toggleBtn.style.borderRadius = '50%';
+    toggleBtn.style.backgroundColor = 'var(--accent)';
+    toggleBtn.style.color = 'white';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.fontSize = '28px';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    toggleBtn.style.zIndex = '500';
+    toggleBtn.style.display = 'flex';
+    toggleBtn.style.alignItems = 'center';
+    toggleBtn.style.justifyContent = 'center';
+    toggleBtn.onclick = toggleMusvedde;
+    document.body.appendChild(toggleBtn);
+
+    // Canvas referansları
+    musveddeCanvas = document.getElementById('musveddeCanvas');
+    if (musveddeCanvas) {
+        musveddeCtx = musveddeCanvas.getContext('2d');
+        // Canvas boyutunu ayarla (yüksek çözünürlük için)
+        const resizeCanvas = () => {
+            const wrap = musveddeCanvas.parentElement;
+            const rect = wrap.getBoundingClientRect();
+            musveddeCanvas.width = rect.width;
+            musveddeCanvas.height = rect.height;
+            musveddeCtx.fillStyle = '#fff';
+            musveddeCtx.fillRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+            musveddeCtx.strokeStyle = '#000';
+            musveddeCtx.lineWidth = 4;
+            musveddeCtx.lineCap = 'round';
+            musveddeCtx.lineJoin = 'round';
+        };
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 100);
+        
+        // Çizim olayları
+        const getCoords = (e) => {
+            const rect = musveddeCanvas.getBoundingClientRect();
+            const scaleX = musveddeCanvas.width / rect.width;
+            const scaleY = musveddeCanvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            let x = (clientX - rect.left) * scaleX;
+            let y = (clientY - rect.top) * scaleY;
+            x = Math.max(0, Math.min(musveddeCanvas.width, x));
+            y = Math.max(0, Math.min(musveddeCanvas.height, y));
+            return { x, y };
+        };
+        
+        const startDraw = (e) => {
+            musveddeDrawing = true;
+            const { x, y } = getCoords(e);
+            musveddeLastX = x;
+            musveddeLastY = y;
+            musveddeCtx.beginPath();
+            musveddeCtx.moveTo(x, y);
+            musveddeCtx.lineTo(x, y);
+            musveddeCtx.stroke();
+        };
+        
+        const draw = (e) => {
+            if (!musveddeDrawing) return;
+            e.preventDefault();
+            const { x, y } = getCoords(e);
+            musveddeCtx.beginPath();
+            musveddeCtx.moveTo(musveddeLastX, musveddeLastY);
+            musveddeCtx.lineTo(x, y);
+            musveddeCtx.stroke();
+            musveddeLastX = x;
+            musveddeLastY = y;
+        };
+        
+        const endDraw = () => { musveddeDrawing = false; };
+        
+        musveddeCanvas.addEventListener('mousedown', startDraw);
+        musveddeCanvas.addEventListener('mousemove', draw);
+        musveddeCanvas.addEventListener('mouseup', endDraw);
+        musveddeCanvas.addEventListener('touchstart', startDraw);
+        musveddeCanvas.addEventListener('touchmove', draw);
+        musveddeCanvas.addEventListener('touchend', endDraw);
+        
+        // Araç butonları
+        document.getElementById('musveddePenBtn').onclick = () => {
+            musveddeMode = 'pen';
+            musveddeCtx.globalCompositeOperation = 'source-over';
+            musveddeCtx.strokeStyle = '#000';
+            document.getElementById('musveddePenBtn').style.background = 'var(--accent)';
+            document.getElementById('musveddePenBtn').style.color = 'white';
+            document.getElementById('musveddeEraserBtn').style.background = '';
+            document.getElementById('musveddeEraserBtn').style.color = '';
+        };
+        document.getElementById('musveddeEraserBtn').onclick = () => {
+            musveddeMode = 'eraser';
+            musveddeCtx.globalCompositeOperation = 'destination-out';
+            musveddeCtx.strokeStyle = 'rgba(0,0,0,1)';
+            document.getElementById('musveddeEraserBtn').style.background = 'var(--accent)';
+            document.getElementById('musveddeEraserBtn').style.color = 'white';
+            document.getElementById('musveddePenBtn').style.background = '';
+            document.getElementById('musveddePenBtn').style.color = '';
+        };
+        document.getElementById('musveddeClearBtn').onclick = () => {
+            musveddeCtx.clearRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+            musveddeCtx.fillStyle = '#fff';
+            musveddeCtx.fillRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+        };
+        document.getElementById('musveddeCloseBtn').onclick = () => {
+            panel.classList.remove('open');
+            musveddeActive = false;
+        };
+    }
+}
+
+function toggleMusvedde() {
+    const panel = document.getElementById('musveddePanel');
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        musveddeActive = false;
+    } else {
+        panel.classList.add('open');
+        musveddeActive = true;
+        // Canvas boyutunu yeniden ayarla (görünür olduğunda)
+        if (musveddeCanvas) {
+            const wrap = musveddeCanvas.parentElement;
+            const rect = wrap.getBoundingClientRect();
+            musveddeCanvas.width = rect.width;
+            musveddeCanvas.height = rect.height;
+            musveddeCtx.fillStyle = '#fff';
+            musveddeCtx.fillRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+        }
+    }
 }
