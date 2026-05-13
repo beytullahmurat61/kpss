@@ -2,6 +2,8 @@
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
 // Yenileme sorunu çözüldü + Groq prompt'ları güncellendi
 // Müsvedde (karalama defteri) eklendi
+// Hatalar düzeltildi, fingerprint sistemi iyileştirildi
+// Soru bankası generateQuestion motorunu kullanıyor
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -63,10 +65,84 @@ function simpleHash(str) {
     return Math.abs(h).toString(36).substring(0, 6);
 }
 
+// ---------- GELİŞMİŞ safeEval (tek tanım) ----------
+// Özel matematik fonksiyonları
+function ebob(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function ekok(a, b) { return Math.abs(a * b) / ebob(a, b); }
+function asalCarpan(n) {
+    let carpanlar = [], temp = Math.abs(n);
+    for (let i = 2; i <= temp; i++) {
+        while (temp % i === 0) { carpanlar.push(i); temp /= i; }
+    }
+    return carpanlar;
+}
+function faktoriyel(n) { if (n < 0) return null; if (n === 0) return 1; let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+function permutasyon(n, r) { if (r > n || r < 0) return 0; let res = 1; for (let i = 0; i < r; i++) res *= (n - i); return res; }
+function kombinasyon(n, r) {
+    if (r > n || r < 0) return 0;
+    r = Math.min(r, n - r);
+    let c = 1;
+    for (let i = 0; i < r; i++) c = c * (n - i) / (i + 1);
+    return Math.round(c);
+}
+function sadelestir(num, den) { const g = ebob(Math.abs(num), Math.abs(den)); return `${num/g}/${den/g}`; }
+function sirala(...args) { return args.sort((a,b)=>a-b).join(','); }
+function zarOlasilik(t) { const o = {2:"1/36",3:"2/36",4:"3/36",5:"4/36",6:"5/36",7:"6/36",8:"5/36",9:"4/36",10:"3/36",11:"2/36",12:"1/36"}; return o[t] || "0"; }
+function basamakDegerToplam(n) { let t = 0, bas = 1; while (n > 0) { t += (n % 10) * bas; bas *= 10; n = Math.floor(n / 10); } return t; }
+function rakamToplam(n) { let t = 0; while (n > 0) { t += n % 10; n = Math.floor(n / 10); } return t; }
+function kokDisi(n) {
+    let d = 1, i = n;
+    for (let j = 2; j * j <= i; j++) while (i % (j * j) === 0) { d *= j; i /= (j * j); }
+    if (d === 1) return '√' + n;
+    if (i === 1) return String(d);
+    return d + '√' + i;
+}
+function aralikToplam(min, max) { if (min > max) return 0; return (min + max) * (max - min + 1) / 2; }
+function sinavMevcut(a, b, c, d) { const x = (b + c * d) / (c - a); return a * x + b; }
+function dogrusalDeger(x1, y1, x2, y2, k) { const m = (y2 - y1) / (x2 - x1); const n = y1 - m * x1; return Math.round((m * k + n) * 100) / 100; }
+function sifirSayisi(n) { let c = 0; while (n >= 5) { n = Math.floor(n / 5); c += n; } return c; }
+function zarEnAz(t) {
+    let c = 0;
+    for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) if (i + j >= t) c++;
+    const g = ebob(c, 36); return (c/g) + '/' + (36/g);
+}
+function zarFark(f) {
+    let c = 0;
+    for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) if (Math.abs(i - j) === f) c++;
+    const g = ebob(c, 36); return (c/g) + '/' + (36/g);
+}
+function enKucukAsalCarpan(n) { if (n < 2) return 1; if (n % 2 === 0) return 2; for (let i = 3; i * i <= n; i += 2) if (n % i === 0 && isPrime(i)) return i; return n; }
+function asalCarpanToplam(n) { let s = 0, t = n; for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { s += i; while (t % i === 0) t /= i; } return s || n; }
+function asalCarpanSayisi(n) { let c = 0, t = n; for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { c++; while (t % i === 0) t /= i; } return c; }
+function asalCarpanCarpim(n) { let c = 1, t = n; for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { c *= i; while (t % i === 0) t /= i; } return c || 1; }
+function aralikAsalSay(bas, son) { let c = 0; for (let i = Math.max(2, Math.ceil(bas)); i <= son; i++) if (isPrime(i)) c++; return c; }
+function usToplam(taban, maxUs) { let s = 0; for (let i = 0; i <= maxUs; i++) s += Math.pow(taban, i); return s; }
+function enAzCarpim(s1, s2, hedef) { for (let i = 1; i <= 100; i++) if ((s1 * i) % s2 === 0 && (s1 * i) >= hedef) return i; return 1; }
+function kumeBilesim(k1, k2) { return k1 + k2; }
+function kumeUcBilesim(k1, k2, k3) { return k1 + k2 + k3; }
+function hizBul(mesafe, zaman) { return zaman === 0 ? 0 : Math.round((mesafe / zaman) * 100) / 100; }
+function oranliKok(deger, oran) { return Math.sqrt(deger * oran); }
+function kokBul(sayi) { return Math.sqrt(Math.abs(sayi)); }
+function carpanKok(sayi) { for (let i = Math.floor(Math.sqrt(Math.abs(sayi))); i >= 1; i--) if (sayi % (i * i) === 0) return i; return 1; }
+function siraIleIs(a, b) { let gun = 1, is = 0; while (is < 1) { if (gun % 2 === 1) is += 1 / a; else is += 1 / b; if (is >= 1) break; gun++; } return gun; }
+
+const SAFE_CONTEXT = {
+    Math, ebob, ekok, asalCarpan, faktoriyel, permutasyon, kombinasyon,
+    sadelestir, sirala, zarOlasilik, basamakDegerToplam, rakamToplam,
+    kokDisi, aralikToplam, sinavMevcut, dogrusalDeger, sifirSayisi,
+    zarEnAz, zarFark, enKucukAsalCarpan, asalCarpanCarpim,
+    usToplam, aralikAsalSay, enAzCarpim, kumeBilesim,
+    kumeUcBilesim, hizBul, oranliKok, kokBul, carpanKok, siraIleIs,
+    isPrime
+};
+
 function safeEval(expr) {
-    const cleaned = expr.replace(/[^0-9+\-*/().%\s]/g, '');
-    if (!/^[0-9+\-*/().%\s]+$/.test(cleaned) && cleaned !== '') throw new Error('Geçersiz ifade');
-    return new Function('return ' + expr)();
+    if (/[;`'"\\]|__proto__|constructor|prototype|eval\(/i.test(expr)) throw new Error('Güvensiz ifade');
+    let clean = String(expr).replace(/×/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/√\(/g,'Math.sqrt(').replace(/√/g,'Math.sqrt');
+    try {
+        const func = new Function(...Object.keys(SAFE_CONTEXT), `return (${clean})`);
+        return func(...Object.values(SAFE_CONTEXT));
+    } catch(e) { throw new Error('Hesaplama hatası'); }
 }
 
 function shuffleArray(arr) {
@@ -84,93 +160,6 @@ function shuffleWithSeed(arr, seed) {
     const s = [...arr], rng = seededRandom(seed);
     for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i+1)); [s[i], s[j]] = [s[j], s[i]]; }
     return s;
-}
-
-// ---------- Matematiksel Yardımcı Fonksiyonlar ----------
-function ebob(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
-function ekok(a, b) { return (a * b) / ebob(a, b); }
-function faktoriyel(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
-function permutasyon(n, r) { if (r > n) return 0; return faktoriyel(n) / faktoriyel(n - r); }
-function kombinasyon(n, r) {
-    if (r > n || r < 0) return 0;
-    r = Math.min(r, n - r);
-    let c = 1;
-    for (let i = 0; i < r; i++) c = c * (n - i) / (i + 1);
-    return Math.round(c);
-}
-function basamakDegerToplam(n) { let t = 0, c = 1; while (n > 0) { t += (n % 10) * c; c *= 10; n = Math.floor(n / 10); } return t; }
-function rakamToplam(n) { let t = 0; while (n > 0) { t += n % 10; n = Math.floor(n / 10); } return t; }
-function basamakDegistir(n) { const s = String(n).split(''); [s[0], s[s.length-1]] = [s[s.length-1], s[0]]; return parseInt(s.join('')) || n; }
-function sadelestir(pay, payda) { const g = ebob(Math.abs(pay), Math.abs(payda)); return `${pay/g}/${payda/g}`; }
-function kokDisi(n) {
-    let d = 1, i = n;
-    for (let j = 2; j * j <= i; j++) while (i % (j * j) === 0) { d *= j; i /= (j * j); }
-    if (d === 1) return '√' + n;
-    if (i === 1) return String(d);
-    return d + '√' + i;
-}
-function sirala(...args) { return args.sort((a, b) => a - b); }
-function aralikToplam(min, max) { if (min > max) return 0; return (min + max) * (max - min + 1) / 2; }
-function sifirSayisi(n) { let c = 0; while (n >= 5) { n = Math.floor(n / 5); c += n; } return c; }
-function dogrusalDeger(x1, y1, x2, y2, k) {
-    const m = (y2 - y1) / (x2 - x1);
-    const n = y1 - m * x1;
-    return Math.round((m * k + n) * 100) / 100;
-}
-function sinavMevcut(a, b, c, d) { const x = (b + c * d) / (c - a); return a * x + b; }
-function zarOlasilik(t) {
-    const o = {2:"1/36",3:"2/36",4:"3/36",5:"4/36",6:"5/36",7:"6/36",8:"5/36",9:"4/36",10:"3/36",11:"2/36",12:"1/36"};
-    return o[t] || "0";
-}
-function zarEnAz(t) {
-    let c = 0;
-    for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) if (i + j >= t) c++;
-    const g = ebob(c, 36); return (c/g) + '/' + (36/g);
-}
-function zarFark(f) {
-    let c = 0;
-    for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) if (Math.abs(i - j) === f) c++;
-    const g = ebob(c, 36); return (c/g) + '/' + (36/g);
-}
-function enKucukAsalCarpan(n) {
-    if (n < 2) return 1;
-    if (n % 2 === 0) return 2;
-    for (let i = 3; i * i <= n; i += 2) if (n % i === 0 && isPrime(i)) return i;
-    return n;
-}
-function asalCarpanToplam(n) {
-    let s = 0, t = n;
-    for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { s += i; while (t % i === 0) t /= i; }
-    return s || n;
-}
-function asalCarpanSayisi(n) {
-    let c = 0, t = n;
-    for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { c++; while (t % i === 0) t /= i; }
-    return c;
-}
-function asalCarpanCarpim(n) {
-    let c = 1, t = n;
-    for (let i = 2; i <= t; i++) if (t % i === 0 && isPrime(i)) { c *= i; while (t % i === 0) t /= i; }
-    return c || 1;
-}
-function aralikAsalSay(bas, son) { let c = 0; for (let i = Math.max(2, Math.ceil(bas)); i <= son; i++) if (isPrime(i)) c++; return c; }
-function usToplam(taban, maxUs) { let s = 0; for (let i = 0; i <= maxUs; i++) s += Math.pow(taban, i); return s; }
-function enAzCarpim(s1, s2, hedef) { for (let i = 1; i <= 100; i++) if ((s1 * i) % s2 === 0 && (s1 * i) >= hedef) return i; return 1; }
-function kumeBilesim(k1, k2) { return k1 + k2; }
-function kumeUcBilesim(k1, k2, k3) { return k1 + k2 + k3; }
-function hizBul(mesafe, zaman) { return zaman === 0 ? 0 : Math.round((mesafe / zaman) * 100) / 100; }
-function oranliKok(deger, oran) { return Math.sqrt(deger * oran); }
-function kokBul(sayi) { return Math.sqrt(Math.abs(sayi)); }
-function carpanKok(sayi) { for (let i = Math.floor(Math.sqrt(Math.abs(sayi))); i >= 1; i--) if (sayi % (i * i) === 0) return i; return 1; }
-function siraIleIs(a, b) {
-    let gun = 1, is = 0;
-    while (is < 1) {
-        if (gun % 2 === 1) is += 1 / a;
-        else is += 1 / b;
-        if (is >= 1) break;
-        gun++;
-    }
-    return gun;
 }
 
 // ============================================
@@ -195,8 +184,6 @@ function loadState() {
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
     if (!ST.lastView) ST.lastView = 'vHome';
     
-    // SADECE AKTİF SORU ÇÖZME ANINDA (question veya feedback) konu çalışmaya devam et
-    // Aksi halde ana sayfayı göster
     const hasActiveStudy = ST.topic && ST.phase && (ST.phase === 'question' || ST.phase === 'feedback') && getTopicById(ST.topic);
     if (ST.lastView === 'vLearn' && !hasActiveStudy) {
         ST.lastView = 'vHome';
@@ -245,7 +232,6 @@ function getQBProgress(topicId) {
 
 let currentView = 'vHome';
 
-// Her view için yenileme anında çağrılacak render fonksiyonları
 const viewRenderers = {
     vHome: updateHomeStats,
     vTopics: renderTopicsList,
@@ -262,7 +248,6 @@ const viewRenderers = {
     vQBSolve: function() {
         renderQBSolveHeader();
         if (ST.phase === 'question' && ST.cq) {
-            // Soru bankası sorusu gösterimdeyse yeniden göster
             const el = document.getElementById('qbSolveContent');
             if (el && ST.cq) {
                 const q = ST.cq;
@@ -281,6 +266,7 @@ const viewRenderers = {
     vExam: function() {
         if (ST.currentExam) {
             updateExamTimer();
+            if (!ST.currentExam.timer) startExamTimer();
             loadExamQuestion(ST.currentExam.currentIndex);
         } else {
             goExamList();
@@ -301,7 +287,6 @@ function showView(id, addToHistory = true) {
         history.pushState({ view: id }, '', '#/' + id);
     }
     
-    // Yenileme anında içerik kaybolmasın diye hemen render et
     if (viewRenderers[id]) {
         viewRenderers[id]();
     }
@@ -317,10 +302,7 @@ function updateHeader(viewId) {
     b.style.visibility = viewId === 'vHome' ? 'hidden' : 'visible';
 }
 
-window.goBack = function() {
-    history.back();
-};
-
+window.goBack = function() { history.back(); };
 window.goHome = function() { showView('vHome'); };
 window.goTopics = function() { showView('vTopics'); };
 window.goQuestionBank = function() { showView('vQuestionBank'); };
@@ -330,11 +312,8 @@ window.toggleMenu = function() { document.getElementById('sideMenu')?.classList.
 
 window.addEventListener('popstate', function(event) {
     const state = event.state;
-    if (state && state.view) {
-        showView(state.view, false);
-    } else {
-        showView('vHome', false);
-    }
+    if (state && state.view) showView(state.view, false);
+    else showView('vHome', false);
 });
 
 // ============================================
@@ -432,193 +411,27 @@ function setLearnHeader() {
 // ===============================
 //  PROFESYONEL SORU ÜRETİM MOTORU
 //  (KPSS / DGS / AYT / TYT uyumlu)
-//  Güvenli, deterministik, tekrarsız
 // ===============================
 
-// -----------------------------
-// 1. YARDIMCI MATEMATİK FONKSİYONLARI
-// -----------------------------
-function isPrime(n) {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-    if (n % 2 === 0 || n % 3 === 0) return false;
-    for (let i = 5; i * i <= n; i += 6)
-        if (n % i === 0 || n % (i + 2) === 0) return false;
-    return true;
+let GLOBAL_QUESTION_FINGERPRINTS = new Set();
+let USER_SOLVED_FINGERPRINTS = new Map();
+
+function getQuestionFingerprint(templateId, vars) {
+    const sortedKeys = Object.keys(vars).sort();
+    let canonical = templateId;
+    for (let k of sortedKeys) canonical += `|${k}:${vars[k]}`;
+    return simpleHash(canonical);
 }
 
-function findGCD(a, b) {
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b !== 0) {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    return a;
+function isQuestionUsedGlobally(fingerprint) { return GLOBAL_QUESTION_FINGERPRINTS.has(fingerprint); }
+function markQuestionUsedGlobally(fingerprint) { GLOBAL_QUESTION_FINGERPRINTS.add(fingerprint); if (GLOBAL_QUESTION_FINGERPRINTS.size > 10000) { const toDelete = [...GLOBAL_QUESTION_FINGERPRINTS].slice(0, 5000); toDelete.forEach(f => GLOBAL_QUESTION_FINGERPRINTS.delete(f)); } }
+
+function getUserSolvedFingerprints(topicId, level) {
+    const key = `${topicId}|${level}`;
+    if (!USER_SOLVED_FINGERPRINTS.has(key)) USER_SOLVED_FINGERPRINTS.set(key, new Set());
+    return USER_SOLVED_FINGERPRINTS.get(key);
 }
 
-function simplifiyFraction(num, den) {
-    if (den === 0) return null;
-    const sign = (num * den) < 0 ? -1 : 1;
-    let a = Math.abs(num);
-    let b = Math.abs(den);
-    const gcd = findGCD(a, b);
-    a /= gcd;
-    b /= gcd;
-    return sign === -1 ? `-${a}/${b}` : `${a}/${b}`;
-}
-
-// Rastgele sayı (deterministik test modu için seed desteği)
-let _randomSeed = null;
-function setRandomSeed(seed) {
-    _randomSeed = seed;
-}
-function randomInt(min, max) {
-    if (_randomSeed !== null) {
-        // Basit bir linear congruential generator
-        _randomSeed = (_randomSeed * 9301 + 49297) % 233280;
-        let rnd = _randomSeed / 233280;
-        return Math.floor(min + rnd * (max - min + 1));
-    } else {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-}
-
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = randomInt(0, i);
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
-    }
-    return Math.abs(hash).toString(36);
-}
-
-// -----------------------------
-// 2. GÜVENLİ EXPRESSION ENGINE (Sandbox)
-// -----------------------------
-// Özel matematik fonksiyonları
-function ebob(a, b) { return findGCD(a, b); }
-function ekok(a, b) { return Math.abs(a * b) / findGCD(a, b); }
-function asalCarpan(n) {
-    let carpanlar = [];
-    let temp = Math.abs(n);
-    for (let i = 2; i <= temp; i++) {
-        while (temp % i === 0) {
-            carpanlar.push(i);
-            temp /= i;
-        }
-    }
-    return carpanlar;
-}
-function faktoriyel(n) {
-    if (n < 0) return null;
-    if (n === 0) return 1;
-    let result = 1;
-    for (let i = 2; i <= n; i++) result *= i;
-    return result;
-}
-function permutasyon(n, r) {
-    if (r > n || r < 0) return 0;
-    let result = 1;
-    for (let i = 0; i < r; i++) result *= (n - i);
-    return result;
-}
-function kombinasyon(n, r) {
-    if (r > n || r < 0) return 0;
-    if (r === 0 || r === n) return 1;
-    r = Math.min(r, n - r);
-    let result = 1;
-    for (let i = 1; i <= r; i++) {
-        result *= (n - r + i);
-        result /= i;
-    }
-    return Math.round(result);
-}
-function sadelestir(num, den) { return simplifiyFraction(num, den); }
-function sirala(arrStr) { return arrStr.split(',').map(Number).sort((a,b)=>a-b).join(','); }
-function zarOlasilik(istenen, toplam) { return `${istenen}/${toplam}`; }
-function basamakDegerToplam(sayi) { return String(Math.abs(sayi)).split('').reduce((a,b)=>a+Number(b),0); }
-function rakamToplam(sayi) { return basamakDegerToplam(sayi); }
-function kokDisi(sayi) { return Math.sqrt(Math.abs(sayi)); }
-function aralikToplam(bas, bit) { let t=0; for(let i=bas;i<=bit;i++) t+=i; return t; }
-function sinavMevcut(dogru, yanlis) { return dogru*4 - yanlis; }
-function dogrusalDeger(x, m, n) { return m*x + n; }
-function sifirSayisi(sayi) { return String(sayi).split('0').length-1; }
-function zarEnAz(zarAdet, enAz) { return `P(X>=${enAz})`; } // basit placeholder
-function zarFark(zar1, zar2) { return Math.abs(zar1-zar2); }
-function rakamSayisi(sayi) { return String(Math.abs(sayi)).length; }
-function enKucukAsalCarpan(n) {
-    let temp = Math.abs(n);
-    for(let i=2;i<=temp;i++) if(temp%i===0 && isPrime(i)) return i;
-    return n;
-}
-function asalCarpanCarpim(n) {
-    let carpanlar = asalCarpan(n);
-    return carpanlar.reduce((a,b)=>a*b,1);
-}
-function usToplam(sayi, us) { return Math.pow(Math.abs(sayi), us); }
-function aralikAsalSay(bas, bit) {
-    let sayac=0;
-    for(let i=bas;i<=bit;i++) if(isPrime(i)) sayac++;
-    return sayac;
-}
-function basamakDegistir(sayi, idx1, idx2) { let s=String(sayi).split(''); [s[idx1],s[idx2]]=[s[idx2],s[idx1]]; return Number(s.join('')); }
-function enAzCarpim(liste) { let dizi=liste.split(',').map(Number); return Math.min(...dizi.map((v,i,a)=>v*a[(i+1)%a.length])); }
-function kumeBilesim(a,b) { return [...new Set([...a.split(','),...b.split(',')])].join(','); }
-function kumeUcBilesim(a,b,c) { return [...new Set([...a.split(','),...b.split(','),...c.split(',')])].join(','); }
-function hizBul(mesafe, zaman) { return mesafe/zaman; }
-function oranliKok(sayi, oran) { return Math.pow(sayi, 1/oran); }
-function kokBul(sayi) { return Math.sqrt(sayi); }
-function carpanKok(carpan, sayi) { return carpan*Math.sqrt(sayi); }
-function siraIleIs(liste, islem) { let d=liste.split(',').map(Number); return islem==='topla'?d.reduce((a,b)=>a+b,0):islem==='carp'?d.reduce((a,b)=>a*b,1):null; }
-
-const SAFE_CONTEXT = {
-    Math, ebob, ekok, asalCarpan, faktoriyel, permutasyon, kombinasyon,
-    sadelestir, sirala, zarOlasilik, basamakDegerToplam, rakamToplam,
-    kokDisi, aralikToplam, sinavMevcut, dogrusalDeger, sifirSayisi,
-    zarEnAz, zarFark, rakamSayisi, enKucukAsalCarpan, asalCarpanCarpim,
-    usToplam, aralikAsalSay, basamakDegistir, enAzCarpim, kumeBilesim,
-    kumeUcBilesim, hizBul, oranliKok, kokBul, carpanKok, siraIleIs,
-    isPrime
-};
-
-function safeEval(expr) {
-    // Tehlikeli karakterleri engelle
-    if (/[;`'"\\]|__proto__|constructor|prototype|eval\(/i.test(expr)) {
-        throw new Error('Güvensiz ifade');
-    }
-    // Temizlik: matematik operatörleri ve izinli fonksiyonlar
-    let clean = String(expr)
-        .replace(/×/g, '*')
-        .replace(/÷/g, '/')
-        .replace(/\^/g, '**')
-        .replace(/√\(/g, 'Math.sqrt(')
-        .replace(/√/g, 'Math.sqrt');
-    // Sadece izin verilen token'lar
-    if (!/^[0-9+\-*/()%.,\s]+$/.test(clean.replace(/Math\.sqrt/g,'').replace(/[a-zA-Z_]+/g,''))) {
-        // İçinde fonksiyon isimleri var, ama onlar context'te
-        // Yine de regex kontrolü yapmak karmaşık, aşağıdaki yöntem daha güvenli:
-    }
-    try {
-        const func = new Function(...Object.keys(SAFE_CONTEXT), `return (${clean})`);
-        return func(...Object.values(SAFE_CONTEXT));
-    } catch(e) {
-        throw new Error('Hesaplama hatası');
-    }
-}
-
-// -----------------------------
-// 3. DEĞİŞKEN ÜRETİMİ (Gelişmiş)
-// -----------------------------
 function valueMatchesFilter(val, filter) {
     if (!filter) return true;
     switch (filter) {
@@ -637,123 +450,51 @@ function generateVariables(varRanges, rule) {
     const independent = keys.filter(k => Array.isArray(varRanges[k]));
     const dependent = keys.filter(k => !Array.isArray(varRanges[k]));
 
-    for (let attempt = 0; attempt < 80; attempt++) { // artırıldı
+    for (let attempt = 0; attempt < 80; attempt++) {
         const vars = {};
-
-        // Bağımsız değişkenler
         for (const key of independent) {
             const arr = varRanges[key];
             const min = arr[0], max = arr[1], filter = arr[2];
             let val, tries = 0;
-            do {
-                val = randomInt(min, max);
-                tries++;
-                if (tries > 200) break;
-            } while (!valueMatchesFilter(val, filter));
-            if (tries > 200) { vars[key] = randomInt(min,max); } // fallback
+            do { val = randomInt(min, max); tries++; if (tries > 200) break; } while (!valueMatchesFilter(val, filter));
+            if (tries > 200) vars[key] = randomInt(min,max);
             else vars[key] = val;
         }
-
-        // Bağımlı değişkenler (sıralı çözüm)
         let depOk = true;
         for (const key of dependent) {
             let expr = varRanges[key];
-            if (typeof expr === 'number') {
-                vars[key] = expr;
-            } else if (typeof expr === 'string') {
+            if (typeof expr === 'number') vars[key] = expr;
+            else if (typeof expr === 'string') {
                 let resolved = expr;
-                // Tüm mevcut değişkenleri yerleştir
-                for (const k of Object.keys(vars)) {
-                    const re = new RegExp(`\\{${k}\\}`, 'g');
-                    resolved = resolved.replace(re, vars[k]);
-                }
-                // Eksik placeholder kontrolü
-                if (/\{[^}]+\}/.test(resolved)) {
-                    depOk = false;
-                    break;
-                }
-                try {
-                    vars[key] = safeEval(resolved);
-                } catch (e) {
-                    depOk = false;
-                    break;
-                }
-            } else {
-                depOk = false;
-                break;
-            }
+                for (const k of Object.keys(vars)) resolved = resolved.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
+                if (/\{[^}]+\}/.test(resolved)) { depOk = false; break; }
+                try { vars[key] = safeEval(resolved); } catch(e) { depOk = false; break; }
+            } else { depOk = false; break; }
         }
         if (!depOk) continue;
-
-        // Kural kontrolü
         if (rule) {
             try {
                 let ruleExpr = rule;
-                for (const k of Object.keys(vars)) {
-                    const re = new RegExp(`\\{${k}\\}`, 'g');
-                    ruleExpr = ruleExpr.replace(re, vars[k]);
-                }
+                for (const k of Object.keys(vars)) ruleExpr = ruleExpr.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
                 if (!safeEval(ruleExpr)) continue;
             } catch(e) { continue; }
         }
         return vars;
     }
-    // En kötü durumda dummy değişkenler döndür
     const fallback = {};
     for (const key of independent) fallback[key] = randomInt(varRanges[key][0], varRanges[key][1]);
     for (const key of dependent) fallback[key] = 0;
     return fallback;
 }
 
-// -----------------------------
-// 4. TEKRAR KONTROLÜ (Kanonik Fingerprint + Global Set)
-// -----------------------------
-let GLOBAL_QUESTION_FINGERPRINTS = new Set(); // sistem bazlı
-let USER_SOLVED_FINGERPRINTS = new Map(); // user topic level -> Set
-
-function getQuestionFingerprint(templateId, vars) {
-    const sortedKeys = Object.keys(vars).sort();
-    let canonical = templateId;
-    for (let k of sortedKeys) {
-        canonical += `|${k}:${vars[k]}`;
-    }
-    return simpleHash(canonical);
-}
-
-function isQuestionUsedGlobally(fingerprint) {
-    return GLOBAL_QUESTION_FINGERPRINTS.has(fingerprint);
-}
-
-function markQuestionUsedGlobally(fingerprint) {
-    GLOBAL_QUESTION_FINGERPRINTS.add(fingerprint);
-    // Limit global set büyüklüğü
-    if (GLOBAL_QUESTION_FINGERPRINTS.size > 10000) {
-        const toDelete = [...GLOBAL_QUESTION_FINGERPRINTS].slice(0, 5000);
-        toDelete.forEach(f => GLOBAL_QUESTION_FINGERPRINTS.delete(f));
-    }
-}
-
-function getUserSolvedFingerprints(topicId, level) {
-    const key = `${topicId}|${level}`;
-    if (!USER_SOLVED_FINGERPRINTS.has(key)) {
-        USER_SOLVED_FINGERPRINTS.set(key, new Set());
-    }
-    return USER_SOLVED_FINGERPRINTS.get(key);
-}
-
-// -----------------------------
-// 5. ŞIK ÜRETİMİ (Mantıklı çeldiriciler)
-// -----------------------------
-function generatePlausibleDistractors(correctAnswer, template, vars) {
+function generatePlausibleDistractors(correctAnswer) {
     const correctNum = typeof correctAnswer === 'number' ? correctAnswer : parseFloat(correctAnswer);
     if (isNaN(correctNum)) {
-        // Sözel cevaplar için
         const verbal = String(correctAnswer);
         const opposites = { 'Tek':'Çift', 'Çift':'Tek', 'Evet':'Hayır', 'Hayır':'Evet', 'Artar':'Azalır', 'Azalır':'Artar', 'Doğru':'Yanlış', 'Yanlış':'Doğru' };
         if (opposites[verbal]) return [opposites[verbal]];
         return [];
     }
-    // Sayısal çeldiriciler: %20 sapma, yaygın hatalar
     let dists = new Set();
     dists.add(correctNum + (correctNum * 0.1));
     dists.add(correctNum - (correctNum * 0.1));
@@ -761,112 +502,70 @@ function generatePlausibleDistractors(correctAnswer, template, vars) {
     dists.add(correctNum - 1);
     dists.add(correctNum * 2);
     dists.add(correctNum / 2);
-    // Temel işlem hatalarını template'den tespit et (basit)
-    if (template.c && typeof template.c === 'string') {
-        if (template.c.includes('+')) dists.add(correctNum - randomInt(1,5));
-        if (template.c.includes('*')) dists.add(correctNum + randomInt(1,5));
-    }
-    // Tamsayı yap ve filtrele
     let arr = [...dists].map(v => Math.round(v * 100) / 100).filter(v => Math.abs(v - correctNum) > 0.01 && v > 0);
     arr = arr.slice(0, 3);
     while (arr.length < 3) arr.push(correctNum + randomInt(1,10));
     return arr;
 }
 
-function autoGenerateChoices(correctAnswer, template, vars) {
+function autoGenerateChoices(correctAnswer) {
     const s = String(correctAnswer);
     const verbalPairs = { 'Tek':'Çift', 'Çift':'Tek', 'Evet':'Hayır', 'Hayır':'Evet', 'Artar':'Azalır', 'Azalır':'Artar', 'Doğru':'Yanlış', 'Yanlış':'Doğru' };
-    if (verbalPairs[s]) {
-        return [{ label: 'A', text: s, isCorrect: true }, { label: 'B', text: verbalPairs[s], isCorrect: false }];
-    }
-    // Kesirli cevap
+    if (verbalPairs[s]) return [{ label: 'A', text: s, isCorrect: true }, { label: 'B', text: verbalPairs[s], isCorrect: false }];
     if (s.includes('/')) {
         const parts = s.split('/');
         if (parts.length === 2) {
             const pay = parseInt(parts[0]), payda = parseInt(parts[1]);
-            const dists = [
-                `${pay+1}/${payda}`, `${pay-1}/${payda}`, `${pay}/${payda+1}`, `${pay*2}/${payda}`
-            ];
+            const dists = [`${pay+1}/${payda}`, `${pay-1}/${payda}`, `${pay}/${payda+1}`, `${pay*2}/${payda}`];
             const unique = [...new Set([s, ...dists])].slice(0,4);
             return shuffleArray(unique).map((val, i) => ({ label: String.fromCharCode(65+i), text: val, isCorrect: val === s }));
         }
     }
-    // Sayısal
     const correctNum = Number(s);
     if (!isNaN(correctNum)) {
-        const dists = generatePlausibleDistractors(correctNum, template, vars);
+        const dists = generatePlausibleDistractors(correctNum);
         let options = [correctNum, ...dists];
         options = [...new Set(options.map(o => Math.round(o*100)/100))];
         while (options.length < 4) options.push(Math.round((correctNum + randomInt(-10,10))*100)/100);
         return shuffleArray(options.slice(0,4)).map((val, i) => ({ label: String.fromCharCode(65+i), text: String(val), isCorrect: Math.abs(val-correctNum) < 0.001 }));
     }
-    // Fallback
     return [{ label: 'A', text: s, isCorrect: true }, { label: 'B', text: 'Diğer', isCorrect: false }];
 }
 
-// -----------------------------
-// 6. CEVAP HESAPLAMA (Gelişmiş kesir desteği)
-// -----------------------------
 function calculateAnswer(formula, vars) {
     try {
         let expr = String(formula);
-        for (const [k, v] of Object.entries(vars)) {
-            const re = new RegExp(`\\{${k}\\}`, 'g');
-            expr = expr.replace(re, v);
-        }
-        // Kesir kontrolü (basit bölme)
+        for (const [k, v] of Object.entries(vars)) expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
         const parts = expr.split('/');
         if (parts.length === 2 && !/[+\-*()]/.test(expr)) {
             const num = safeEval(parts[0]);
             const den = safeEval(parts[1]);
             if (den === 0) return null;
             if (num % den === 0) return num / den;
-            return simplifiyFraction(num, den);
+            const g = ebob(Math.abs(num), Math.abs(den));
+            return `${num/g}/${den/g}`;
         }
         const result = safeEval(expr);
         return (isFinite(result) && !isNaN(result)) ? result : null;
-    } catch (e) {
-        return null;
-    }
+    } catch(e) { return null; }
 }
 
-// -----------------------------
-// 7. TEMPLATE DOLUMU (Eksik değişken kontrolü)
-// -----------------------------
 function fillTemplate(text, vars) {
     let result = String(text);
     const missing = [];
     const matches = result.match(/\{[^}]+\}/g) || [];
     for (let match of matches) {
         const key = match.slice(1, -1);
-        if (vars.hasOwnProperty(key)) {
-            result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), vars[key]);
-        } else {
-            missing.push(key);
-        }
+        if (vars.hasOwnProperty(key)) result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), vars[key]);
+        else missing.push(key);
     }
-    if (missing.length) {
-        throw new Error(`Eksik değişken: ${missing.join(', ')}`);
-    }
+    if (missing.length) throw new Error(`Eksik değişken: ${missing.join(', ')}`);
     return result;
 }
 
-// -----------------------------
-// 8. SORU ÜRETİM ANA MOTORU
-// -----------------------------
 let recentTemplatesCache = {};
-
-function getRecentTemplateIds(topicId, count) {
-    count = count || 3;
-    if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
-    return recentTemplatesCache[topicId].slice(-count);
-}
-
-function addRecentTemplateId(topicId, templateId) {
-    if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = [];
-    recentTemplatesCache[topicId].push(templateId);
-    if (recentTemplatesCache[topicId].length > 20) recentTemplatesCache[topicId].shift();
-}
+function getRecentTemplateIds(topicId, count) { if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = []; return recentTemplatesCache[topicId].slice(-count); }
+function addRecentTemplateId(topicId, templateId) { if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = []; recentTemplatesCache[topicId].push(templateId); if (recentTemplatesCache[topicId].length > 20) recentTemplatesCache[topicId].shift(); }
 
 function filterTemplatesByLevel(templates, level) {
     const zMap = { 'KOLAY': 'kolay', 'ORTA': 'orta', 'ZOR': 'zor' };
@@ -876,18 +575,12 @@ function filterTemplatesByLevel(templates, level) {
     return templates;
 }
 
-function getVarRangesForLevel(template, level) {
-    if (!template) return {};
-    if (template.v && typeof template.v === 'object') return template.v;
-    return template.v || {};
-}
+function getVarRangesForLevel(template, level) { return template.v || {}; }
 
 function generateSolution(template, vars, answer) {
     if (template.cozum) {
         let sol = String(template.cozum);
-        for (const [k, v] of Object.entries(vars)) {
-            sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-        }
+        for (const [k, v] of Object.entries(vars)) sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
         sol = sol.replace('{cevap}', String(answer));
         return sol;
     }
@@ -897,11 +590,7 @@ function generateSolution(template, vars, answer) {
 function formatAnswer(answer, inputType) {
     const s = String(answer);
     if (inputType === 'choice') return s;
-    if (!isNaN(Number(s))) {
-        const n = Number(s);
-        if (Number.isInteger(n)) return String(n);
-        return parseFloat(n.toFixed(3)).toString();
-    }
+    if (!isNaN(Number(s))) { const n = Number(s); if (Number.isInteger(n)) return String(n); return parseFloat(n.toFixed(3)).toString(); }
     return s;
 }
 
@@ -914,29 +603,20 @@ function determineInputType(template, answer) {
     return 'keyboard';
 }
 
-// -----------------------------
-// 9. ANA SORU ÜRETİM FONKSİYONU (Deterministik + Güvenli)
-// -----------------------------
-function getSolvedIds(topicId, level, mode, userId = 'default') {
-    // mode 'questionBank' veya 'adaptive'
+function getSolvedIds(topicId, level, mode) {
     if (mode === 'questionBank') {
-        // Örnek: localStorage veya global bir progress objesi
-        if (typeof getQBProgress === 'function') {
-            const p = getQBProgress(topicId);
-            return p.solved || [];
-        }
-        return [];
+        const p = getQBProgress(topicId);
+        return p.solved || [];
     }
-    // Adaptive mod: kullanıcı bazlı fingerprint set'inden çözülmüş id'leri al
     const fpSet = getUserSolvedFingerprints(topicId, level);
-    return [...fpSet];
+    return fpSet;
 }
 
 function generateQuestion(topicId, level, options = {}) {
     const templates = QUESTION_TEMPLATES[topicId];
     if (!templates || !templates.length) return null;
 
-    const solvedFingerprints = getSolvedIds(topicId, level, options.mode, options.userId);
+    const solvedFingerprints = getSolvedIds(topicId, level, options.mode);
     let eligible = filterTemplatesByLevel(templates, level);
     if (!eligible.length) eligible = templates;
 
@@ -944,10 +624,10 @@ function generateQuestion(topicId, level, options = {}) {
     let fresh = eligible.filter(t => !recentIds.includes(t.id));
     if (!fresh.length) fresh = eligible;
 
-    const shuffled = shuffleArray([...fresh]); // kopya oluştur
+    const shuffled = shuffleArray([...fresh]);
     for (let i = 0; i < shuffled.length; i++) {
         const template = shuffled[i];
-        for (let a = 0; a < 8; a++) { // daha fazla deneme
+        for (let a = 0; a < 8; a++) {
             const q = tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, options);
             if (q) {
                 addRecentTemplateId(topicId, template.id);
@@ -963,21 +643,18 @@ function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, o
     const vars = generateVariables(varRanges, template.kural);
     if (!vars) return null;
 
-    // Soru metnini doldur (eksik kontrolü)
     let questionText;
-    try {
-        questionText = fillTemplate(template.s, vars);
-    } catch(e) {
-        return null;
-    }
+    try { questionText = fillTemplate(template.s, vars); } catch(e) { return null; }
 
     const cevapSonuc = calculateAnswer(template.c, vars);
     if (cevapSonuc === null || cevapSonuc === undefined) return null;
 
     const fingerprint = getQuestionFingerprint(template.id, vars);
-    // Global ve kullanıcı bazlı tekrar kontrolü
     if (isQuestionUsedGlobally(fingerprint)) return null;
-    if (solvedFingerprints.includes(fingerprint)) return null; // daha önce çözdüyse
+    
+    // Set kontrolü - düzeltildi: has kullan
+    if (solvedFingerprints.has && solvedFingerprints.has(fingerprint)) return null;
+    if (Array.isArray(solvedFingerprints) && solvedFingerprints.includes(fingerprint)) return null;
 
     const inputType = determineInputType(template, cevapSonuc);
     let choices = null;
@@ -987,27 +664,20 @@ function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, o
         if (template.choices && Array.isArray(template.choices)) {
             choices = template.choices.map((ct, i) => {
                 let text = String(ct);
-                for (const [k, v] of Object.entries(vars)) {
-                    text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-                }
+                for (const [k, v] of Object.entries(vars)) text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
                 return { label: String.fromCharCode(65+i), text, isCorrect: String(text).trim() === String(cevapSonuc).trim() };
             });
         } else {
-            choices = autoGenerateChoices(cevapSonuc, template, vars);
+            choices = autoGenerateChoices(cevapSonuc);
         }
         correctChoiceIndex = choices.findIndex(ch => ch.isCorrect);
         if (correctChoiceIndex === -1) correctChoiceIndex = 0;
     }
 
-    // Başarılı üretim: global ve kullanıcı havuzuna ekle
     markQuestionUsedGlobally(fingerprint);
     const userSet = getUserSolvedFingerprints(topicId, level);
     userSet.add(fingerprint);
-    // Limit kullanıcı seti
-    if (userSet.size > 2000) {
-        const toDel = [...userSet].slice(0, 500);
-        toDel.forEach(f => userSet.delete(f));
-    }
+    if (userSet.size > 2000) { const toDel = [...userSet].slice(0, 500); toDel.forEach(f => userSet.delete(f)); }
 
     const generatedId = `q_${template.id}_${fingerprint}`;
 
@@ -1031,7 +701,6 @@ function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, o
 function generateFallbackQuestion(topicId, level, options) {
     const templates = QUESTION_TEMPLATES[topicId];
     if (!templates || !templates.length) return null;
-
     for (let i = 0; i < 15; i++) {
         const tpl = templates[Math.floor(Math.random() * templates.length)];
         const varRanges = getVarRangesForLevel(tpl, level);
@@ -1046,15 +715,10 @@ function generateFallbackQuestion(topicId, level, options) {
         let choices = null;
         let correctChoiceIndex = 0;
         if (inputType === 'choice') {
-            choices = tpl.choices ? tpl.choices.map((ct,i) => ({ label: String.fromCharCode(65+i), text: fillTemplate(ct, vars), isCorrect: false })) : autoGenerateChoices(cevapSonuc, tpl, vars);
+            choices = tpl.choices ? tpl.choices.map((ct,i) => ({ label: String.fromCharCode(65+i), text: fillTemplate(ct, vars), isCorrect: false })) : autoGenerateChoices(cevapSonuc);
             const correctIdx = choices.findIndex(ch => String(ch.text).trim() === String(cevapSonuc).trim());
-            if (correctIdx !== -1) {
-                choices[correctIdx].isCorrect = true;
-                correctChoiceIndex = correctIdx;
-            } else if (choices.length > 0) {
-                choices[0].isCorrect = true;
-                correctChoiceIndex = 0;
-            }
+            if (correctIdx !== -1) { choices[correctIdx].isCorrect = true; correctChoiceIndex = correctIdx; }
+            else if (choices.length > 0) { choices[0].isCorrect = true; correctChoiceIndex = 0; }
         }
         return {
             id: `q_${tpl.id}_${fingerprint}`,
@@ -1072,96 +736,17 @@ function generateFallbackQuestion(topicId, level, options) {
             topicId
         };
     }
-    // En son çare: statik joker soru
-    return {
-        id: 'joker_1',
-        soru: '1 + 1 kaçtır?',
-        cevap: '2',
-        cevapRaw: 2,
-        zorluk: 'kolay',
-        inputType: 'keyboard',
-        choices: null,
-        cozum: '1+1=2',
-        topicId
-    };
+    return { id: 'joker_1', soru: '1 + 1 kaçtır?', cevap: '2', cevapRaw: 2, zorluk: 'kolay', inputType: 'keyboard', choices: null, cozum: '1+1=2', topicId };
 }
 
-// -----------------------------
-// 10. ÖRNEK KULLANIM (Soru bankası şablonları)
-// -----------------------------
-// Bu kısmı kendi şablonlarınızla doldurun
-const QUESTION_TEMPLATES = {
-    // Örnek bir konu
-    "toplama": [
-        {
-            id: "t1",
-            z: "kolay",
-            s: "{a} + {b} kaçtır?",
-            c: "{a}+{b}",
-            v: { a: [10,99], b: [10,99] },
-            cozum: "{a} + {b} = {cevap}"
-        },
-        {
-            id: "t2",
-            z: "orta",
-            s: "{a} - {b} işleminin sonucu nedir?",
-            c: "{a}-{b}",
-            v: { a: [50,200], b: [1,49] },
-            kural: "{a} > {b}"
-        }
-    ]
-};
+const SoruUretimMotoru = { generateQuestion, resetGlobalFingerprints: () => GLOBAL_QUESTION_FINGERPRINTS.clear(), resetUserProgress: (topicId, level) => { USER_SOLVED_FINGERPRINTS.delete(`${topicId}|${level}`); } };
 
-// Konu listesi (isteğe bağlı)
-const TOPICS = [
-    { id: "toplama", name: "Toplama ve Çıkarma", order: 1 }
-];
-
-// Kullanıcı ilerleme takibi (örnek)
-const ST = { completedTopics: [] };
-
-// Global progress fonksiyonu (örnek)
-function getQBProgress(topicId) {
-    return { solved: [] };
-}
-
-// -----------------------------
-// 11. TEST MODU (Deterministik)
-// -----------------------------
-// setRandomSeed(12345); // Test için sabit seed
-
-// -----------------------------
-// 12. DIŞA AÇILAN API
-// -----------------------------
-const SoruUretimMotoru = {
-    generateQuestion,
-    setRandomSeed,
-    isQuestionUsedGlobally,
-    markQuestionUsedGlobally,
-    resetGlobalFingerprints: () => { GLOBAL_QUESTION_FINGERPRINTS.clear(); },
-    resetUserProgress: (topicId, level, userId) => {
-        const key = `${topicId}|${level}`;
-        USER_SOLVED_FINGERPRINTS.delete(key);
-    }
-};
-
-// Örnek üretim
-// const soru = SoruUretimMotoru.generateQuestion("toplama", "KOLAY", { mode: "adaptive", userId: "ali" });
-// console.log(soru);
-
-// (İsteğe bağlı) Node.js ortamında dışa aktar
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SoruUretimMotoru;
-}
 // ============================================
-// BÖLÜM 7: SORU GÖSTERİM & CEVAP
+// BÖLÜM 6: SORU GÖSTERİM & CEVAP
 // ============================================
 
 function renderNextQuestion() {
-    if (typeof QUESTION_TEMPLATES === 'undefined') {
-        document.getElementById('learnContent').innerHTML = '<div class="err">Şablonlar yüklenemedi.</div>';
-        return;
-    }
+    if (typeof QUESTION_TEMPLATES === 'undefined') { document.getElementById('learnContent').innerHTML = '<div class="err">Şablonlar yüklenemedi.</div>'; return; }
     const t = getTopicById(ST.topic);
     if (!t) return;
     const level = ST.currentLevel, levelInfo = LEVELS[level];
@@ -1218,11 +803,9 @@ function processAnswer(isCorrect, q) {
     const level = q.level || ST.currentLevel;
     const hist = getHist(ST.topic);
     if (!hist.levels) hist.levels = {};
-    if (!hist.levels[level]) hist.levels[level] = { correct:0, total:0, solvedIds:[] };
+    if (!hist.levels[level]) hist.levels[level] = { correct:0, total:0 };
     const ld = hist.levels[level];
     ld.total++; if (isCorrect) ld.correct++;
-    if (!ld.solvedIds) ld.solvedIds = [];
-    ld.solvedIds.push(q.id);
 
     ST.totalQ++; if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; if (CONSTANTS.MAX_STREAK_CELEBRATE.includes(ST.streak)) celebrate(`🔥 ${ST.streak} Art Arda!`); }
     else ST.streak = 0;
@@ -1237,7 +820,7 @@ function processAnswer(isCorrect, q) {
             nextLevel = getNextLevel(level);
             if (nextLevel) { ST.currentLevel = nextLevel; hist.currentLevel = nextLevel; }
             else { topicCompleted = true; if (!ST.completedTopics.includes(ST.topic)) ST.completedTopics.push(ST.topic); celebrate('🏆 Konu Tamamlandı!'); }
-        } else { levelFailed = true; ld.correct = 0; ld.total = 0; ld.solvedIds = []; ld.completed = false; }
+        } else { levelFailed = true; ld.correct = 0; ld.total = 0; ld.completed = false; }
     }
     saveState(); ST.phase = 'feedback';
 
@@ -1258,15 +841,16 @@ function processAnswer(isCorrect, q) {
 window.nextQuestion = function() { ST.phase = 'question'; ST.cq = null; window.scrollTo(0,0); renderNextQuestion(); };
 window.resetLevelQuestions = function() {
     const h = getHist(ST.topic), lv = ST.currentLevel;
-    if (h.levels?.[lv]) h.levels[lv] = { correct:0, total:0, solvedIds:[], completed:false };
+    if (h.levels?.[lv]) h.levels[lv] = { correct:0, total:0, completed:false };
+    // Fingerprint temizle
+    USER_SOLVED_FINGERPRINTS.delete(`${ST.topic}|${lv}`);
     saveState(); ST.phase = 'question'; ST.cq = null; renderNextQuestion();
 };
 
 // ============================================
-// BÖLÜM 8: API (Groq) - PROMPT'LAR İYİLEŞTİRİLDİ
+// BÖLÜM 7: API (Groq)
 // ============================================
 
-// Konu özeti için gelişmiş prompt
 async function fetchTopicSummary(topic) {
     checkApiDate();
     if (ST.apiCallCount >= CONSTANTS.API_DAILY_LIMIT) throw new Error('Limit doldu');
@@ -1294,7 +878,6 @@ Yanıtın Türkçe, max 250 kelime olsun. Güncel MEB müfredatına uygun hareke
 
 window.toggleAsk = function() { document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); };
 
-// Soru çözümü için gelişmiş prompt
 window.sendAsk = async function() {
     const inp = document.getElementById('askInp'), q = inp?.value?.trim();
     if (!q) return;
@@ -1330,8 +913,9 @@ Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150
 };
 
 // ============================================
-// BÖLÜM 9: SORU BANKASI
+// BÖLÜM 8: SORU BANKASI (generateQuestion kullanır)
 // ============================================
+
 function renderQuestionBankList() {
     const el = document.getElementById('qbTopicsList');
     if (!el) return;
@@ -1359,40 +943,38 @@ function renderQBSolveHeader() {
 }
 
 function renderNextQBQuestion() {
-    const topicId = ST.topic, t = getTopicById(topicId);
-    if (!t) return;
-    const progress = getQBProgress(topicId), limit = ST.testMode ? 10 : CONSTANTS.QUESTION_BANK_SIZE;
+    const topicId = ST.topic;
+    const progress = getQBProgress(topicId);
+    const limit = CONSTANTS.QUESTION_BANK_SIZE;
     const el = document.getElementById('qbSolveContent');
     if (!el) return;
-    if (progress.solved.length >= limit) { el.innerHTML = `<div class="card accent-top" style="text-align:center"><h3>🎉 Tamamlandı!</h3><p style="font-size:24px;font-weight:700;color:var(--accent)">${progress.solved.length}/${limit}</p><button class="btn btn-primary btn-full" onclick="goQuestionBank()">📝 Listeye Dön</button></div>`; return; }
-    el.innerHTML = `<div class="card">${dots()}</div>`;
-    const templates = QUESTION_TEMPLATES[topicId];
-    if (!templates?.length) { el.innerHTML = '<div class="err">Şablon yok.</div>'; return; }
-    let q = null;
-    for (let a = 0; a < 15; a++) {
-        const tpl = templates[Math.floor(Math.random()*templates.length)];
-        const vars = generateVariables(tpl.v, tpl.kural);
-        if (!vars) continue;
-        const id = generateQuestionId(tpl.id, vars);
-        if (progress.solved.includes(id)) continue;
-        const cevap = calculateAnswer(tpl.c, vars);
-        if (cevap === null) continue;
-        const inputType = determineInputType(tpl, cevap);
-        let choices = null, cci = 0;
-        if (inputType === 'choice') {
-            choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevap) : autoGenerateChoices(cevap, tpl, vars);
-            cci = choices.findIndex(c => c.isCorrect); if (cci < 0) cci = 0;
-        }
-        q = { id, templateId:tpl.id, soru:fillTemplate(tpl.s,vars), cevap:formatAnswer(cevap,inputType), cevapRaw:cevap, zorluk:tpl.z||'orta', inputType, choices, correctChoiceIndex:cci, cozum:generateSolution(tpl,vars,cevap), topicId };
-        break;
+    
+    if (progress.solved.length >= limit) {
+        el.innerHTML = `<div class="card accent-top" style="text-align:center"><h3>🎉 Tamamlandı!</h3><p style="font-size:24px;font-weight:700;color:var(--accent)">${progress.solved.length}/${limit}</p><button class="btn btn-primary btn-full" onclick="goQuestionBank()">📝 Listeye Dön</button></div>`;
+        return;
     }
-    if (!q) { el.innerHTML = '<div class="err">Üretilemedi.</div>'; return; }
-    ST.cq = { ...q, mode:'questionBank' };
-    const zc = q.zorluk === 'kolay' ? 'badge-grn' : q.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
-    const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
-    const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
+    
+    // Soru bankası modunda generateQuestion kullan
+    // Seviye olarak "ORTA" kullanılabilir, ancak soru bankası için tüm seviyelerden karışık soru üretmek daha iyi
+    // Burada seviyeyi rastgele seçip generateQuestion çağıralım
+    const levels = ['KOLAY', 'ORTA', 'ZOR'];
+    const randomLevel = levels[Math.floor(Math.random() * levels.length)];
+    
+    el.innerHTML = `<div class="card">${dots()}</div>`;
+    const qData = generateQuestion(topicId, randomLevel, { mode: 'questionBank' });
+    if (!qData) {
+        el.innerHTML = '<div class="err">Soru üretilemedi. Lütfen tekrar deneyin.</div>';
+        return;
+    }
+    ST.cq = { ...qData, mode: 'questionBank', questionBankMode: true };
+    const zc = qData.zorluk === 'kolay' ? 'badge-grn' : qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
+    const t = getTopicById(topicId);
+    const hasChoices = qData.inputType === 'choice' && qData.choices && qData.choices.length >= 2;
+    const ansHTML = hasChoices
+        ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${qData.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
         : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
-    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    
+    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${qData.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
     if (!hasChoices) setTimeout(()=>document.getElementById('qbAnsInp')?.focus(), 100);
 }
 
@@ -1401,24 +983,36 @@ window.submitQBChoiceAnswer = function(idx) {
     document.querySelectorAll('.qb-choice-btn').forEach((btn,i)=>{ btn.disabled=true; if(i===q.correctChoiceIndex){btn.style.borderColor='var(--success)';btn.style.background='var(--success-bg)'} else if(i===idx){btn.style.borderColor='var(--danger)';btn.style.background='var(--danger-bg)'} });
     processQBAnswer(idx === q.correctChoiceIndex, q);
 };
+
 window.checkQBAnswer = function() {
     const inp = document.getElementById('qbAnsInp'); if (!inp?.value.trim()) return;
     inp.disabled = true; if (!ST.cq) return;
     processQBAnswer(checkEqual(inp.value.trim(), ST.cq.cevap), ST.cq);
 };
+
 function processQBAnswer(isCorrect, q) {
-    const p = getQBProgress(q.topicId||ST.topic); if (!p.solved.includes(q.id)) p.solved.push(q.id);
+    const p = getQBProgress(q.topicId||ST.topic);
+    if (!p.solved.includes(q.id)) p.solved.push(q.id);
+    // Ayrıca fingerprint'i kullanıcının çözdüğü set'e ekle (soru bankasında level yok, genel bir "QB" level kullanılabilir veya tüm level'lar için eklenebilir)
+    // Basitçe tüm level'lar için aynı fingerprint'i ekleyelim ki aynı soru tekrar gelmesin
+    ['KOLAY','ORTA','ZOR'].forEach(lev => {
+        const userSet = getUserSolvedFingerprints(q.topicId||ST.topic, lev);
+        userSet.add(q.fingerprint);
+    });
+    
     ST.totalQ++; if(isCorrect){ST.totalCorrect++;ST.streak++;if(ST.streak>ST.maxStreak)ST.maxStreak=ST.streak}else ST.streak=0;
     saveState(); renderQBSolveHeader();
     const el = document.getElementById('qbSolveContent');
     if(el) el.innerHTML += `<div class="fb ${isCorrect?'fb-ok':'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect?'🎉':'❌'}</span><span class="fb-title">${isCorrect?'Doğru!':'Yanlış'}</span></div><div class="fb-body">${isCorrect?`Cevap: <strong>${q.cevap}</strong>`:`Doğru: <strong>${q.cevap}</strong>${q.cozum?`<br>📖 ${q.cozum}`:''}`}</div><div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`;
 }
+
 window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQBProgress(q.topicId||ST.topic); if(!p.solved.includes(q.id))p.solved.push(q.id); saveState(); renderQBSolveHeader(); nextQBQuestion(); };
 window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
 // ============================================
-// BÖLÜM 10: DENEME SINAVI
+// BÖLÜM 9: DENEME SINAVI
 // ============================================
+
 function renderExamList() {
     const el = document.getElementById('examListContent');
     if (!el) return;
@@ -1459,11 +1053,22 @@ function generateExamQuestions(seed) {
             if (cevap === null) continue;
             const it = determineInputType(tpl, cevap);
             let choices = null;
-            if (it==='choice') choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevap) : autoGenerateChoices(cevap, tpl, vars);
-            all.push({ id:generateQuestionId(tpl.id,vars), s:fillTemplate(tpl.s,vars), c:formatAnswer(cevap,it), cRaw:cevap, z:tpl.z||'orta', inputType:it, choices, correctChoiceIndex:choices?choices.findIndex(c=>c.isCorrect):0, topicId:t.id, topicName:t.n });
+            if (it==='choice') choices = tpl.choices ? tpl.choices.map((ct,i) => ({ label: String.fromCharCode(65+i), text: fillTemplate(ct, vars), isCorrect: false })) : autoGenerateChoices(cevap);
+            if (it==='choice' && choices) {
+                const correctIdx = choices.findIndex(ch => String(ch.text).trim() === String(cevap).trim());
+                if (correctIdx !== -1) choices[correctIdx].isCorrect = true;
+                else if (choices.length > 0) choices[0].isCorrect = true;
+            }
+            all.push({ id: generateQuestionId(tpl.id,vars), s:fillTemplate(tpl.s,vars), c:formatAnswer(cevap,it), cRaw:cevap, z:tpl.z||'orta', inputType:it, choices, correctChoiceIndex:choices?choices.findIndex(c=>c.isCorrect):0, topicId:t.id, topicName:t.n });
         }
     });
     return shuffleWithSeed(all, seed+999).slice(0, ST.testMode?5:CONSTANTS.EXAM_QUESTIONS);
+}
+
+function generateQuestionId(tplId, vars) {
+    let str = tplId;
+    Object.keys(vars).sort().forEach(k => str += `|${k}:${vars[k]}`);
+    return simpleHash(str);
 }
 
 function startExamTimer() { if(ST.currentExam.timer)clearInterval(ST.currentExam.timer); ST.currentExam.timer=setInterval(()=>{ST.currentExam.timeLeft--;updateExamTimer();if(ST.currentExam.timeLeft<=0){clearInterval(ST.currentExam.timer);finishExam();}},1000); }
@@ -1504,8 +1109,9 @@ window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.curre
 window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 11: İSTATİSTİK
+// BÖLÜM 10: İSTATİSTİK
 // ============================================
+
 function renderStats() {
     const el=document.getElementById('statsContent'); if(!el)return;
     const done=ST.completedTopics.length, acc=ST.totalQ>0?Math.round((ST.totalCorrect/ST.totalQ)*100):0;
@@ -1516,17 +1122,56 @@ function renderStats() {
 }
 
 // ============================================
-// BÖLÜM 12: MODAL & SIFIRLAMA
+// BÖLÜM 11: MODAL & SIFIRLAMA
 // ============================================
+
 window.openModal = function(id) { const el=document.getElementById(id+'Modal'); if(el)el.classList.remove('hidden'); if(id==='api')document.getElementById('apiInp').value=ST.apiKey; };
 window.closeModal = function(id) { document.getElementById(id+'Modal')?.classList.add('hidden'); };
 window.saveKey = function() { const k=document.getElementById('apiInp')?.value?.trim(); if(!k)return; ST.apiKey=k; localStorage.setItem(CONSTANTS.API_KEY_STORAGE,k); closeModal('api'); alert('✅ Kaydedildi!'); };
-window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!confirm('Tüm veriler silinecek. Emin misin?'))return;const ak=ST.apiKey;ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};initMissingFields();initExamSets();saveState();goHome();updateHomeStats();alert('✅ Sıfırlandı!');}else if(type==='topic'){const t=getTopicById(ST.topic);if(!confirm(`${t?.n} sıfırlansın mı?`))return;ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};ST.currentLevel='KOLAY';ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);saveState();renderPreStudySummary();alert(`✅ ${t?.n} sıfırlandı!`);}};
-window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
+window.doReset = function(type) { 
+    closeModal('reset'); 
+    if(type==='all'){
+        if(!confirm('Tüm veriler silinecek. Emin misin?'))return;
+        const ak=ST.apiKey;
+        ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};
+        initMissingFields(); initExamSets();
+        // Tüm fingerprint'leri temizle
+        GLOBAL_QUESTION_FINGERPRINTS.clear();
+        USER_SOLVED_FINGERPRINTS.clear();
+        saveState(); goHome(); updateHomeStats(); alert('✅ Sıfırlandı!');
+    }else if(type==='topic'){
+        const t=getTopicById(ST.topic);
+        if(!confirm(`${t?.n} sıfırlansın mı?`))return;
+        ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};
+        ST.currentLevel='KOLAY';
+        ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);
+        // Konuya ait tüm fingerprint'leri temizle (tüm seviyeler)
+        ['KOLAY','ORTA','ZOR'].forEach(level => {
+            USER_SOLVED_FINGERPRINTS.delete(`${ST.topic}|${level}`);
+        });
+        // Soru bankası progress'ini de sıfırla (opsiyonel)
+        if(ST.questionBankProgress[ST.topic]) delete ST.questionBankProgress[ST.topic];
+        saveState(); renderPreStudySummary(); alert(`✅ ${t?.n} sıfırlandı!`);
+    }
+};
+
+window.resetQuestionBankProgress = function() {
+    if(!confirm('Tüm konuların soru bankası ilerlemesi sıfırlansın mı? Bu işlemle her konu için yepyeni 300 soru oluşacaktır.'))return;
+    ST.questionBankProgress={};
+    // Tüm kullanıcı fingerprint'lerini temizle (soru bankası için tüm level'lar)
+    USER_SOLVED_FINGERPRINTS.clear();
+    // Global fingerprint'leri de temizlemek isterseniz, ancak bu konu çalışmayı da etkiler. Daha iyisi sadece kullanıcı set'ini temizlemek.
+    // Kullanıcının çözdüğü tüm sorular unutulur, böylece yepyeni sorular gelir.
+    saveState(); 
+    if(currentView === 'vStats') renderStats();
+    if(currentView === 'vQuestionBank') renderQuestionBankList();
+    alert('✅ Soru bankası ilerlemesi sıfırlandı. Artık bambaşka sorular gelecek!');
+};
 
 // ============================================
-// BÖLÜM 13: TEST MODU & BAŞLATMA
+// BÖLÜM 12: TEST MODU & BAŞLATMA
 // ============================================
+
 let tmc=0,tmt=null;
 document.addEventListener('DOMContentLoaded',()=>{
     const ht=document.getElementById('headerTitle');
@@ -1543,24 +1188,21 @@ function initApp() {
     saveState();
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
-    
-    // Müsvedde (karalama defteri) özelliğini ekle
     initMusvedde();
 }
 
 // ============================================
-// BÖLÜM 14: MÜSVEDDE (KARALAMA DEFTERİ)
+// BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ)
 // ============================================
 
 let musveddeActive = false;
 let musveddeCanvas = null;
 let musveddeCtx = null;
 let musveddeDrawing = false;
-let musveddeMode = 'pen'; // 'pen' or 'eraser'
+let musveddeMode = 'pen';
 let musveddeLastX = 0, musveddeLastY = 0;
 
 function initMusvedde() {
-    // Müsvedde panelini oluştur
     const panel = document.createElement('div');
     panel.id = 'musveddePanel';
     panel.className = 'musvedde-area';
@@ -1577,34 +1219,16 @@ function initMusvedde() {
     `;
     document.body.appendChild(panel);
 
-    // Aç/Kapat butonu (sağ alt köşe)
     const toggleBtn = document.createElement('button');
     toggleBtn.id = 'musveddeToggle';
     toggleBtn.innerHTML = '✏️';
-    toggleBtn.style.position = 'fixed';
-    toggleBtn.style.bottom = '20px';
-    toggleBtn.style.right = '20px';
-    toggleBtn.style.width = '56px';
-    toggleBtn.style.height = '56px';
-    toggleBtn.style.borderRadius = '50%';
-    toggleBtn.style.backgroundColor = 'var(--accent)';
-    toggleBtn.style.color = 'white';
-    toggleBtn.style.border = 'none';
-    toggleBtn.style.fontSize = '28px';
-    toggleBtn.style.cursor = 'pointer';
-    toggleBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-    toggleBtn.style.zIndex = '500';
-    toggleBtn.style.display = 'flex';
-    toggleBtn.style.alignItems = 'center';
-    toggleBtn.style.justifyContent = 'center';
+    toggleBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background-color:var(--accent);color:white;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:500;display:flex;align-items:center;justify-content:center;';
     toggleBtn.onclick = toggleMusvedde;
     document.body.appendChild(toggleBtn);
 
-    // Canvas referansları
     musveddeCanvas = document.getElementById('musveddeCanvas');
     if (musveddeCanvas) {
         musveddeCtx = musveddeCanvas.getContext('2d');
-        // Canvas boyutunu ayarla (yüksek çözünürlük için)
         const resizeCanvas = () => {
             const wrap = musveddeCanvas.parentElement;
             const rect = wrap.getBoundingClientRect();
@@ -1620,7 +1244,6 @@ function initMusvedde() {
         window.addEventListener('resize', resizeCanvas);
         setTimeout(resizeCanvas, 100);
         
-        // Çizim olayları
         const getCoords = (e) => {
             const rect = musveddeCanvas.getBoundingClientRect();
             const scaleX = musveddeCanvas.width / rect.width;
@@ -1673,7 +1296,6 @@ function initMusvedde() {
         musveddeCanvas.addEventListener('touchmove', draw);
         musveddeCanvas.addEventListener('touchend', endDraw);
         
-        // Araç butonları
         document.getElementById('musveddePenBtn').onclick = () => {
             musveddeMode = 'pen';
             musveddeCtx.globalCompositeOperation = 'source-over';
@@ -1687,10 +1309,20 @@ function initMusvedde() {
             musveddeMode = 'eraser';
             musveddeCtx.globalCompositeOperation = 'destination-out';
             musveddeCtx.strokeStyle = 'rgba(0,0,0,1)';
+            musveddeCtx.lineWidth = 20; // silgi daha büyük olabilir
             document.getElementById('musveddeEraserBtn').style.background = 'var(--accent)';
             document.getElementById('musveddeEraserBtn').style.color = 'white';
             document.getElementById('musveddePenBtn').style.background = '';
             document.getElementById('musveddePenBtn').style.color = '';
+            // Kaleme dönünce lineWidth'ı eski haline getir
+            document.getElementById('musveddePenBtn').onclick = () => {
+                musveddeMode = 'pen';
+                musveddeCtx.globalCompositeOperation = 'source-over';
+                musveddeCtx.strokeStyle = '#000';
+                musveddeCtx.lineWidth = 4;
+                document.getElementById('musveddePenBtn').style.background = 'var(--accent)';
+                document.getElementById('musveddeEraserBtn').style.background = '';
+            };
         };
         document.getElementById('musveddeClearBtn').onclick = () => {
             musveddeCtx.clearRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
@@ -1713,7 +1345,6 @@ function toggleMusvedde() {
     } else {
         panel.classList.add('open');
         musveddeActive = true;
-        // Canvas boyutunu yeniden ayarla (görünür olduğunda)
         if (musveddeCanvas) {
             const wrap = musveddeCanvas.parentElement;
             const rect = wrap.getBoundingClientRect();
@@ -1721,6 +1352,8 @@ function toggleMusvedde() {
             musveddeCanvas.height = rect.height;
             musveddeCtx.fillStyle = '#fff';
             musveddeCtx.fillRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
+            musveddeCtx.strokeStyle = '#000';
+            musveddeCtx.lineWidth = 4;
         }
     }
 }
