@@ -90,8 +90,8 @@ function drawGeometry(canvasId, drawType, vars, params) {
   
   ctx.strokeStyle = '#6c63ff';
   ctx.fillStyle = '#1a1a2e';
-  ctx.lineWidth = 4;
-  ctx.font = 'bold 24px "Inter", "Segoe UI", sans-serif';
+  ctx.lineWidth = 5;
+  ctx.font = 'bold 28px "Inter", "Segoe UI", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
@@ -99,9 +99,9 @@ function drawGeometry(canvasId, drawType, vars, params) {
     if (drawType === 'triangle') {
       const a = parseFloat(fillTemplate(params.angles[0], vars));
       const b = parseFloat(fillTemplate(params.angles[1], vars));
-      const A = { x: w/2, y: 50 };
-      const B = { x: 70, y: h - 70 };
-      const C = { x: w - 70, y: h - 70 };
+      const A = { x: w/2, y: 60 };
+      const B = { x: 80, y: h - 80 };
+      const C = { x: w - 80, y: h - 80 };
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
@@ -109,11 +109,11 @@ function drawGeometry(canvasId, drawType, vars, params) {
       ctx.closePath();
       ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
-      ctx.fillText(`${a}°`, (A.x+B.x)/2 - 30, (A.y+B.y)/2);
-      ctx.fillText(`${b}°`, (A.x+C.x)/2 + 30, (A.y+C.y)/2);
+      ctx.fillText(`${a}°`, (A.x+B.x)/2 - 35, (A.y+B.y)/2);
+      ctx.fillText(`${b}°`, (A.x+C.x)/2 + 35, (A.y+C.y)/2);
       ctx.fillStyle = '#ff6584';
       const xVal = 180 - a - b;
-      ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 20);
+      ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 25);
     }
     else if (drawType === 'rectangle') {
       const width = parseFloat(fillTemplate(params.width, vars));
@@ -122,8 +122,8 @@ function drawGeometry(canvasId, drawType, vars, params) {
       const startY = (h - height) / 2;
       ctx.strokeRect(startX, startY, width, height);
       ctx.fillStyle = '#1a1a2e';
-      ctx.fillText(`${width} cm`, startX + width/2, startY - 20);
-      ctx.fillText(`${height} cm`, startX - 30, startY + height/2);
+      ctx.fillText(`${width} cm`, startX + width/2, startY - 25);
+      ctx.fillText(`${height} cm`, startX - 40, startY + height/2);
     }
     else if (drawType === 'square') {
       const side = parseFloat(fillTemplate(params.side, vars));
@@ -131,7 +131,7 @@ function drawGeometry(canvasId, drawType, vars, params) {
       const startY = (h - side) / 2;
       ctx.strokeRect(startX, startY, side, side);
       ctx.fillStyle = '#1a1a2e';
-      ctx.fillText(`${side} cm`, startX + side/2, startY - 20);
+      ctx.fillText(`${side} cm`, startX + side/2, startY - 25);
     }
     else if (drawType === 'circle') {
       const r = parseFloat(fillTemplate(params.radius, vars));
@@ -139,20 +139,20 @@ function drawGeometry(canvasId, drawType, vars, params) {
       ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
       ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
-      ctx.fillText(`r = ${r} cm`, w/2, h/2 + r + 30);
+      ctx.fillText(`r = ${r} cm`, w/2, h/2 + r + 40);
     }
     else if (drawType === 'right_triangle') {
       const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
       const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
       ctx.beginPath();
-      ctx.moveTo(70, h-70);
-      ctx.lineTo(70+leg1, h-70);
-      ctx.lineTo(70, h-70-leg2);
+      ctx.moveTo(80, h-80);
+      ctx.lineTo(80+leg1, h-80);
+      ctx.lineTo(80, h-80-leg2);
       ctx.closePath();
       ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
-      ctx.fillText(`${leg1} cm`, 70+leg1/2, h-45);
-      ctx.fillText(`${leg2} cm`, 45, h-70-leg2/2);
+      ctx.fillText(`${leg1} cm`, 80+leg1/2, h-55);
+      ctx.fillText(`${leg2} cm`, 55, h-80-leg2/2);
     }
   } catch(e) {
     console.warn('Geometri çizim hatası:', e);
@@ -850,11 +850,11 @@ function renderQuestionUI(q, level, levelInfo) {
     const el = document.getElementById('learnContent');
     if (!el) return;
 
-    // Geometri çizimi için canvas oluştur - BOYUTLAR BÜYÜTÜLDÜ
+    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="700" height="450" style="width:100%; max-width:600px; height:auto; background:#ffffff; border-radius:16px; margin:20px auto; display:block; border:3px solid #6c63ff; box-shadow:0 6px 16px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
@@ -1063,11 +1063,11 @@ function renderNextQBQuestion() {
     const t = getTopicById(topicId);
     const hasChoices = qData.inputType === 'choice' && qData.choices && qData.choices.length >= 2;
     
-    // Geometri çizimi için canvas oluştur (soru bankasında da) - BOYUTLAR BÜYÜTÜLDÜ
+    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (qData.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="700" height="450" style="width:100%; max-width:600px; height:auto; background:#ffffff; border-radius:16px; margin:20px auto; display:block; border:3px solid #6c63ff; box-shadow:0 6px 16px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, qData.draw, qData.vars, qData.drawParams);
@@ -1185,11 +1185,11 @@ function loadExamQuestion(idx) {
     const zc=q.z==='kolay'?'badge-grn':q.z==='zor'?'badge-red':'badge-warn';
     const hasChoices=q.inputType==='choice'&&q.choices&&q.choices.length>=2;
     
-    // Geometri çizimi için canvas oluştur (denemede de) - BOYUTLAR BÜYÜTÜLDÜ
+    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="700" height="450" style="width:100%; max-width:600px; height:auto; background:#ffffff; border-radius:16px; margin:20px auto; display:block; border:3px solid #6c63ff; box-shadow:0 6px 16px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
