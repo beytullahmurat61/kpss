@@ -1,7 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Sıfırdan düzenlendi: generateVariables + filtreler
-// Gezinme ve yenileme düzeltmeleri eklendi
+// Geri tuşu & yenileme sorunları kesin çözüldü
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -86,7 +85,7 @@ function shuffleWithSeed(arr, seed) {
     return s;
 }
 
-// ---------- Matematiksel Yardımcı Fonksiyonlar (question2.js ile uyumlu) ----------
+// ---------- Matematiksel Yardımcı Fonksiyonlar ----------
 function ebob(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
 function ekok(a, b) { return (a * b) / ebob(a, b); }
 function faktoriyel(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
@@ -183,7 +182,7 @@ let ST = {
     examSets: {}, examGeneration: 1, examHistory: [],
     apiCallCount: 0, apiCallDate: '', lastSession: null,
     phase: 'summary', cq: null, summaries: {}, testMode: false,
-    lastView: 'vHome' // ✅ Yenilemede son view'ı hatırlamak için
+    lastView: 'vHome'
 };
 
 function loadState() {
@@ -193,6 +192,7 @@ function loadState() {
         else if (Object.keys(saved).length > 0) Object.assign(ST, saved);
     } catch (e) {}
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
+    if (!ST.lastView) ST.lastView = 'vHome';
     initMissingFields();
     checkApiDate();
 }
@@ -203,7 +203,7 @@ function initMissingFields() {
     if (!ST.examSets) ST.examSets = {};
     if (!ST.examGeneration) ST.examGeneration = 1;
     if (!ST.summaries) ST.summaries = {};
-    if (!ST.lastView) ST.lastView = 'vHome'; // ✅ Eksikse ekle
+    if (!ST.lastView) ST.lastView = 'vHome';
 }
 
 function checkApiDate() {
@@ -229,22 +229,27 @@ function getQBProgress(topicId) {
 }
 
 // ============================================
-// BÖLÜM 3: SAYFA GEÇİŞLERİ (Gezinme düzeltmeleri ile)
+// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİDEN DÜZENLENDİ)
 // ============================================
 
-let currentView = 'vHome', viewStack = [];
+let currentView = 'vHome';
 
-function showView(id, addToStack = true) {
+function showView(id, addToHistory = true) {
+    // Önceki view'ı gizle
     document.getElementById(currentView)?.classList.remove('active');
-    if (addToStack && currentView !== id) { viewStack.push(currentView); if (viewStack.length > 20) viewStack.shift(); }
+    // Yeni view'ı göster
     document.getElementById(id)?.classList.add('active');
     currentView = id;
-    ST.lastView = id; // ✅ Son görünümü state'e kaydet
+    ST.lastView = id;
     updateHeader(id);
     window.scrollTo(0, 0);
-    
-    // ✅ Tarayıcı geçmişine yeni bir entry ekle
-    history.pushState({ view: id }, '', '#/' + id);
+
+    // Tarayıcı geçmişine ekle (ilk açılışta replaceState kullanıldığı için başlangıç state'i var)
+    if (addToHistory) {
+        history.pushState({ view: id }, '', '#/' + id);
+    }
+    // Her view değişiminde state'i kaydet (yenilemede hatırlamak için)
+    saveState();
 }
 
 function updateHeader(viewId) {
@@ -255,31 +260,29 @@ function updateHeader(viewId) {
     b.style.visibility = viewId === 'vHome' ? 'hidden' : 'visible';
 }
 
+// Geri butonu (header'daki ok) → tarayıcı geçmişini geri al
 window.goBack = function() {
-    if (viewStack.length > 0) {
-        const p = viewStack.pop();
-        showView(p, false);
-        if (p === 'vHome') updateHomeStats();
-        else if (p === 'vTopics') renderTopicsList();
-    }
+    history.back();
 };
 
-window.goHome = function() { viewStack = []; showView('vHome', false); updateHomeStats(); };
+// Manuel sayfa geçişleri (footer butonları)
+window.goHome = function() { showView('vHome'); updateHomeStats(); };
 window.goTopics = function() { showView('vTopics'); renderTopicsList(); };
 window.goQuestionBank = function() { showView('vQuestionBank'); renderQuestionBankList(); };
 window.goExamList = function() { showView('vExamList'); renderExamList(); };
 window.goStats = function() { showView('vStats'); renderStats(); };
 window.toggleMenu = function() { document.getElementById('sideMenu')?.classList.toggle('hidden'); };
 
-// ✅ Tarayıcı geri/ileri tuşları için popstate dinleyicisi
+// Tarayıcı geri/ileri tuşları için
 window.addEventListener('popstate', function(event) {
     const state = event.state;
     if (state && state.view) {
+        // State'teki view'ı göster, geçmişe ekleme (zaten oradan geliyoruz)
         showView(state.view, false);
         if (state.view === 'vHome') updateHomeStats();
         else if (state.view === 'vTopics') renderTopicsList();
     } else {
-        // Geçmişte state yoksa ana sayfaya dön (ilk yükleme vb.)
+        // State yoksa ana sayfaya dön (örneğin uygulama ilk açıldığında geri tuşu)
         showView('vHome', false);
         updateHomeStats();
     }
@@ -375,7 +378,7 @@ function setLearnHeader() {
 }
 
 // ============================================
-// BÖLÜM 6: SORU ÜRETİM MOTORU (YENİLENDİ)
+// BÖLÜM 6: SORU ÜRETİM MOTORU (ÖNCEKİYLE AYNI, checkRule düzeltmesi içerir)
 // ============================================
 
 function valueMatchesFilter(val, filter) {
@@ -447,7 +450,7 @@ function checkRule(rule, vars) {
         return !!result;
     } catch (e) {
         console.warn('Rule hatası:', rule, e);
-        return false; // Hata durumunda false dön
+        return false;
     }
 }
 
@@ -889,12 +892,201 @@ window.sendAsk = async function() {
 };
 
 // ============================================
-// BÖLÜM 9: SORU BANKASI
+// BÖLÜM 9: SORU BANKASI (AYNI)
 // ============================================
-// ... (BÖLÜM 9, 10, 11, 12 kodları hiç değişmedi; öncekiyle aynı)
+function renderQuestionBankList() {
+    const el = document.getElementById('qbTopicsList');
+    if (!el) return;
+    let html = '', lp = '';
+    TOPICS.forEach(t => {
+        if (t.p !== lp) { lp = t.p; html += `<div class="phase-sep">${t.p}</div>`; }
+        const p = getQBProgress(t.id), s = p.solved.length, pct = Math.round((s/CONSTANTS.QUESTION_BANK_SIZE)*100), done = s >= CONSTANTS.QUESTION_BANK_SIZE;
+        html += `<div class="topic-row ${done?'t-done':''}" onclick="startQuestionBank(${t.id})"><span class="t-icon">${t.e}</span><div class="t-info"><div class="t-name">${t.n}</div><div class="t-meta">${done?'✅ Tamamlandı':`${s}/${CONSTANTS.QUESTION_BANK_SIZE}`}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>${done?'✅':'📝'}</span></div>`;
+    });
+    el.innerHTML = html;
+}
+
+window.startQuestionBank = function(topicId) {
+    if (!QUESTION_TEMPLATES?.[topicId]) { alert('Bu konu için şablon yok.'); return; }
+    if (getQBProgress(topicId).solved.length >= CONSTANTS.QUESTION_BANK_SIZE) { alert('🎉 Tamamlandı!'); return; }
+    ST.topic = topicId; showView('vQBSolve'); renderQBSolveHeader(); renderNextQBQuestion();
+};
+
+function renderQBSolveHeader() {
+    const t = getTopicById(ST.topic), p = getQBProgress(ST.topic);
+    document.getElementById('qbSolveTitle').textContent = `📝 ${t?.n||''}`;
+    document.getElementById('qbSolveProgress').textContent = `${p.solved.length}/${CONSTANTS.QUESTION_BANK_SIZE}`;
+}
+
+function renderNextQBQuestion() {
+    const topicId = ST.topic, t = getTopicById(topicId);
+    if (!t) return;
+    const progress = getQBProgress(topicId), limit = ST.testMode ? 10 : CONSTANTS.QUESTION_BANK_SIZE;
+    const el = document.getElementById('qbSolveContent');
+    if (!el) return;
+    if (progress.solved.length >= limit) { el.innerHTML = `<div class="card accent-top" style="text-align:center"><h3>🎉 Tamamlandı!</h3><p style="font-size:24px;font-weight:700;color:var(--accent)">${progress.solved.length}/${limit}</p><button class="btn btn-primary btn-full" onclick="goQuestionBank()">📝 Listeye Dön</button></div>`; return; }
+    el.innerHTML = `<div class="card">${dots()}</div>`;
+    const templates = QUESTION_TEMPLATES[topicId];
+    if (!templates?.length) { el.innerHTML = '<div class="err">Şablon yok.</div>'; return; }
+    let q = null;
+    for (let a = 0; a < 15; a++) {
+        const tpl = templates[Math.floor(Math.random()*templates.length)];
+        const vars = generateVariables(tpl.v, tpl.kural);
+        if (!vars) continue;
+        const id = generateQuestionId(tpl.id, vars);
+        if (progress.solved.includes(id)) continue;
+        const cevap = calculateAnswer(tpl.c, vars);
+        if (cevap === null) continue;
+        const inputType = determineInputType(tpl, cevap);
+        let choices = null, cci = 0;
+        if (inputType === 'choice') {
+            choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevap) : autoGenerateChoices(cevap, tpl, vars);
+            cci = choices.findIndex(c => c.isCorrect); if (cci < 0) cci = 0;
+        }
+        q = { id, templateId:tpl.id, soru:fillTemplate(tpl.s,vars), cevap:formatAnswer(cevap,inputType), cevapRaw:cevap, zorluk:tpl.z||'orta', inputType, choices, correctChoiceIndex:cci, cozum:generateSolution(tpl,vars,cevap), topicId };
+        break;
+    }
+    if (!q) { el.innerHTML = '<div class="err">Üretilemedi.</div>'; return; }
+    ST.cq = { ...q, mode:'questionBank' };
+    const zc = q.zorluk === 'kolay' ? 'badge-grn' : q.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
+    const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
+    const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
+        : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
+    el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t.n}</span><span>${progress.solved.length}/${limit}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/limit)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t.n}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    if (!hasChoices) setTimeout(()=>document.getElementById('qbAnsInp')?.focus(), 100);
+}
+
+window.submitQBChoiceAnswer = function(idx) {
+    const q = ST.cq; if (!q) return;
+    document.querySelectorAll('.qb-choice-btn').forEach((btn,i)=>{ btn.disabled=true; if(i===q.correctChoiceIndex){btn.style.borderColor='var(--success)';btn.style.background='var(--success-bg)'} else if(i===idx){btn.style.borderColor='var(--danger)';btn.style.background='var(--danger-bg)'} });
+    processQBAnswer(idx === q.correctChoiceIndex, q);
+};
+window.checkQBAnswer = function() {
+    const inp = document.getElementById('qbAnsInp'); if (!inp?.value.trim()) return;
+    inp.disabled = true; if (!ST.cq) return;
+    processQBAnswer(checkEqual(inp.value.trim(), ST.cq.cevap), ST.cq);
+};
+function processQBAnswer(isCorrect, q) {
+    const p = getQBProgress(q.topicId||ST.topic); if (!p.solved.includes(q.id)) p.solved.push(q.id);
+    ST.totalQ++; if(isCorrect){ST.totalCorrect++;ST.streak++;if(ST.streak>ST.maxStreak)ST.maxStreak=ST.streak}else ST.streak=0;
+    saveState(); renderQBSolveHeader();
+    const el = document.getElementById('qbSolveContent');
+    if(el) el.innerHTML += `<div class="fb ${isCorrect?'fb-ok':'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect?'🎉':'❌'}</span><span class="fb-title">${isCorrect?'Doğru!':'Yanlış'}</span></div><div class="fb-body">${isCorrect?`Cevap: <strong>${q.cevap}</strong>`:`Doğru: <strong>${q.cevap}</strong>${q.cozum?`<br>📖 ${q.cozum}`:''}`}</div><div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`;
+}
+window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQBProgress(q.topicId||ST.topic); if(!p.solved.includes(q.id))p.solved.push(q.id); saveState(); renderQBSolveHeader(); nextQBQuestion(); };
+window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
 // ============================================
-// BÖLÜM 13: TEST MODU & BAŞLATMA (initApp güncellendi)
+// BÖLÜM 10: DENEME SINAVI (AYNI)
+// ============================================
+// ... (öncekiyle aynı, kırpıldı)
+function renderExamList() {
+    const el = document.getElementById('examListContent');
+    if (!el) return;
+    if (!Object.keys(ST.examSets).length) initExamSets();
+    let html = '';
+    for (let i=1;i<=CONSTANTS.EXAM_SETS;i++) {
+        const sid='set_'+i, sd=ST.examSets[sid]||{};
+        html += `<div class="exam-set-card" onclick="startExamSet('${sid}')"><div class="exam-set-info"><h3>📋 Deneme ${i}</h3><span>20 soru · 20 dk</span></div><div class="exam-set-score">${sd.completed?`<div class="net">${sd.net}</div><div class="date">${sd.date||''}</div>`:'<span class="badge">Başla</span>'}</div></div>`;
+    }
+    if (Object.values(ST.examSets).every(s=>s.completed)) html += `<div style="margin-top:16px;text-align:center"><p style="color:var(--success)">🎉 Tüm denemeler tamam!</p><button class="btn btn-primary btn-full" onclick="resetAllExams()">🔄 Yeni Sorularla Başla</button></div>`;
+    el.innerHTML = html;
+}
+
+function initExamSets() {
+    for (let i=1;i<=CONSTANTS.EXAM_SETS;i++) if (!ST.examSets['set_'+i]) ST.examSets['set_'+i] = { seed:EXAM_SEEDS[i-1]+(ST.examGeneration-1)*100, completed:false, answers:[], net:null, date:null };
+    saveState();
+}
+
+window.startExamSet = function(setId) {
+    if (!ST.examSets[setId]) return;
+    if (ST.examSets[setId].completed && !confirm('Tekrar başlat?')) return;
+    const questions = generateExamQuestions(ST.examSets[setId].seed);
+    ST.currentExam = { setId, questions, currentIndex:0, answers:[], timeLeft:CONSTANTS.EXAM_DURATION*60, timer:null };
+    showView('vExam');
+    document.getElementById('examTitle').textContent = `Deneme ${setId.replace('set_','')}`;
+    updateExamTimer(); startExamTimer(); loadExamQuestion(0);
+};
+
+function generateExamQuestions(seed) {
+    const all = [];
+    TOPICS.forEach(t => {
+        const tpls = QUESTION_TEMPLATES[t.id];
+        if (!tpls) return;
+        for (const tpl of shuffleWithSeed(tpls, seed+t.id).slice(0,3)) {
+            const vars = generateVariables(tpl.v, tpl.kural);
+            if (!vars) continue;
+            const cevap = calculateAnswer(tpl.c, vars);
+            if (cevap === null) continue;
+            const it = determineInputType(tpl, cevap);
+            let choices = null;
+            if (it==='choice') choices = tpl.choices ? generateChoicesFromTemplate(tpl.choices, vars, cevap) : autoGenerateChoices(cevap, tpl, vars);
+            all.push({ id:generateQuestionId(tpl.id,vars), s:fillTemplate(tpl.s,vars), c:formatAnswer(cevap,it), cRaw:cevap, z:tpl.z||'orta', inputType:it, choices, correctChoiceIndex:choices?choices.findIndex(c=>c.isCorrect):0, topicId:t.id, topicName:t.n });
+        }
+    });
+    return shuffleWithSeed(all, seed+999).slice(0, ST.testMode?5:CONSTANTS.EXAM_QUESTIONS);
+}
+
+function startExamTimer() { if(ST.currentExam.timer)clearInterval(ST.currentExam.timer); ST.currentExam.timer=setInterval(()=>{ST.currentExam.timeLeft--;updateExamTimer();if(ST.currentExam.timeLeft<=0){clearInterval(ST.currentExam.timer);finishExam();}},1000); }
+function updateExamTimer() { const el=document.getElementById('examTimer');if(!el)return;const m=Math.floor(ST.currentExam.timeLeft/60),s=ST.currentExam.timeLeft%60;el.textContent=`${m}:${String(s).padStart(2,'0')}`;if(ST.currentExam.timeLeft<=60)el.style.color='var(--danger)'; }
+
+function loadExamQuestion(idx) {
+    if(idx>=ST.currentExam.questions.length){finishExam();return;}
+    ST.currentExam.currentIndex=idx;
+    const q=ST.currentExam.questions[idx], el=document.getElementById('examContent');
+    if(!el)return;
+    const zc=q.z==='kolay'?'badge-grn':q.z==='zor'?'badge-red':'badge-warn';
+    const hasChoices=q.inputType==='choice'&&q.choices&&q.choices.length>=2;
+    const ansHTML=hasChoices?`<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full exam-choice-btn" onclick="submitExamChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
+        :`<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipExamAnswer()">Boş Bırak →</button>`;
+    el.innerHTML=`<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${idx+1}/${ST.currentExam.questions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.z||'orta'}</span><span class="badge badge-acc">${q.topicName||''}</span></div></div><div class="q-text">${q.s.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+    if(!hasChoices)setTimeout(()=>document.getElementById('examAnsInp')?.focus(),100);
+}
+
+window.submitExamChoiceAnswer = function(idx) { const q=ST.currentExam.questions[ST.currentExam.currentIndex]; ST.currentExam.answers.push({questionId:q.id,topicName:q.topicName,correctAnswer:q.c,userAnswer:q.choices?.[idx]?.text||'',isCorrect:idx===(q.correctChoiceIndex||0),skipped:false}); loadExamQuestion(ST.currentExam.currentIndex+1); };
+window.submitExamAnswer = function() { const inp=document.getElementById('examAnsInp'),ua=inp?.value?.trim()||''; const q=ST.currentExam.questions[ST.currentExam.currentIndex]; ST.currentExam.answers.push({questionId:q.id,topicName:q.topicName,correctAnswer:q.c,userAnswer:ua,isCorrect:checkEqual(ua,q.c),skipped:false}); loadExamQuestion(ST.currentExam.currentIndex+1); };
+window.skipExamAnswer = function() { const q=ST.currentExam.questions[ST.currentExam.currentIndex]; ST.currentExam.answers.push({questionId:q.id,topicName:q.topicName,correctAnswer:q.c,userAnswer:'',isCorrect:false,skipped:true}); loadExamQuestion(ST.currentExam.currentIndex+1); };
+
+function finishExam() {
+    if(ST.currentExam.timer)clearInterval(ST.currentExam.timer);
+    const ex=ST.currentExam, ans=ex.answers;
+    const d=ans.filter(a=>a.isCorrect).length, y=ans.filter(a=>!a.isCorrect&&!a.skipped).length, b=ans.filter(a=>a.skipped).length;
+    const net=(d-y*0.25).toFixed(2);
+    const sd=ST.examSets[ex.setId];
+    if(sd&&!sd.completed){sd.completed=true;sd.net=net;sd.date=todayStr();}
+    ST.examHistory.push({type:`Deneme ${ex.setId.replace('set_','')}`,net,date:todayStr()});
+    if(Object.values(ST.examSets).every(s=>s.completed)){ST.examGeneration++;Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}});}
+    saveState();ST.currentExam=null;
+    const wl=ans.filter(a=>!a.isCorrect&&!a.skipped).slice(0,3);
+    document.getElementById('examContent').innerHTML=`<div style="text-align:center;padding:20px 0"><div style="font-size:13px;color:var(--text-muted)">Deneme ${ex.setId.replace('set_','')} Sonucu</div><div class="net-num">${net}</div><div class="net-lbl">Net</div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:var(--success)">${d}</div><div class="stat-lbl">Doğru</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--danger)">${y}</div><div class="stat-lbl">Yanlış</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--text-muted)">${b}</div><div class="stat-lbl">Boş</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--warning)">${ex.questions.length}</div><div class="stat-lbl">Toplam</div></div></div>${wl.length?`<div class="card" style="text-align:left;margin-top:14px"><h3>Yanlışlar</h3>${wl.map(a=>`<div class="weak-row"><span>${a.topicName}</span><span class="badge badge-red">❌ ${a.userAnswer||'boş'} → ${a.correctAnswer}</span></div>`).join('')}</div>`:''}<div class="btn-row" style="margin-top:16px"><button class="btn btn-primary btn-full" onclick="startExamSet('${ex.setId}')">🔄 Tekrar</button><button class="btn btn-ghost btn-full" onclick="goExamList()">Listeye Dön</button></div></div>`;
+}
+
+window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.currentExam.timer); if(confirm('İptal?')){ST.currentExam=null;goExamList();} };
+window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
+
+// ============================================
+// BÖLÜM 11: İSTATİSTİK (AYNI)
+// ============================================
+function renderStats() {
+    const el=document.getElementById('statsContent'); if(!el)return;
+    const done=ST.completedTopics.length, acc=ST.totalQ>0?Math.round((ST.totalCorrect/ST.totalQ)*100):0;
+    const estNet=Math.min(30,Math.round(done*0.55+acc/14));
+    const weak=[]; TOPICS.forEach(t=>{const h=getHist(t.id);let tc=0,tq=0;if(h.levels)Object.values(h.levels).forEach(lv=>{if(lv){tc+=lv.correct||0;tq+=lv.total||0}});if(tq>=5){const p=Math.round((tc/tq)*100);if(p<70)weak.push({name:t.n,pct:p,total:tq,id:t.id})}});weak.sort((a,b)=>a.pct-b.pct);
+    const exams=ST.examHistory.slice(-5).reverse(); let qbs=0,qba=0; Object.keys(ST.questionBankProgress).forEach(tid=>{qbs+=ST.questionBankProgress[tid].solved.length;qba+=CONSTANTS.QUESTION_BANK_SIZE});
+    el.innerHTML=`<div class="net-box"><div style="font-size:12px;color:var(--text-muted)">Tahmini KPSS Netin</div><div class="net-num">${estNet}</div><div class="net-lbl">${done===CONSTANTS.TOTAL_TOPICS?'Tüm konular bitti! 🏆':'Konuları tamamladıkça artacak'}</div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:var(--accent)">${done}</div><div class="stat-lbl">Konu Bitti</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--danger)">${ST.totalQ}</div><div class="stat-lbl">Toplam Soru</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--success)">%${acc}</div><div class="stat-lbl">Doğruluk</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--warning)">${ST.maxStreak}</div><div class="stat-lbl">En İyi Seri</div></div></div><div class="card"><h3>Genel İlerleme</h3><div class="prog-bar-wrap"><div class="prog-bar-label"><span>Konular</span><span>${done}/${CONSTANTS.TOTAL_TOPICS}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${Math.round((done/CONSTANTS.TOTAL_TOPICS)*100)}%"></div></div></div><div class="prog-bar-wrap" style="margin-top:12px"><div class="prog-bar-label"><span>Soru Bankası</span><span>${qbs}/${qba}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${qba>0?Math.round((qbs/qba)*100):0}%"></div></div></div></div>${weak.length?`<div class="card"><h3>⚠️ Zayıf Konular</h3>${weak.slice(0,5).map(w=>`<div class="weak-row" onclick="openTopic(${w.id})" style="cursor:pointer"><span class="weak-name">${w.name}</span><span class="weak-pct" style="color:var(--danger)">%${w.pct} (${w.total} soru)</span></div>`).join('')}</div>`:''}${exams.length?`<div class="card"><h3>📝 Son Denemeler</h3>${exams.map(e=>`<div class="weak-row"><span>${e.type}</span><span style="color:var(--accent)">${e.net} net</span><span style="font-size:10px;color:var(--text-muted)">${e.date}</span></div>`).join('')}</div>`:''}<div class="card"><h3>⚙️ Yönetim</h3><div class="btn-group-vertical" style="margin-top:8px"><button class="btn btn-ghost btn-full" onclick="openModal('api')">🔑 API Anahtarı</button><button class="btn btn-ghost btn-full" onclick="resetQuestionBankProgress()">🔄 Soru Bankası Sıfırla</button><button class="btn btn-danger btn-full" onclick="openModal('reset')">🗑️ Verileri Sıfırla</button></div></div>`;
+}
+
+// ============================================
+// BÖLÜM 12: MODAL & SIFIRLAMA (AYNI)
+// ============================================
+window.openModal = function(id) { const el=document.getElementById(id+'Modal'); if(el)el.classList.remove('hidden'); if(id==='api')document.getElementById('apiInp').value=ST.apiKey; };
+window.closeModal = function(id) { document.getElementById(id+'Modal')?.classList.add('hidden'); };
+window.saveKey = function() { const k=document.getElementById('apiInp')?.value?.trim(); if(!k)return; ST.apiKey=k; localStorage.setItem(CONSTANTS.API_KEY_STORAGE,k); closeModal('api'); alert('✅ Kaydedildi!'); };
+window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!confirm('Tüm veriler silinecek. Emin misin?'))return;const ak=ST.apiKey;ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};initMissingFields();initExamSets();saveState();goHome();updateHomeStats();alert('✅ Sıfırlandı!');}else if(type==='topic'){const t=getTopicById(ST.topic);if(!confirm(`${t?.n} sıfırlansın mı?`))return;ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};ST.currentLevel='KOLAY';ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);saveState();renderPreStudySummary();alert(`✅ ${t?.n} sıfırlandı!`);}};
+window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
+
+// ============================================
+// BÖLÜM 13: TEST MODU & BAŞLATMA (SON HAL)
 // ============================================
 let tmc=0,tmt=null;
 document.addEventListener('DOMContentLoaded',()=>{
@@ -905,12 +1097,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function initApp() {
     loadState();
-    const targetView = ST.lastView || 'vHome'; // ✅ Son görünümü yükle
+    const targetView = ST.lastView || 'vHome';
     showView(targetView, false);
     if (targetView === 'vHome') updateHomeStats();
     initExamSets();
     ST.lastSession = todayStr();
     saveState();
-    history.replaceState({ view: targetView }, '', '#/' + targetView); // ✅ Geçmişi güncelle
+    history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
 }
