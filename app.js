@@ -83,32 +83,37 @@ function drawGeometry(canvasId, drawType, vars, params) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
+  
+  // Arka planı beyaz yap (daha kontrastlı)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  
   ctx.strokeStyle = '#6c63ff';
-  ctx.fillStyle = '#e8e8f0';
-  ctx.lineWidth = 3;
-  ctx.font = 'bold 18px Inter';
-  ctx.fillStyle = '#e8e8f0';
+  ctx.fillStyle = '#1a1a2e';
+  ctx.lineWidth = 4;
+  ctx.font = 'bold 24px "Inter", "Segoe UI", sans-serif';
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
   try {
     if (drawType === 'triangle') {
       const a = parseFloat(fillTemplate(params.angles[0], vars));
       const b = parseFloat(fillTemplate(params.angles[1], vars));
-      const A = { x: w/2, y: 40 };
-      const B = { x: 60, y: h - 60 };
-      const C = { x: w - 60, y: h - 60 };
+      const A = { x: w/2, y: 50 };
+      const B = { x: 70, y: h - 70 };
+      const C = { x: w - 70, y: h - 70 };
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.lineTo(B.x, B.y);
       ctx.lineTo(C.x, C.y);
       ctx.closePath();
       ctx.stroke();
-      ctx.fillStyle = '#e8e8f0';
-      ctx.fillText(`${a}°`, (A.x+B.x)/2 - 25, (A.y+B.y)/2);
-      ctx.fillText(`${b}°`, (A.x+C.x)/2 + 20, (A.y+C.y)/2);
-      ctx.fillStyle = '#ffb347';
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(`${a}°`, (A.x+B.x)/2 - 30, (A.y+B.y)/2);
+      ctx.fillText(`${b}°`, (A.x+C.x)/2 + 30, (A.y+C.y)/2);
+      ctx.fillStyle = '#ff6584';
       const xVal = 180 - a - b;
-      ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 15);
+      ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 20);
     }
     else if (drawType === 'rectangle') {
       const width = parseFloat(fillTemplate(params.width, vars));
@@ -116,38 +121,38 @@ function drawGeometry(canvasId, drawType, vars, params) {
       const startX = (w - width) / 2;
       const startY = (h - height) / 2;
       ctx.strokeRect(startX, startY, width, height);
-      ctx.fillStyle = '#e8e8f0';
-      ctx.fillText(`${width} cm`, startX + width/2, startY - 10);
-      ctx.fillText(`${height} cm`, startX - 25, startY + height/2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(`${width} cm`, startX + width/2, startY - 20);
+      ctx.fillText(`${height} cm`, startX - 30, startY + height/2);
     }
     else if (drawType === 'square') {
       const side = parseFloat(fillTemplate(params.side, vars));
       const startX = (w - side) / 2;
       const startY = (h - side) / 2;
       ctx.strokeRect(startX, startY, side, side);
-      ctx.fillStyle = '#e8e8f0';
-      ctx.fillText(`${side} cm`, startX + side/2, startY - 10);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(`${side} cm`, startX + side/2, startY - 20);
     }
     else if (drawType === 'circle') {
       const r = parseFloat(fillTemplate(params.radius, vars));
       ctx.beginPath();
       ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
       ctx.stroke();
-      ctx.fillStyle = '#e8e8f0';
-      ctx.fillText(`r = ${r}`, w/2, h/2 + 20);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(`r = ${r} cm`, w/2, h/2 + r + 30);
     }
     else if (drawType === 'right_triangle') {
       const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
       const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
       ctx.beginPath();
-      ctx.moveTo(60, h-60);
-      ctx.lineTo(60+leg1, h-60);
-      ctx.lineTo(60, h-60-leg2);
+      ctx.moveTo(70, h-70);
+      ctx.lineTo(70+leg1, h-70);
+      ctx.lineTo(70, h-70-leg2);
       ctx.closePath();
       ctx.stroke();
-      ctx.fillStyle = '#e8e8f0';
-      ctx.fillText(`${leg1} cm`, 60+leg1/2, h-35);
-      ctx.fillText(`${leg2} cm`, 40, h-60-leg2/2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(`${leg1} cm`, 70+leg1/2, h-45);
+      ctx.fillText(`${leg2} cm`, 45, h-70-leg2/2);
     }
   } catch(e) {
     console.warn('Geometri çizim hatası:', e);
