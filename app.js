@@ -66,7 +66,6 @@ function simpleHash(str) {
 }
 
 // ---------- GELİŞMİŞ safeEval (tek tanım) ----------
-// Özel matematik fonksiyonları
 function ebob(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
 function ekok(a, b) { return Math.abs(a * b) / ebob(a, b); }
 function asalCarpan(n) {
@@ -410,7 +409,6 @@ function setLearnHeader() {
 
 // ===============================
 //  PROFESYONEL SORU ÜRETİM MOTORU
-//  (KPSS / DGS / AYT / TYT uyumlu)
 // ===============================
 
 let GLOBAL_QUESTION_FINGERPRINTS = new Set();
@@ -652,7 +650,6 @@ function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, o
     const fingerprint = getQuestionFingerprint(template.id, vars);
     if (isQuestionUsedGlobally(fingerprint)) return null;
     
-    // Set kontrolü - düzeltildi: has kullan
     if (solvedFingerprints.has && solvedFingerprints.has(fingerprint)) return null;
     if (Array.isArray(solvedFingerprints) && solvedFingerprints.includes(fingerprint)) return null;
 
@@ -842,7 +839,6 @@ window.nextQuestion = function() { ST.phase = 'question'; ST.cq = null; window.s
 window.resetLevelQuestions = function() {
     const h = getHist(ST.topic), lv = ST.currentLevel;
     if (h.levels?.[lv]) h.levels[lv] = { correct:0, total:0, completed:false };
-    // Fingerprint temizle
     USER_SOLVED_FINGERPRINTS.delete(`${ST.topic}|${lv}`);
     saveState(); ST.phase = 'question'; ST.cq = null; renderNextQuestion();
 };
@@ -954,9 +950,6 @@ function renderNextQBQuestion() {
         return;
     }
     
-    // Soru bankası modunda generateQuestion kullan
-    // Seviye olarak "ORTA" kullanılabilir, ancak soru bankası için tüm seviyelerden karışık soru üretmek daha iyi
-    // Burada seviyeyi rastgele seçip generateQuestion çağıralım
     const levels = ['KOLAY', 'ORTA', 'ZOR'];
     const randomLevel = levels[Math.floor(Math.random() * levels.length)];
     
@@ -993,8 +986,6 @@ window.checkQBAnswer = function() {
 function processQBAnswer(isCorrect, q) {
     const p = getQBProgress(q.topicId||ST.topic);
     if (!p.solved.includes(q.id)) p.solved.push(q.id);
-    // Ayrıca fingerprint'i kullanıcının çözdüğü set'e ekle (soru bankasında level yok, genel bir "QB" level kullanılabilir veya tüm level'lar için eklenebilir)
-    // Basitçe tüm level'lar için aynı fingerprint'i ekleyelim ki aynı soru tekrar gelmesin
     ['KOLAY','ORTA','ZOR'].forEach(lev => {
         const userSet = getUserSolvedFingerprints(q.topicId||ST.topic, lev);
         userSet.add(q.fingerprint);
@@ -1135,7 +1126,6 @@ window.doReset = function(type) {
         const ak=ST.apiKey;
         ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};
         initMissingFields(); initExamSets();
-        // Tüm fingerprint'leri temizle
         GLOBAL_QUESTION_FINGERPRINTS.clear();
         USER_SOLVED_FINGERPRINTS.clear();
         saveState(); goHome(); updateHomeStats(); alert('✅ Sıfırlandı!');
@@ -1145,11 +1135,9 @@ window.doReset = function(type) {
         ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};
         ST.currentLevel='KOLAY';
         ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);
-        // Konuya ait tüm fingerprint'leri temizle (tüm seviyeler)
         ['KOLAY','ORTA','ZOR'].forEach(level => {
             USER_SOLVED_FINGERPRINTS.delete(`${ST.topic}|${level}`);
         });
-        // Soru bankası progress'ini de sıfırla (opsiyonel)
         if(ST.questionBankProgress[ST.topic]) delete ST.questionBankProgress[ST.topic];
         saveState(); renderPreStudySummary(); alert(`✅ ${t?.n} sıfırlandı!`);
     }
@@ -1158,10 +1146,7 @@ window.doReset = function(type) {
 window.resetQuestionBankProgress = function() {
     if(!confirm('Tüm konuların soru bankası ilerlemesi sıfırlansın mı? Bu işlemle her konu için yepyeni 300 soru oluşacaktır.'))return;
     ST.questionBankProgress={};
-    // Tüm kullanıcı fingerprint'lerini temizle (soru bankası için tüm level'lar)
     USER_SOLVED_FINGERPRINTS.clear();
-    // Global fingerprint'leri de temizlemek isterseniz, ancak bu konu çalışmayı da etkiler. Daha iyisi sadece kullanıcı set'ini temizlemek.
-    // Kullanıcının çözdüğü tüm sorular unutulur, böylece yepyeni sorular gelir.
     saveState(); 
     if(currentView === 'vStats') renderStats();
     if(currentView === 'vQuestionBank') renderQuestionBankList();
@@ -1296,33 +1281,27 @@ function initMusvedde() {
         musveddeCanvas.addEventListener('touchmove', draw);
         musveddeCanvas.addEventListener('touchend', endDraw);
         
-        document.getElementById('musveddePenBtn').onclick = () => {
+        const penBtn = document.getElementById('musveddePenBtn');
+        const eraserBtn = document.getElementById('musveddeEraserBtn');
+        penBtn.onclick = () => {
             musveddeMode = 'pen';
             musveddeCtx.globalCompositeOperation = 'source-over';
             musveddeCtx.strokeStyle = '#000';
-            document.getElementById('musveddePenBtn').style.background = 'var(--accent)';
-            document.getElementById('musveddePenBtn').style.color = 'white';
-            document.getElementById('musveddeEraserBtn').style.background = '';
-            document.getElementById('musveddeEraserBtn').style.color = '';
+            musveddeCtx.lineWidth = 4;
+            penBtn.style.background = 'var(--accent)';
+            penBtn.style.color = 'white';
+            eraserBtn.style.background = '';
+            eraserBtn.style.color = '';
         };
-        document.getElementById('musveddeEraserBtn').onclick = () => {
+        eraserBtn.onclick = () => {
             musveddeMode = 'eraser';
             musveddeCtx.globalCompositeOperation = 'destination-out';
             musveddeCtx.strokeStyle = 'rgba(0,0,0,1)';
-            musveddeCtx.lineWidth = 20; // silgi daha büyük olabilir
-            document.getElementById('musveddeEraserBtn').style.background = 'var(--accent)';
-            document.getElementById('musveddeEraserBtn').style.color = 'white';
-            document.getElementById('musveddePenBtn').style.background = '';
-            document.getElementById('musveddePenBtn').style.color = '';
-            // Kaleme dönünce lineWidth'ı eski haline getir
-            document.getElementById('musveddePenBtn').onclick = () => {
-                musveddeMode = 'pen';
-                musveddeCtx.globalCompositeOperation = 'source-over';
-                musveddeCtx.strokeStyle = '#000';
-                musveddeCtx.lineWidth = 4;
-                document.getElementById('musveddePenBtn').style.background = 'var(--accent)';
-                document.getElementById('musveddeEraserBtn').style.background = '';
-            };
+            musveddeCtx.lineWidth = 20;
+            eraserBtn.style.background = 'var(--accent)';
+            eraserBtn.style.color = 'white';
+            penBtn.style.background = '';
+            penBtn.style.color = '';
         };
         document.getElementById('musveddeClearBtn').onclick = () => {
             musveddeCtx.clearRect(0, 0, musveddeCanvas.width, musveddeCanvas.height);
