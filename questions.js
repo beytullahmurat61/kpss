@@ -992,9 +992,9 @@ const QUESTION_TEMPLATES = {
     // ---------- YENİ NESİL ----------
     { id: "t28_050", s: "Bir torbada {k} kırmızı, {m} mavi bilye var. Art arda 3 bilye çekiliyor. Sırayla K,M,K gelme olasılığı? (geri atılmıyor)", c: "({k}/({k}+{m}))*({m}/({k}+{m}-1))*(({k}-1)/({k}+{m}-2))", v: {k:[5,8], m:[3,6]}, z:"zor", alt:"yeni_nesil", kural:"k>=2" },
     { id: "t28_052", s: "İki zar birlikte atılıyor. Zarlardan en az birinin {a} gelme olasılığı?", c: "11/36", v: {a:[1,6]}, z:"orta", alt:"yeni_nesil", inputType:"choice", choices:["11/36","1/6","1/3","5/36"] },
-],
+ ],  // <-- Bu virgül ÇOK ÖNEMLİ
 
- // ==========================================
+  // ==========================================
   // KONU 29: GEOMETRİ
   // ==========================================
   29: [
@@ -1053,4 +1053,4 @@ const QUESTION_TEMPLATES = {
       cozum: "Ortalama = toplam / 3 = ({a}+{b}+{c})/3 = {cevap}"
     }
   ]
-};
+};   // <-- Burada } ile kapatma, ; isteğe bağlı
