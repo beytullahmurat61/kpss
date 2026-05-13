@@ -1,6 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Geri tuşu & yenileme sorunları kesin çözüldü
+// Yenileme sorunu çözüldü + Groq prompt'ları güncellendi
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -229,26 +229,72 @@ function getQBProgress(topicId) {
 }
 
 // ============================================
-// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİDEN DÜZENLENDİ)
+// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİLEME SORUNU ÇÖZÜLDÜ)
 // ============================================
 
 let currentView = 'vHome';
 
+// Her view için yenileme anında çağrılacak render fonksiyonları
+const viewRenderers = {
+    vHome: updateHomeStats,
+    vTopics: renderTopicsList,
+    vLearn: function() {
+        if (ST.phase === 'pre-study' || ST.phase === 'summary') renderPreStudySummary();
+        else if (ST.phase === 'question') renderNextQuestion();
+        else if (ST.phase === 'feedback' && ST.cq) {
+            renderQuestionUI(ST.cq, ST.cq.level || ST.currentLevel, LEVELS[ST.cq.level || ST.currentLevel]);
+        } else {
+            renderPreStudySummary();
+        }
+    },
+    vQuestionBank: renderQuestionBankList,
+    vQBSolve: function() {
+        renderQBSolveHeader();
+        if (ST.phase === 'question' && ST.cq) {
+            // Soru bankası sorusu gösterimdeyse yeniden göster
+            const el = document.getElementById('qbSolveContent');
+            if (el && ST.cq) {
+                const q = ST.cq;
+                const zc = q.zorluk === 'kolay' ? 'badge-grn' : q.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
+                const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
+                const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
+                    : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
+                const t = getTopicById(ST.topic);
+                el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${getQBProgress(ST.topic).solved.length}/${CONSTANTS.QUESTION_BANK_SIZE}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(getQBProgress(ST.topic).solved.length/CONSTANTS.QUESTION_BANK_SIZE)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${getQBProgress(ST.topic).solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
+            }
+        } else {
+            renderNextQBQuestion();
+        }
+    },
+    vExamList: renderExamList,
+    vExam: function() {
+        if (ST.currentExam) {
+            updateExamTimer();
+            loadExamQuestion(ST.currentExam.currentIndex);
+        } else {
+            goExamList();
+        }
+    },
+    vStats: renderStats
+};
+
 function showView(id, addToHistory = true) {
-    // Önceki view'ı gizle
     document.getElementById(currentView)?.classList.remove('active');
-    // Yeni view'ı göster
     document.getElementById(id)?.classList.add('active');
     currentView = id;
     ST.lastView = id;
     updateHeader(id);
     window.scrollTo(0, 0);
 
-    // Tarayıcı geçmişine ekle (ilk açılışta replaceState kullanıldığı için başlangıç state'i var)
     if (addToHistory) {
         history.pushState({ view: id }, '', '#/' + id);
     }
-    // Her view değişiminde state'i kaydet (yenilemede hatırlamak için)
+    
+    // Yenileme anında içerik kaybolmasın diye hemen render et
+    if (viewRenderers[id]) {
+        viewRenderers[id]();
+    }
+    
     saveState();
 }
 
@@ -260,31 +306,23 @@ function updateHeader(viewId) {
     b.style.visibility = viewId === 'vHome' ? 'hidden' : 'visible';
 }
 
-// Geri butonu (header'daki ok) → tarayıcı geçmişini geri al
 window.goBack = function() {
     history.back();
 };
 
-// Manuel sayfa geçişleri (footer butonları)
-window.goHome = function() { showView('vHome'); updateHomeStats(); };
-window.goTopics = function() { showView('vTopics'); renderTopicsList(); };
-window.goQuestionBank = function() { showView('vQuestionBank'); renderQuestionBankList(); };
-window.goExamList = function() { showView('vExamList'); renderExamList(); };
-window.goStats = function() { showView('vStats'); renderStats(); };
+window.goHome = function() { showView('vHome'); };
+window.goTopics = function() { showView('vTopics'); };
+window.goQuestionBank = function() { showView('vQuestionBank'); };
+window.goExamList = function() { showView('vExamList'); };
+window.goStats = function() { showView('vStats'); };
 window.toggleMenu = function() { document.getElementById('sideMenu')?.classList.toggle('hidden'); };
 
-// Tarayıcı geri/ileri tuşları için
 window.addEventListener('popstate', function(event) {
     const state = event.state;
     if (state && state.view) {
-        // State'teki view'ı göster, geçmişe ekleme (zaten oradan geliyoruz)
         showView(state.view, false);
-        if (state.view === 'vHome') updateHomeStats();
-        else if (state.view === 'vTopics') renderTopicsList();
     } else {
-        // State yoksa ana sayfaya dön (örneğin uygulama ilk açıldığında geri tuşu)
         showView('vHome', false);
-        updateHomeStats();
     }
 });
 
@@ -293,10 +331,14 @@ window.addEventListener('popstate', function(event) {
 // ============================================
 
 function updateHomeStats() {
-    document.getElementById('statTopics').textContent = ST.completedTopics.length;
-    document.getElementById('statQuestions').textContent = ST.totalQ;
-    document.getElementById('statAccuracy').textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
-    document.getElementById('statStreak').textContent = ST.maxStreak;
+    const elTopics = document.getElementById('statTopics');
+    const elQuestions = document.getElementById('statQuestions');
+    const elAccuracy = document.getElementById('statAccuracy');
+    const elStreak = document.getElementById('statStreak');
+    if (elTopics) elTopics.textContent = ST.completedTopics.length;
+    if (elQuestions) elQuestions.textContent = ST.totalQ;
+    if (elAccuracy) elAccuracy.textContent = '%' + (ST.totalQ > 0 ? Math.round((ST.totalCorrect / ST.totalQ) * 100) : 0);
+    if (elStreak) elStreak.textContent = ST.maxStreak;
     
     const nt = TOPICS.find(t => !ST.completedTopics.includes(t.id) && (!TOPICS.find(pt => pt.order === t.order-1) || ST.completedTopics.includes(TOPICS.find(pt => pt.order === t.order-1).id)));
     const b = document.getElementById('nextTopicBadge');
@@ -332,7 +374,6 @@ window.openTopic = function(topicId) {
     ST.currentLevel = getHist(topicId).currentLevel || 'KOLAY';
     ST.phase = 'pre-study';
     showView('vLearn');
-    renderPreStudySummary();
     saveState();
 };
 
@@ -378,7 +419,7 @@ function setLearnHeader() {
 }
 
 // ============================================
-// BÖLÜM 6: SORU ÜRETİM MOTORU (ÖNCEKİYLE AYNI, checkRule düzeltmesi içerir)
+// BÖLÜM 6: SORU ÜRETİM MOTORU
 // ============================================
 
 function valueMatchesFilter(val, filter) {
@@ -854,21 +895,38 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 8: API (Groq)
+// BÖLÜM 8: API (Groq) - PROMPT'LAR İYİLEŞTİRİLDİ
 // ============================================
+
+// Konu özeti için gelişmiş prompt
 async function fetchTopicSummary(topic) {
     checkApiDate();
     if (ST.apiCallCount >= CONSTANTS.API_DAILY_LIMIT) throw new Error('Limit doldu');
     ST.apiCallCount++; saveState();
+    
+    const systemPrompt = `Sen deneyimli bir KPSS matematik öğretmenisin. Bir konuyu öğrenciye öğretirken şu sırayı takip et:
+1. Konunun ne olduğunu 1 cümleyle tanımla
+2. En önemli formülleri madde madde yaz
+3. 1-2 tane çözümlü örnek ver
+4. KPSS'de en çok çıkan soru tiplerini belirt
+5. Öğrencinin dikkat etmesi gereken püf noktaları söyle
+
+Yanıtın Türkçe, max 250 kelime olsun. Güncel MEB müfredatına uygun hareket et.`;
+    
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ST.apiKey},
-        body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:'Sen bir KPSS matematik öğretmenisin. Güncel MEB müfredatına göre: Doğal sayılar 0\'dan başlar (0,1,2,3...). Sayma sayıları 1\'den başlar. En küçük doğal sayı 0, en küçük pozitif tam sayı 1\'dir. 1 asal sayı değildir. En küçük asal sayı 2\'dir. 0! = 1\'dir. Tüm cevaplarını bu güncel bilgilere göre ver.'},{role:'user',content:`"${topic.n}" konusunu max 150 kelime Türkçe özetle.`}], temperature:0.5, max_tokens:500 })
+        body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[
+            {role:'system', content: systemPrompt},
+            {role:'user', content: `"${topic.n}" konusunu KPSS öğrencisine öğret. Formülleri, örnek soru çözümlerini ve püf noktaları mutlaka ekle.`}
+        ], temperature:0.4, max_tokens:600 })
     });
     const d = await r.json();
     return d?.choices?.[0]?.message?.content?.trim() || null;
 }
 
 window.toggleAsk = function() { document.getElementById('askForm')?.classList.toggle('open'); document.getElementById('askInp')?.focus(); };
+
+// Soru çözümü için gelişmiş prompt
 window.sendAsk = async function() {
     const inp = document.getElementById('askInp'), q = inp?.value?.trim();
     if (!q) return;
@@ -881,9 +939,21 @@ window.sendAsk = async function() {
     ST.apiCallCount++; saveState();
     try {
         const t = getTopicById(ST.topic);
+        const systemPrompt = `Sen bir KPSS matematik öğretmenisin. Öğrencinin sorduğu soruyu çözerken:
+1. Dünyanın kabul ettiği en kısa ve pratik çözüm yöntemini kullan
+2. Her adımı numaralandırarak açıkla
+3. Mümkünse formülü göster ve formülün nereden geldiğini kısaca belirt
+4. Cevabı net bir şekilde söyle
+5. Öğrenciye "bu tarz sorularda şuna dikkat et" şeklinde bir not ekle
+
+Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150 kelime.`;
+        
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+ST.apiKey},
-            body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:'Sen bir KPSS matematik öğretmenisin...'},{role:'user',content:`Konu: ${t?.n||'Matematik'}\nSoru: ${ST.cq?.soru||''}\nDoğru cevap: ${ST.cq?.cevap||''}\nÖğrenci: ${q}`}], temperature:0.7, max_tokens:600 })
+            body:JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[
+                {role:'system', content: systemPrompt},
+                {role:'user', content:`Konu: ${t?.n||'Matematik'}\nSoru: ${ST.cq?.soru||''}\nDoğru cevap: ${ST.cq?.cevap||''}\nÖğrencinin sorusu: ${q}`}
+            ], temperature:0.5, max_tokens:500 })
         });
         const d = await r.json();
         if (re) re.innerHTML = (d?.choices?.[0]?.message?.content?.trim()||'Cevap alınamadı').replace(/\n/g,'<br>');
@@ -892,7 +962,7 @@ window.sendAsk = async function() {
 };
 
 // ============================================
-// BÖLÜM 9: SORU BANKASI (AYNI)
+// BÖLÜM 9: SORU BANKASI
 // ============================================
 function renderQuestionBankList() {
     const el = document.getElementById('qbTopicsList');
@@ -909,7 +979,9 @@ function renderQuestionBankList() {
 window.startQuestionBank = function(topicId) {
     if (!QUESTION_TEMPLATES?.[topicId]) { alert('Bu konu için şablon yok.'); return; }
     if (getQBProgress(topicId).solved.length >= CONSTANTS.QUESTION_BANK_SIZE) { alert('🎉 Tamamlandı!'); return; }
-    ST.topic = topicId; showView('vQBSolve'); renderQBSolveHeader(); renderNextQBQuestion();
+    ST.topic = topicId;
+    ST.cq = null;
+    showView('vQBSolve');
 };
 
 function renderQBSolveHeader() {
@@ -977,9 +1049,8 @@ window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQ
 window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
 // ============================================
-// BÖLÜM 10: DENEME SINAVI (AYNI)
+// BÖLÜM 10: DENEME SINAVI
 // ============================================
-// ... (öncekiyle aynı, kırpıldı)
 function renderExamList() {
     const el = document.getElementById('examListContent');
     if (!el) return;
@@ -1065,7 +1136,7 @@ window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.curre
 window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 11: İSTATİSTİK (AYNI)
+// BÖLÜM 11: İSTATİSTİK
 // ============================================
 function renderStats() {
     const el=document.getElementById('statsContent'); if(!el)return;
@@ -1077,7 +1148,7 @@ function renderStats() {
 }
 
 // ============================================
-// BÖLÜM 12: MODAL & SIFIRLAMA (AYNI)
+// BÖLÜM 12: MODAL & SIFIRLAMA
 // ============================================
 window.openModal = function(id) { const el=document.getElementById(id+'Modal'); if(el)el.classList.remove('hidden'); if(id==='api')document.getElementById('apiInp').value=ST.apiKey; };
 window.closeModal = function(id) { document.getElementById(id+'Modal')?.classList.add('hidden'); };
@@ -1086,7 +1157,7 @@ window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!conf
 window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 13: TEST MODU & BAŞLATMA (SON HAL)
+// BÖLÜM 13: TEST MODU & BAŞLATMA
 // ============================================
 let tmc=0,tmt=null;
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1099,7 +1170,6 @@ function initApp() {
     loadState();
     const targetView = ST.lastView || 'vHome';
     showView(targetView, false);
-    if (targetView === 'vHome') updateHomeStats();
     initExamSets();
     ST.lastSession = todayStr();
     saveState();
