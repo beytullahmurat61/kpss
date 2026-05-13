@@ -14,71 +14,6 @@ function normAns(s) {
         .replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m/g,'').trim();
 }
 
-// ========== GEOMETRİ ÇİZİM FONKSİYONU ==========
-function drawGeometry(canvasId, drawType, vars, params) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  ctx.strokeStyle = '#6c63ff';
-  ctx.fillStyle = '#e8e8f0';
-  ctx.lineWidth = 2;
-  ctx.font = '14px Inter';
-  ctx.fillStyle = '#e8e8f0';
-
-  if (drawType === 'triangle') {
-    const a = parseFloat(fillTemplate(params.angles[0], vars));
-    const b = parseFloat(fillTemplate(params.angles[1], vars));
-    const A = { x: w/2, y: 30 };
-    const B = { x: 40, y: h - 50 };
-    const C = { x: w - 40, y: h - 50 };
-    ctx.beginPath();
-    ctx.moveTo(A.x, A.y);
-    ctx.lineTo(B.x, B.y);
-    ctx.lineTo(C.x, C.y);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fillStyle = '#e8e8f0';
-    ctx.fillText(`${a}°`, (A.x+B.x)/2 - 20, (A.y+B.y)/2);
-    ctx.fillText(`${b}°`, (A.x+C.x)/2 + 10, (A.y+C.y)/2);
-    ctx.fillStyle = '#ffb347';
-    const xVal = 180 - a - b;
-    ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 10);
-  }
-  else if (drawType === 'rectangle') {
-    const width = parseFloat(fillTemplate(params.width, vars));
-    const height = parseFloat(fillTemplate(params.height, vars));
-    ctx.strokeRect(50, 50, width, height);
-    ctx.fillText(`${width} cm`, 50 + width/2 - 15, 40);
-    ctx.fillText(`${height} cm`, 20, 50 + height/2);
-  }
-  else if (drawType === 'square') {
-    const side = parseFloat(fillTemplate(params.side, vars));
-    ctx.strokeRect(50, 50, side, side);
-    ctx.fillText(`${side} cm`, 50 + side/2 - 10, 40);
-  }
-  else if (drawType === 'circle') {
-    const r = parseFloat(fillTemplate(params.radius, vars));
-    ctx.beginPath();
-    ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
-    ctx.stroke();
-    ctx.fillText(`r = ${r}`, w/2 - 10, h/2 - 10);
-  }
-  else if (drawType === 'right_triangle') {
-    const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
-    const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
-    ctx.beginPath();
-    ctx.moveTo(50, h-50);
-    ctx.lineTo(50+leg1, h-50);
-    ctx.lineTo(50, h-50-leg2);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fillText(`${leg1} cm`, 50+leg1/2, h-35);
-    ctx.fillText(`${leg2} cm`, 30, h-50-leg2/2);
-  }
-}
-
 function checkEqual(userAns, correctAns) {
     const u = normAns(userAns), c = normAns(correctAns);
     if (u === c) return true;
@@ -125,6 +60,98 @@ function simpleHash(str) {
     let h = 0;
     for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h = h & h; }
     return Math.abs(h).toString(36).substring(0, 6);
+}
+
+// ---------- fillTemplate (drawGeometry'den ÖNCE tanımlanmalı) ----------
+function fillTemplate(text, vars) {
+    let result = String(text);
+    const missing = [];
+    const matches = result.match(/\{[^}]+\}/g) || [];
+    for (let match of matches) {
+        const key = match.slice(1, -1);
+        if (vars.hasOwnProperty(key)) result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), vars[key]);
+        else missing.push(key);
+    }
+    if (missing.length) throw new Error(`Eksik değişken: ${missing.join(', ')}`);
+    return result;
+}
+
+// ========== GEOMETRİ ÇİZİM FONKSİYONU ==========
+function drawGeometry(canvasId, drawType, vars, params) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#6c63ff';
+  ctx.fillStyle = '#e8e8f0';
+  ctx.lineWidth = 3;
+  ctx.font = 'bold 18px Inter';
+  ctx.fillStyle = '#e8e8f0';
+  ctx.textAlign = 'center';
+
+  try {
+    if (drawType === 'triangle') {
+      const a = parseFloat(fillTemplate(params.angles[0], vars));
+      const b = parseFloat(fillTemplate(params.angles[1], vars));
+      const A = { x: w/2, y: 40 };
+      const B = { x: 60, y: h - 60 };
+      const C = { x: w - 60, y: h - 60 };
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y);
+      ctx.lineTo(B.x, B.y);
+      ctx.lineTo(C.x, C.y);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(`${a}°`, (A.x+B.x)/2 - 25, (A.y+B.y)/2);
+      ctx.fillText(`${b}°`, (A.x+C.x)/2 + 20, (A.y+C.y)/2);
+      ctx.fillStyle = '#ffb347';
+      const xVal = 180 - a - b;
+      ctx.fillText(`x = ${Math.round(xVal)}°`, (B.x+C.x)/2, (B.y+C.y)/2 - 15);
+    }
+    else if (drawType === 'rectangle') {
+      const width = parseFloat(fillTemplate(params.width, vars));
+      const height = parseFloat(fillTemplate(params.height, vars));
+      const startX = (w - width) / 2;
+      const startY = (h - height) / 2;
+      ctx.strokeRect(startX, startY, width, height);
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(`${width} cm`, startX + width/2, startY - 10);
+      ctx.fillText(`${height} cm`, startX - 25, startY + height/2);
+    }
+    else if (drawType === 'square') {
+      const side = parseFloat(fillTemplate(params.side, vars));
+      const startX = (w - side) / 2;
+      const startY = (h - side) / 2;
+      ctx.strokeRect(startX, startY, side, side);
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(`${side} cm`, startX + side/2, startY - 10);
+    }
+    else if (drawType === 'circle') {
+      const r = parseFloat(fillTemplate(params.radius, vars));
+      ctx.beginPath();
+      ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
+      ctx.stroke();
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(`r = ${r}`, w/2, h/2 + 20);
+    }
+    else if (drawType === 'right_triangle') {
+      const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
+      const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
+      ctx.beginPath();
+      ctx.moveTo(60, h-60);
+      ctx.lineTo(60+leg1, h-60);
+      ctx.lineTo(60, h-60-leg2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#e8e8f0';
+      ctx.fillText(`${leg1} cm`, 60+leg1/2, h-35);
+      ctx.fillText(`${leg2} cm`, 40, h-60-leg2/2);
+    }
+  } catch(e) {
+    console.warn('Geometri çizim hatası:', e);
+  }
 }
 
 // ---------- GELİŞMİŞ safeEval (tek tanım) ----------
@@ -610,19 +637,6 @@ function calculateAnswer(formula, vars) {
     } catch(e) { return null; }
 }
 
-function fillTemplate(text, vars) {
-    let result = String(text);
-    const missing = [];
-    const matches = result.match(/\{[^}]+\}/g) || [];
-    for (let match of matches) {
-        const key = match.slice(1, -1);
-        if (vars.hasOwnProperty(key)) result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), vars[key]);
-        else missing.push(key);
-    }
-    if (missing.length) throw new Error(`Eksik değişken: ${missing.join(', ')}`);
-    return result;
-}
-
 let recentTemplatesCache = {};
 function getRecentTemplateIds(topicId, count) { if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = []; return recentTemplatesCache[topicId].slice(-count); }
 function addRecentTemplateId(topicId, templateId) { if (!recentTemplatesCache[topicId]) recentTemplatesCache[topicId] = []; recentTemplatesCache[topicId].push(templateId); if (recentTemplatesCache[topicId].length > 20) recentTemplatesCache[topicId].shift(); }
@@ -831,11 +845,11 @@ function renderQuestionUI(q, level, levelInfo) {
     const el = document.getElementById('learnContent');
     if (!el) return;
 
-    // Geometri çizimi için canvas oluştur
+    // Geometri çizimi için canvas oluştur - BOYUTLAR BÜYÜTÜLDÜ
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
@@ -1044,11 +1058,11 @@ function renderNextQBQuestion() {
     const t = getTopicById(topicId);
     const hasChoices = qData.inputType === 'choice' && qData.choices && qData.choices.length >= 2;
     
-    // Geometri çizimi için canvas oluştur (soru bankasında da)
+    // Geometri çizimi için canvas oluştur (soru bankasında da) - BOYUTLAR BÜYÜTÜLDÜ
     let geometryHtml = '';
     if (qData.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, qData.draw, qData.vars, qData.drawParams);
@@ -1166,11 +1180,11 @@ function loadExamQuestion(idx) {
     const zc=q.z==='kolay'?'badge-grn':q.z==='zor'?'badge-red':'badge-warn';
     const hasChoices=q.inputType==='choice'&&q.choices&&q.choices.length>=2;
     
-    // Geometri çizimi için canvas oluştur (denemede de)
+    // Geometri çizimi için canvas oluştur (denemede de) - BOYUTLAR BÜYÜTÜLDÜ
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
-        geometryHtml = `<canvas id="${canvasId}" width="300" height="200" style="width:100%; max-width:300px; height:auto; background:#ffffff; border-radius:8px; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border:1px solid #333;"></canvas>`;
+        geometryHtml = `<canvas id="${canvasId}" width="500" height="350" style="width:100%; max-width:500px; height:auto; background:#ffffff; border-radius:12px; margin:16px auto; display:block; border:2px solid #6c63ff; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></canvas>`;
         setTimeout(() => {
             if (typeof drawGeometry === 'function') {
                 drawGeometry(canvasId, q.draw, q.vars, q.drawParams);
