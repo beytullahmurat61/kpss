@@ -171,17 +171,11 @@ function siraIleIs(a, b) {
     }
     return gun;
 }
-// t10_040 için yardımcı fonksiyon
-function kokToplamMin(a, b) {
-    let minSum = Infinity;
-    for (let i = 1; i <= 100; i++) {
-        for (let j = i+1; j <= 100; j++) {
-            if (Number.isInteger(Math.sqrt(i)) && Number.isInteger(Math.sqrt(j)) && (Math.sqrt(i) + Math.sqrt(j) === Math.floor(Math.sqrt(i) + Math.sqrt(j)))) {
-                if (i + j < minSum && i !== j) minSum = i + j;
-            }
-        }
-    }
-    return minSum === Infinity ? 0 : minSum;
+// t10_040 için yardımcı fonksiyon (hızlı ve doğru)
+function kokToplamMin() {
+    // Basit bir örnek: √a + √b tam sayı olacak şekilde en küçük a+b
+    // sqrt(1)+sqrt(4)=3 , 1+4=5; sqrt(4)+sqrt(9)=5, 4+9=13. En küçük 5
+    return 5;
 }
 
 // ============================================
@@ -374,7 +368,6 @@ function setLearnHeader() {
     document.getElementById('learnKademe').textContent = LEVELS[ST.currentLevel].name;
 }
 
-// Seviye sıfırlama
 window.resetLevelQuestions = function() {
     const hist = getHist(ST.topic);
     if (hist.levels[ST.currentLevel]) {
@@ -815,9 +808,9 @@ window.checkAnswer = function() {
 function processAnswer(userAnswer, isCorrect) {
     const level = ST.currentLevel;
     const hist = getHist(ST.topic);
-    const lh = hist.levels[level] || { correct: 0, total: 0, solvedIds: [] };
+    let lh = hist.levels[level] || { correct: 0, total: 0, solvedIds: [] };
+    if (!lh.solvedIds) lh.solvedIds = [];
     
-    // Güncelle
     lh.total = (lh.total || 0) + 1;
     if (isCorrect) {
         lh.correct = (lh.correct || 0) + 1;
@@ -832,19 +825,16 @@ function processAnswer(userAnswer, isCorrect) {
     if (!lh.solvedIds.includes(ST.cq.id)) lh.solvedIds.push(ST.cq.id);
     hist.levels[level] = lh;
     
-    // Konu tamamlama kontrolü
     const levelInfo = LEVELS[level];
     const limit = ST.testMode ? 3 : levelInfo.questionCount;
     if (lh.total >= limit) {
         if (lh.correct >= levelInfo.minCorrect) {
-            // Seviye tamamlandı, bir sonraki seviyeye geç veya konuyu bitir
             const nextLvl = getNextLevel(level);
             if (nextLvl) {
                 ST.currentLevel = nextLvl;
                 hist.currentLevel = nextLvl;
                 celebrate(`✨ ${levelInfo.name} seviyesini geçtin!`, 2000);
             } else {
-                // Konu tamamlandı
                 if (!ST.completedTopics.includes(ST.topic)) {
                     ST.completedTopics.push(ST.topic);
                     celebrate(`🏆 ${getTopicById(ST.topic).n} konusunu tamamladın!`, 2500);
@@ -855,17 +845,16 @@ function processAnswer(userAnswer, isCorrect) {
                 return;
             }
         } else {
-            // Başarısız, yeniden dene
             lh.total = 0;
             lh.correct = 0;
             lh.solvedIds = [];
+            hist.levels[level] = lh;
             celebrate(`⚠️ ${levelInfo.name} seviyesini geçemedin, tekrar dene!`, 2000);
         }
     }
     
     saveState();
     
-    // Göster feedback
     const el = document.getElementById('learnContent');
     const feedbackHtml = `
         <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
@@ -877,18 +866,10 @@ function processAnswer(userAnswer, isCorrect) {
         </div>
         <button class="btn btn-primary btn-full" onclick="nextQuestion()">➡️ Devam</button>
     `;
-    // Geçici olarak feedback göster
-    const originalContent = el.innerHTML;
     el.innerHTML = feedbackHtml;
-    window._tempLearnContent = originalContent;
 }
 
 window.nextQuestion = function() {
-    const el = document.getElementById('learnContent');
-    if (window._tempLearnContent) {
-        el.innerHTML = window._tempLearnContent;
-        window._tempLearnContent = null;
-    }
     renderNextQuestion();
 };
 
@@ -1060,7 +1041,6 @@ function processQBAnswer(userAnswer, isCorrect) {
         progress.solved.push(ST.cq.id);
         saveState();
     }
-    // Göster feedback
     const el = document.getElementById('qbSolveContent');
     const feedbackHtml = `
         <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
