@@ -195,14 +195,13 @@ function loadState() {
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
     if (!ST.lastView) ST.lastView = 'vHome';
     
-    // Başlangıç hatasını düzelt: Son görünüm vLearn ise ve geçerli bir çalışma yoksa ana sayfaya yönlendir
-    if (ST.lastView === 'vLearn') {
-        const hasValidStudy = ST.topic && ST.phase && (ST.phase === 'pre-study' || ST.phase === 'summary' || ST.phase === 'question' || ST.phase === 'feedback');
-        if (!hasValidStudy || !getTopicById(ST.topic)) {
-            ST.lastView = 'vHome';
-            ST.phase = 'summary';
-            ST.cq = null;
-        }
+    // SADECE AKTİF SORU ÇÖZME ANINDA (question veya feedback) konu çalışmaya devam et
+    // Aksi halde ana sayfayı göster
+    const hasActiveStudy = ST.topic && ST.phase && (ST.phase === 'question' || ST.phase === 'feedback') && getTopicById(ST.topic);
+    if (ST.lastView === 'vLearn' && !hasActiveStudy) {
+        ST.lastView = 'vHome';
+        ST.phase = 'summary';
+        ST.cq = null;
     }
     
     initMissingFields();
