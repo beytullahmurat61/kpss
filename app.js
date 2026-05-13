@@ -720,7 +720,7 @@ function generateFallbackQuestion(topicId, level) {
     return null;
 }
 
-/// ============================================
+// ============================================
 // BÖLÜM 7: SORU GÖSTERİM & CEVAP (MÜSVEDDE BUTONU EKLENDİ)
 // ============================================
 
@@ -833,9 +833,7 @@ Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150
     inp.disabled = false;
 };
 
-// ============================================
-// BÖLÜM 9: SORU BANKASI
-// ============================================
+
 // ============================================
 // BÖLÜM 9: SORU BANKASI (MÜSVEDDE BUTONU EKLENDİ)
 // ============================================
@@ -988,7 +986,7 @@ window.saveKey = function() { const k=document.getElementById('apiInp')?.value?.
 window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!confirm('Tüm veriler silinecek. Emin misin?'))return;const ak=ST.apiKey;ST={version:STATE_VERSION,apiKey:ak,topic:1,currentLevel:'KOLAY',streak:0,maxStreak:0,totalCorrect:0,totalQ:0,completedTopics:[],hist:{},questionBankProgress:{},examSets:{},examGeneration:1,examHistory:[],apiCallCount:0,apiCallDate:'',lastSession:null,phase:'summary',cq:null,summaries:{},testMode:false};initMissingFields();initExamSets();saveState();goHome();updateHomeStats();alert('✅ Sıfırlandı!');}else if(type==='topic'){const t=getTopicById(ST.topic);if(!confirm(`${t?.n} sıfırlansın mı?`))return;ST.hist[ST.topic]={levels:{},currentLevel:'KOLAY'};ST.currentLevel='KOLAY';ST.completedTopics=ST.completedTopics.filter(id=>id!==ST.topic);saveState();renderPreStudySummary();alert(`✅ ${t?.n} sıfırlandı!`);}};
 window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
 
-/ ============================================
+// ============================================
 // BÖLÜM 13: BAŞLATMA
 // ============================================
 let tmc=0,tmt=null;
