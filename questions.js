@@ -994,63 +994,63 @@ const QUESTION_TEMPLATES = {
     { id: "t28_052", s: "İki zar birlikte atılıyor. Zarlardan en az birinin {a} gelme olasılığı?", c: "11/36", v: {a:[1,6]}, z:"orta", alt:"yeni_nesil", inputType:"choice", choices:["11/36","1/6","1/3","5/36"] },
 ]
 
-// ============================================
-// KONU 29: GEOMETRİ (Yeni)
-// ============================================
-29: [
-  {
-    id: "geo_tri_001",
-    z: "kolay",
-    s: "Yandaki üçgende {a}° ve {b}° verilmiştir. Üçüncü açı kaç derecedir?",
-    c: "180 - {a} - {b}",
-    v: { a: [30, 80], b: [30, 80] },
-    kural: "a + b < 180",
-    draw: "triangle",
-    drawParams: { angles: ["{a}", "{b}"] },
-    cozum: "Üçgenin iç açıları toplamı 180°'dir. x = 180 - ({a}+{b}) = {cevap}°"
-  },
-  {
-    id: "geo_rect_area",
-    z: "kolay",
-    s: "Bir dikdörtgenin kısa kenarı {a} cm, uzun kenarı {b} cm ise alanı kaç cm²'dir?",
-    c: "{a}*{b}",
-    v: { a: [2, 15], b: [3, 20] },
-    draw: "rectangle",
-    drawParams: { width: "{a}", height: "{b}" },
-    cozum: "Dikdörtgen alanı = kısa kenar × uzun kenar = {a} × {b} = {cevap} cm²"
-  },
-  {
-    id: "geo_circle_area",
-    z: "orta",
-    s: "Yarıçapı {r} cm olan dairenin alanı kaç cm²'dir? (π = 3 alınız)",
-    c: "3 * {r} * {r}",
-    v: { r: [2, 10] },
-    draw: "circle",
-    drawParams: { radius: "{r}" },
-    cozum: "Daire alanı = π×r² = 3×{r}² = {cevap} cm²"
-  }
-],
+ // ==========================================
+  // KONU 29: GEOMETRİ
+  // ==========================================
+  29: [
+    {
+      id: "geo_tri_001",
+      z: "kolay",
+      s: "Yandaki üçgende {a}° ve {b}° verilmiştir. Üçüncü açı kaç derecedir?",
+      c: "180 - {a} - {b}",
+      v: { a: [30, 80], b: [30, 80] },
+      kural: "a + b < 180",
+      draw: "triangle",
+      drawParams: { angles: ["{a}", "{b}"] },
+      cozum: "Üçgenin iç açıları toplamı 180°'dir. x = 180 - ({a}+{b}) = {cevap}°"
+    },
+    {
+      id: "geo_rect_area",
+      z: "kolay",
+      s: "Bir dikdörtgenin kısa kenarı {a} cm, uzun kenarı {b} cm ise alanı kaç cm²'dir?",
+      c: "{a}*{b}",
+      v: { a: [2, 15], b: [3, 20] },
+      draw: "rectangle",
+      drawParams: { width: "{a}", height: "{b}" },
+      cozum: "Dikdörtgen alanı = kısa kenar × uzun kenar = {a} × {b} = {cevap} cm²"
+    },
+    {
+      id: "geo_circle_area",
+      z: "orta",
+      s: "Yarıçapı {r} cm olan dairenin alanı kaç cm²'dir? (π = 3 alınız)",
+      c: "3 * {r} * {r}",
+      v: { r: [2, 10] },
+      draw: "circle",
+      drawParams: { radius: "{r}" },
+      cozum: "Daire alanı = π×r² = 3×{r}² = {cevap} cm²"
+    }
+  ],
 
-// ============================================
-// KONU 30: GRAFİK (Yeni)
-// ============================================
-30: [
-  {
-    id: "graph_pie_001",
-    z: "kolay",
-    s: "Bir sınıfta {a} kişi matematik, {b} kişi Türkçe seçmiştir. Daire grafiğinde Türkçe seçenlerin merkez açısı {angle}° ise toplam öğrenci sayısı kaçtır?",
-    c: "Math.round({b} * 360 / {angle})",
-    v: { a: [10, 30], b: [10, 30], angle: [60, 150] },
-    kural: "b * 360 % angle == 0 && angle < 360",
-    cozum: "Merkez açı = (b/ t) × 360 → t = (b × 360) / angle = {cevap}"
-  },
-  {
-    id: "graph_mean_001",
-    z: "kolay",
-    s: "{a}, {b}, {c} sayılarının aritmetik ortalaması kaçtır?",
-    c: "({a}+{b}+{c})/3",
-    v: { a: [10, 50], b: [10, 50], c: [10, 50] },
-    cozum: "Ortalama = toplam / 3 = ({a}+{b}+{c})/3 = {cevap}"
-  }
-]
+  // ==========================================
+  // KONU 30: GRAFİK
+  // ==========================================
+  30: [
+    {
+      id: "graph_pie_001",
+      z: "kolay",
+      s: "Bir sınıfta {a} kişi matematik, {b} kişi Türkçe seçmiştir. Daire grafiğinde Türkçe seçenlerin merkez açısı {angle}° ise toplam öğrenci sayısı kaçtır?",
+      c: "Math.round({b} * 360 / {angle})",
+      v: { a: [10, 30], b: [10, 30], angle: [60, 150] },
+      kural: "b * 360 % angle == 0 && angle < 360",
+      cozum: "Merkez açı = (b/ t) × 360 → t = (b × 360) / angle = {cevap}"
+    },
+    {
+      id: "graph_mean_001",
+      z: "kolay",
+      s: "{a}, {b}, {c} sayılarının aritmetik ortalaması kaçtır?",
+      c: "({a}+{b}+{c})/3",
+      v: { a: [10, 50], b: [10, 50], c: [10, 50] },
+      cozum: "Ortalama = toplam / 3 = ({a}+{b}+{c})/3 = {cevap}"
+    }
+  ]
 };
