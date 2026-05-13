@@ -1,6 +1,6 @@
 // geometry_and_graphs.js - Geometri ve Grafik Şablonları
-// Mevcut QUESTION_TEMPLATES'i bozmadan ekleme yapar
-var QUESTION_TEMPLATES = window.QUESTION_TEMPLATES || {};
+// Mevcut QUESTION_TEMPLATES'i kullan, yoksa oluştur
+var QUESTION_TEMPLATES = (typeof QUESTION_TEMPLATES !== 'undefined') ? QUESTION_TEMPLATES : {};
 
 // Konu 29: GEOMETRİ
 if (!QUESTION_TEMPLATES[29]) QUESTION_TEMPLATES[29] = [];
@@ -47,6 +47,26 @@ QUESTION_TEMPLATES[29].push(
     cozum: "Dikdörtgen çevresi = 2×(kısa kenar + uzun kenar) = 2×({a}+{b}) = {cevap} cm"
   },
   {
+    id: "geo_square_area",
+    z: "kolay",
+    s: "Bir kenar uzunluğu {a} cm olan karenin alanı kaç cm²'dir?",
+    c: "{a}*{a}",
+    v: { a: [1, 20] },
+    draw: "square",
+    drawParams: { side: "{a}" },
+    cozum: "Karenin alanı = kenar × kenar = {a}×{a} = {cevap} cm²"
+  },
+  {
+    id: "geo_square_perimeter",
+    z: "kolay",
+    s: "Bir kenar uzunluğu {a} cm olan karenin çevresi kaç cm'dir?",
+    c: "4*{a}",
+    v: { a: [1, 20] },
+    draw: "square",
+    drawParams: { side: "{a}" },
+    cozum: "Karenin çevresi = 4 × kenar = 4×{a} = {cevap} cm"
+  },
+  {
     id: "geo_circle_area",
     z: "orta",
     s: "Yarıçapı {r} cm olan dairenin alanı kaç cm²'dir? (π = 3 alınız)",
@@ -55,6 +75,16 @@ QUESTION_TEMPLATES[29].push(
     draw: "circle",
     drawParams: { radius: "{r}" },
     cozum: "Daire alanı = π×r² = 3×{r}² = {cevap} cm²"
+  },
+  {
+    id: "geo_triangle_area",
+    z: "orta",
+    s: "Bir üçgenin taban uzunluğu {b} cm, yüksekliği {h} cm ise alanı kaç cm²'dir?",
+    c: "({b}*{h})/2",
+    v: { b: [4, 20], h: [3, 15] },
+    draw: "triangle_with_height",
+    drawParams: { base: "{b}", height: "{h}" },
+    cozum: "Üçgen alanı = (taban × yükseklik)/2 = ({b}×{h})/2 = {cevap} cm²"
   }
 );
 
@@ -85,7 +115,15 @@ QUESTION_TEMPLATES[30].push(
     c: "({a}+{b}+{c})/3",
     v: { a: [10, 50], b: [10, 50], c: [10, 50] },
     cozum: "Ortalama = toplam / 3 = ({a}+{b}+{c})/3 = {cevap}"
+  },
+  {
+    id: "graph_median_001",
+    z: "orta",
+    s: "{a}, {b}, {c}, {d}, {e} sayılarının medyanı kaçtır?",
+    c: "sirala({a},{b},{c},{d},{e})[2]",
+    v: { a: [1, 20], b: [1, 20], c: [1, 20], d: [1, 20], e: [1, 20] },
+    cozum: "Sıralı dizide ortadaki sayı medyandır. {cevap}"
   }
 );
 
-console.log('✅ geometry_and_graphs.js yüklendi (konu 29 ve 30 eklendi)');
+console.log('✅ geometry_and_graphs.js yüklendi (konu 29: ' + QUESTION_TEMPLATES[29].length + ' şablon, konu 30: ' + QUESTION_TEMPLATES[30].length + ' şablon)');
