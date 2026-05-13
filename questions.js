@@ -997,8 +997,7 @@ const QUESTION_TEMPLATES = {
 // ============================================
 // KONU 29: GEOMETRİ (Yeni)
 // ============================================
-if (!QUESTION_TEMPLATES[29]) QUESTION_TEMPLATES[29] = [];
-QUESTION_TEMPLATES[29].push(
+29: [
   {
     id: "geo_tri_001",
     z: "kolay",
@@ -1030,13 +1029,12 @@ QUESTION_TEMPLATES[29].push(
     drawParams: { radius: "{r}" },
     cozum: "Daire alanı = π×r² = 3×{r}² = {cevap} cm²"
   }
-);
+],
 
 // ============================================
 // KONU 30: GRAFİK (Yeni)
 // ============================================
-if (!QUESTION_TEMPLATES[30]) QUESTION_TEMPLATES[30] = [];
-QUESTION_TEMPLATES[30].push(
+30: [
   {
     id: "graph_pie_001",
     z: "kolay",
@@ -1054,6 +1052,5 @@ QUESTION_TEMPLATES[30].push(
     v: { a: [10, 50], b: [10, 50], c: [10, 50] },
     cozum: "Ortalama = toplam / 3 = ({a}+{b}+{c})/3 = {cevap}"
   }
-);
-   
+]
 };
