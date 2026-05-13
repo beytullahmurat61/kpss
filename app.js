@@ -1,6 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Müsvedde (scratchpad) + tüm düzeltmeler
+// Müsvedde (scratchpad) + Tüm düzeltmeler
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -172,6 +172,7 @@ function siraIleIs(a, b) {
     return gun;
 }
 
+
 // ============================================
 // BÖLÜM 2: STATE YÖNETİMİ
 // ============================================
@@ -192,7 +193,7 @@ function loadState() {
         else if (Object.keys(saved).length > 0) Object.assign(ST, saved);
     } catch (e) {}
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
-    if (!ST.lastView) ST.lastView = 'vHome';
+    if (!ST.lastView || ST.lastView === 'vLearn' || ST.lastView === 'vExam') ST.lastView = 'vHome'; // reset risky views
     initMissingFields();
     checkApiDate();
 }
@@ -240,30 +241,12 @@ const viewRenderers = {
     vLearn: function() {
         if (ST.phase === 'pre-study' || ST.phase === 'summary') renderPreStudySummary();
         else if (ST.phase === 'question') renderNextQuestion();
-        else if (ST.phase === 'feedback' && ST.cq) {
-            renderQuestionUI(ST.cq, ST.cq.level || ST.currentLevel, LEVELS[ST.cq.level || ST.currentLevel]);
-        } else {
-            renderPreStudySummary();
-        }
+        else renderPreStudySummary();
     },
     vQuestionBank: renderQuestionBankList,
     vQBSolve: function() {
         renderQBSolveHeader();
-        if (ST.phase === 'question' && ST.cq) {
-            const el = document.getElementById('qbSolveContent');
-            if (el && ST.cq) {
-                const q = ST.cq;
-                const zc = q.zorluk === 'kolay' ? 'badge-grn' : q.zorluk === 'zor' ? 'badge-red' : 'badge-warn';
-                const hasChoices = q.inputType === 'choice' && q.choices && q.choices.length >= 2;
-                const ansHTML = hasChoices ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${q.choices.map((ch,i)=>`<button class="btn btn-secondary btn-full qb-choice-btn" onclick="submitQBChoiceAnswer(${i})" style="text-align:left;justify-content:flex-start;padding:14px 16px"><span style="font-weight:700;margin-right:10px;color:var(--accent)">${String.fromCharCode(65+i)})</span> ${ch.text}</button>`).join('')}</div>`
-                    : `<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter')checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="skipQBQuestion()">Boş Bırak →</button>`;
-                const t = getTopicById(ST.topic);
-                const progress = getQBProgress(ST.topic);
-                el.innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>📝 ${t?.n||''}</span><span>${progress.solved.length}/${CONSTANTS.QUESTION_BANK_SIZE}</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(progress.solved.length/CONSTANTS.QUESTION_BANK_SIZE)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${progress.solved.length+1}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span><span class="badge badge-acc">${t?.n||''}</span></div></div><div class="q-text">${q.soru.replace(/\n/g,'<br>')}</div>${ansHTML}</div>`;
-            }
-        } else {
-            renderNextQBQuestion();
-        }
+        renderNextQBQuestion();
     },
     vExamList: renderExamList,
     vExam: function() {
@@ -1148,8 +1131,10 @@ window.doReset = function(type) { closeModal('reset'); if(type==='all'){if(!conf
 window.resetQuestionBankProgress = function() { if(!confirm('Soru bankası ilerlemesi sıfırlansın mı?'))return; ST.questionBankProgress={}; saveState(); goStats(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 13: TEST MODU & BAŞLATMA
+// BÖLÜM 13: BAŞLATMA
 // ============================================
+
+
 let tmc=0,tmt=null;
 document.addEventListener('DOMContentLoaded',()=>{
     const ht=document.getElementById('headerTitle');
@@ -1159,17 +1144,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function initApp() {
     loadState();
-    const targetView = ST.lastView || 'vHome';
-    showView(targetView, false);
+    showView('vHome', false);      // her zaman ana sayfa açılsın
     initExamSets();
     ST.lastSession = todayStr();
     saveState();
-    history.replaceState({ view: targetView }, '', '#/' + targetView);
+    history.replaceState({ view: 'vHome' }, '', '#/vHome');
     console.log('✅ app.js hazır!');
 }
 
 // ============================================
-// MÜSVEDDE (KARALAMA ALANI)
+// MÜSVEDDE (ÇİZİM ALANI)
 // ============================================
 let musveddeCanvas = null;
 let musveddeCtx = null;
@@ -1270,8 +1254,7 @@ window.toggleMusvedde = function() {
     if (!area) { initMusvedde(); }
     const el = document.getElementById('musveddeArea');
     if (el) {
-        const isOpen = el.classList.contains('open');
-        if (isOpen) {
+        if (el.classList.contains('open')) {
             el.classList.remove('open');
         } else {
             el.classList.add('open');
