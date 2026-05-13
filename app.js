@@ -419,9 +419,15 @@ function checkRule(rule, vars) {
     if (!rule) return true;
     try {
         let expr = String(rule);
-        for (const k of Object.keys(vars)) expr = expr.split('{' + k + '}').join(vars[k]);
-        return !!eval(expr);
-    } catch (e) { return true; }
+        for (const k of Object.keys(vars)) {
+            expr = expr.split('{' + k + '}').join(vars[k]);
+        }
+        const result = eval(expr);
+        return !!result;
+    } catch (e) {
+        console.warn('Rule hatası:', rule, e);
+        return false; // ← true idi, false yap
+    }
 }
 
 function calculateAnswer(formula, vars) {
