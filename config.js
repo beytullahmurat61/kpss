@@ -78,6 +78,11 @@ const TOPICS = [
     { id: 26, order: 26, p: 'İLERİ KONULAR (DGS)',      n: 'Fonksiyonlar',                    e: '𝑓',  kpss: 'YOK',      dgs: '2-3 soru' },
     { id: 27, order: 27, p: 'İLERİ KONULAR (DGS)',      n: 'Permütasyon & Kombinasyon',       e: '🎯', kpss: 'YOK',      dgs: '1-2 soru' },
     { id: 28, order: 28, p: 'İLERİ KONULAR (DGS)',      n: 'Olasılık',                        e: '🎲', kpss: '1 soru',   dgs: '1-2 soru' }
+	
+	// ========== FAZ 11: GRAFİK VE TABLO ==========
+    { id: 29, order: 29, p: 'GEOMETRİ', n: 'Temel Geometri', e: '📐', kpss: '1-2 soru', dgs: '1-2 soru' },
+    { id: 30, order: 30, p: 'VERİ & GRAFİK', n: 'Grafik ve Veri Analizi', e: '📊', kpss: '1-2 soru', dgs: '1-2 soru' },
+	
 ];
 
 // ==================== FORMÜLLER ====================
@@ -270,7 +275,7 @@ const FORMULAS = {
 
 // ==================== SABİTLER ====================
 const CONSTANTS = {
-    TOTAL_TOPICS: 28,
+    TOTAL_TOPICS: 30,
     QUESTIONS_PER_TOPIC: 30,
     QUESTION_BANK_SIZE: 300,
     EXAM_SETS: 5,
