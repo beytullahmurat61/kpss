@@ -2,96 +2,81 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>KPSS/DGS Soru Çözüm Platformu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>KPSS/DGS Soru Çözüm</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
+    <div class="container">
         <div class="header">
             <h1>📚 KPSS/DGS Soru Bankası</h1>
-            <p>18 seviye • Binlerce soru • Mobil uyumlu</p>
+            <p>Seviyene göre soru çöz, kendini geliştir!</p>
         </div>
-        
-        <!-- Kontrol Paneli -->
-        <div class="controls">
-            <div class="control-group">
-                <label>📊 Seviye Seç</label>
-                <select id="seviyeSelect">
-                    <option value="0">Seviye 0 - Dört İşlem (En Kolay)</option>
-                    <option value="1">Seviye 1 - Temel Kavramlar</option>
-                    <option value="2">Seviye 2 - Bölünebilme / Asallar / EBOB-EKOK</option>
-                    <option value="3">Seviye 3 - Kesirler ve Rasyonel Sayılar</option>
-                    <option value="4">Seviye 4 - Üslü Sayılar</option>
-                    <option value="5">Seviye 5 - Köklü Sayılar</option>
-                    <option value="6">Seviye 6 - Çarpanlara Ayırma</option>
-                    <option value="7">Seviye 7 - Denklemler</option>
-                    <option value="8">Seviye 8 - Eşitsizlikler</option>
-                    <option value="9">Seviye 9 - Mutlak Değer</option>
-                    <option value="10">Seviye 10 - Oran-Orantı</option>
-                    <option value="11">Seviye 11 - Problemler</option>
-                    <option value="12">Seviye 12 - Kümeler</option>
-                    <option value="13">Seviye 13 - Permütasyon</option>
-                    <option value="14">Seviye 14 - Kombinasyon</option>
-                    <option value="15">Seviye 15 - Olasılık</option>
-                    <option value="16">Seviye 16 - İstatistik</option>
-                    <option value="17">Seviye 17 - Mantık</option>
-                    <option value="18">Seviye 18 - Geometri (En Zor)</option>
+
+        <div class="settings">
+            <div class="setting-group">
+                <label>📊 Seviye</label>
+                <select id="levelSelect">
+                    <option value="0">0 - Dört İşlem</option>
+                    <option value="1">1 - Temel Kavramlar</option>
+                    <option value="2">2 - Bölünebilme / Asallar / EBOB-EKOK</option>
+                    <option value="3">3 - Kesirler</option>
+                    <option value="4">4 - Üslü Sayılar</option>
+                    <option value="5">5 - Köklü Sayılar</option>
+                    <option value="6">6 - Çarpanlara Ayırma</option>
+                    <option value="7">7 - Denklemler</option>
+                    <option value="8">8 - Eşitsizlikler</option>
+                    <option value="9">9 - Mutlak Değer</option>
+                    <option value="10">10 - Oran-Orantı</option>
+                    <option value="11">11 - Problemler</option>
+                    <option value="12">12 - Kümeler</option>
+                    <option value="13">13 - Permütasyon</option>
+                    <option value="14">14 - Kombinasyon</option>
+                    <option value="15">15 - Olasılık</option>
+                    <option value="16">16 - İstatistik</option>
+                    <option value="17">17 - Mantık</option>
+                    <option value="18">18 - Geometri</option>
                 </select>
             </div>
             
-            <div class="control-group">
-                <label>🎯 Zorluk Seviyesi</label>
-                <div class="zorluk-buttons">
-                    <button data-zorluk="kolay" class="zorluk-btn">Kolay</button>
-                    <button data-zorluk="orta" class="zorluk-btn active">Orta</button>
-                    <button data-zorluk="zor" class="zorluk-btn">Zor</button>
-                    <button data-zorluk="cok_zor" class="zorluk-btn">Çok Zor</button>
+            <div class="setting-group">
+                <label>⚡ Zorluk</label>
+                <div class="difficulty-buttons">
+                    <button data-diff="kolay" class="diff-btn">Kolay</button>
+                    <button data-diff="orta" class="diff-btn active">Orta</button>
+                    <button data-diff="zor" class="diff-btn">Zor</button>
+                    <button data-diff="cok_zor" class="diff-btn">Çok Zor</button>
                 </div>
             </div>
-            
-            <div class="control-group">
-                <label>📂 Alt Konu (isteğe bağlı)</label>
-                <select id="altDalSelect">
+
+            <div class="setting-group">
+                <label>📂 Konu</label>
+                <select id="topicSelect">
                     <option value="">Tüm Konular</option>
                 </select>
             </div>
-            
-            <div class="control-group">
-                <label>🔢 Soru Sayısı</label>
-                <input type="range" id="soruSayisi" min="1" max="20" value="10">
-                <span id="soruSayisiValue" class="soru-sayisi-label">10 soru</span>
-            </div>
-            
-            <button id="soruUretBtn" class="btn-primary">🎲 Yeni Sorular Üret</button>
+
+            <button id="newQuestionsBtn" class="new-questions-btn">🎲 Yeni Sorular</button>
         </div>
-        
-        <!-- İstatistik -->
-        <div class="stats" id="stats" style="display: none;">
-            <div class="stat-card">
+
+        <div class="stats">
+            <div class="stat">
                 <span class="stat-label">Doğru</span>
-                <span class="stat-value" id="dogruSayisi">0</span>
+                <span class="stat-value" id="correctCount">0</span>
             </div>
-            <div class="stat-card">
+            <div class="stat">
                 <span class="stat-label">Yanlış</span>
-                <span class="stat-value" id="yanlisSayisi">0</span>
+                <span class="stat-value" id="wrongCount">0</span>
             </div>
-            <div class="stat-card">
+            <div class="stat">
                 <span class="stat-label">Başarı</span>
-                <span class="stat-value" id="basariYuzdesi">0%</span>
+                <span class="stat-value" id="successRate">0%</span>
             </div>
         </div>
-        
-        <!-- Sorular -->
-        <div id="sorularContainer" class="sorular-container"></div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p>Toplam soru havuzu: <span id="toplamSoru">0</span> soru</p>
-        </div>
+
+        <div id="questionsArea" class="questions-area"></div>
     </div>
-    
+
     <script src="questions.js"></script>
     <script src="app.js"></script>
 </body>
