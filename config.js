@@ -327,3 +327,4 @@ function getNextLevel(levelName) {
 }
 
 console.log('✅ config.js (v3 - 30 konu) yüklendi -', TOPICS.length, 'konu | KPSS → DGS sıralı');
+console.log('✅ config.js yüklendi - FORMULAS tipi:', typeof FORMULAS);
