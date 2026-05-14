@@ -1,70 +1,51 @@
-/* ============================================
-   style.css - KPSS/DGS Soru Platformu
-   Mobile First Tasarım
-   ============================================ */
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f0f2f5;
-    padding: 12px;
-    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 20px;
 }
 
-/* ============================================
-   ANA KONTEYNER
-   ============================================ */
-.app-container {
-    max-width: 700px;
+.container {
+    max-width: 800px;
     margin: 0 auto;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* Header */
 .header {
-    background: linear-gradient(135deg, #1a73e8, #0d47a1);
-    color: white;
-    padding: 20px 16px;
-    border-radius: 24px;
-    margin-bottom: 16px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
 }
 
 .header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
+    font-size: 1.8rem;
+    color: #1a73e8;
+    margin-bottom: 8px;
 }
 
 .header p {
-    font-size: 0.8rem;
-    opacity: 0.9;
+    color: #666;
+    font-size: 0.9rem;
 }
 
-/* ============================================
-   KONTROL PANELİ
-   ============================================ */
-.controls {
+/* Settings Paneli */
+.settings {
     background: white;
-    border-radius: 20px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.control-group {
+.setting-group {
     margin-bottom: 16px;
 }
 
-.control-group label {
+.setting-group label {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
@@ -72,112 +53,66 @@ body {
     margin-bottom: 8px;
 }
 
-.control-group select {
+select {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 0.9rem;
     background: white;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
 }
 
 /* Zorluk Butonları */
-.zorluk-buttons {
+.difficulty-buttons {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
-.zorluk-btn {
+.diff-btn {
     flex: 1;
-    padding: 10px 12px;
+    padding: 8px;
     border: 1px solid #ddd;
     background: white;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    border-radius: 20px;
+    font-size: 0.8rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
+    transition: all 0.2s;
 }
 
-.zorluk-btn.active {
+.diff-btn.active {
     background: #1a73e8;
     border-color: #1a73e8;
     color: white;
 }
 
-.zorluk-btn:active {
-    transform: scale(0.96);
-}
-
-/* Soru Sayısı Slider */
-#soruSayisi {
+/* Yeni Sorular Butonu */
+.new-questions-btn {
     width: 100%;
-    height: 4px;
-    -webkit-appearance: none;
-    background: #ddd;
-    border-radius: 2px;
-    outline: none;
-}
-
-#soruSayisi::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #1a73e8;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.soru-sayisi-label {
-    display: inline-block;
-    margin-top: 8px;
-    font-size: 0.8rem;
-    color: #666;
-}
-
-/* Ana Buton */
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #34a853, #0f9d58);
+    padding: 12px;
+    background: #34a853;
     color: white;
     border: none;
     border-radius: 30px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
     margin-top: 8px;
 }
 
-.btn-primary:active {
-    transform: scale(0.97);
-}
-
-/* ============================================
-   İSTATİSTİK KARTLARI
-   ============================================ */
+/* İstatistik */
 .stats {
     display: flex;
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.stat-card {
+.stat {
     flex: 1;
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 12px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .stat-label {
@@ -188,270 +123,121 @@ body {
 }
 
 .stat-value {
-    display: block;
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: bold;
     color: #1a73e8;
 }
 
-/* ============================================
-   SORU KARTLARI
-   ============================================ */
-.sorular-container {
+/* Soru Alanı */
+.questions-area {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 20px;
 }
 
-.soru-card {
+.question-card {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.soru-header {
+.question-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid #eee;
 }
 
-.soru-numara {
+.question-number {
     font-size: 0.8rem;
     font-weight: 600;
     color: #1a73e8;
-    background: #e8f0fe;
-    padding: 4px 10px;
-    border-radius: 20px;
 }
 
-.soru-zorluk {
+.question-difficulty {
     font-size: 0.7rem;
-    padding: 4px 8px;
-    border-radius: 20px;
+    padding: 2px 8px;
+    border-radius: 12px;
     background: #f0f2f5;
-    color: #666;
 }
 
-.soru-zorluk.kolay { background: #e6f4ea; color: #137333; }
-.soru-zorluk.orta { background: #fff3e0; color: #e67700; }
-.soru-zorluk.zor { background: #fdeded; color: #c5221f; }
-.soru-zorluk.cok_zor { background: #f3e8ff; color: #9333ea; }
+.question-difficulty.kolay { background: #e6f4ea; color: #137333; }
+.question-difficulty.orta { background: #fff3e0; color: #e67700; }
+.question-difficulty.zor { background: #fdeded; color: #c5221f; }
+.question-difficulty.cok_zor { background: #f3e8ff; color: #9333ea; }
 
-.soru-metin {
+.question-text {
     font-size: 1rem;
     line-height: 1.5;
     margin-bottom: 16px;
     color: #1e293b;
 }
 
-.soru-cevap-alani {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.soru-input {
-    flex: 1;
+.question-input {
+    width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 12px;
-    font-size: 0.95rem;
-    text-align: center;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
 }
 
-.soru-input:focus {
+.question-input:focus {
     outline: none;
     border-color: #1a73e8;
 }
 
-.soru-kontrol-btn {
-    padding: 10px 20px;
+.check-btn {
+    width: 100%;
+    padding: 10px;
     background: #1a73e8;
     color: white;
     border: none;
     border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.soru-kontrol-btn:active {
-    transform: scale(0.95);
+.check-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 }
 
-.soru-sonuc {
+.result {
     margin-top: 12px;
-    font-size: 0.85rem;
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 10px;
     text-align: center;
+    font-size: 0.85rem;
 }
 
-.soru-sonuc.dogru {
+.result.correct {
     background: #e6f4ea;
     color: #137333;
 }
 
-.soru-sonuc.yanlis {
+.result.wrong {
     background: #fdeded;
     color: #c5221f;
 }
 
-/* ============================================
-   CEVAPLANMIŞ SORU STİLLERİ
-   ============================================ */
-.soru-card.cevaplanmis {
-    background: #fafafa;
-    opacity: 0.9;
-}
-
-.soru-card.cevaplanmis .soru-input {
-    background: #f0f2f5;
-    color: #666;
-}
-
-.dogru-cevap-goster {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 8px;
-    text-align: center;
-}
-
-/* ============================================
-   FOOTER
-   ============================================ */
-.footer {
-    text-align: center;
-    padding: 16px;
-    color: #666;
-    font-size: 0.7rem;
-    border-top: 1px solid #ddd;
-    margin-top: 20px;
-}
-
-/* ============================================
-   GEOMETRİ ÇİZİMLERİ (Canvas/SVG)
-   ============================================ */
-.geometry-container {
-    background: #fafafa;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-    text-align: center;
-    border: 1px solid #eee;
-}
-
-.geometry-container canvas,
-.geometry-container svg {
-    max-width: 100%;
-    height: auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* ============================================
-   YÜKLEME ANİMASYONU
-   ============================================ */
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #666;
-}
-
-.loading::after {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ddd;
-    border-top-color: #1a73e8;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    margin-left: 8px;
-    vertical-align: middle;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   TABLET VE MASAÜSTÜ DÜZENLEMELERİ
-   ============================================ */
-@media (min-width: 768px) {
+/* Responsive */
+@media (max-width: 600px) {
     body {
-        padding: 20px;
+        padding: 12px;
     }
     
-    .controls {
-        padding: 20px;
-    }
-    
-    .soru-card {
-        padding: 24px;
-    }
-    
-    .soru-metin {
-        font-size: 1.05rem;
-    }
-    
-    .btn-primary {
+    .settings {
         padding: 16px;
-        font-size: 1.05rem;
-    }
-}
-
-/* ============================================
-   DARK MODE DESTEĞİ (İsteğe bağlı)
-   ============================================ */
-@media (prefers-color-scheme: dark) {
-    body {
-        background: #1a1a2e;
     }
     
-    .controls,
-    .stat-card,
-    .soru-card {
-        background: #16213e;
-        color: #e0e0e0;
+    .question-card {
+        padding: 16px;
     }
     
-    .control-group label,
-    .stat-label {
-        color: #aaa;
-    }
-    
-    .soru-metin {
-        color: #e0e0e0;
-    }
-    
-    .soru-input {
-        background: #0f0f23;
-        border-color: #2a2a4a;
-        color: #e0e0e0;
-    }
-    
-    .zorluk-btn {
-        background: #0f0f23;
-        border-color: #2a2a4a;
-        color: #e0e0e0;
-    }
-    
-    .zorluk-btn.active {
-        background: #1a73e8;
-        border-color: #1a73e8;
-    }
-    
-    .geometry-container {
-        background: #0f0f23;
+    .question-text {
+        font-size: 0.95rem;
     }
 }
