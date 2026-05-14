@@ -1,6 +1,6 @@
 // ============================================
 // app.js - KPSS/DGS Soru Üretici
-// questions.js ile tam uyumlu
+// questions.js ile tam uyumlu - Eski mantık
 // ============================================
 
 // ============================================
@@ -11,33 +11,30 @@ function random(min, max) {
     if (Array.isArray(min)) {
         return min[Math.floor(Math.random() * min.length)];
     }
-    if (typeof min === 'number' && typeof max === 'number') {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    return min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function randomChoice(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function placeVariables(template, vObj) {
+function placeVariables(template, vars) {
     let result = template;
     const matches = template.match(/\{[^}]+\}/g) || [];
     
     for (const match of matches) {
         const varName = match.slice(1, -1);
-        if (vObj[varName] !== undefined) {
-            result = result.replace(match, vObj[varName]);
+        if (vars[varName] !== undefined) {
+            result = result.replace(match, vars[varName]);
         }
     }
     return result;
 }
 
-function evaluateExpression(expr, vObj) {
+function evaluateExpression(expr, vars) {
     try {
         let processed = expr;
-        for (const [key, val] of Object.entries(vObj)) {
+        for (const [key, val] of Object.entries(vars)) {
             processed = processed.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
         }
         if (/^[0-9+\-*/() ]+$/.test(processed)) {
@@ -50,41 +47,40 @@ function evaluateExpression(expr, vObj) {
 }
 
 function generateVariables(varDef) {
-    const vObj = {};
+    const vars = {};
     const tempValues = {};
     
     for (const [key, range] of Object.entries(varDef)) {
         if (Array.isArray(range)) {
             if (range.length === 2) {
-                vObj[key] = random(range[0], range[1]);
+                vars[key] = random(range[0], range[1]);
             } else if (range.length === 3) {
                 const step = range[2];
                 const min = range[0];
                 const max = range[1];
-                const value = random(Math.ceil(min/step), Math.floor(max/step)) * step;
-                vObj[key] = value;
+                vars[key] = random(Math.ceil(min/step), Math.floor(max/step)) * step;
             } else {
-                vObj[key] = randomChoice(range);
+                vars[key] = randomChoice(range);
             }
         } else if (typeof range === 'string') {
             tempValues[key] = range;
         } else {
-            vObj[key] = range;
+            vars[key] = range;
         }
     }
     
     for (const [key, expr] of Object.entries(tempValues)) {
-        vObj[key] = evaluateExpression(expr, vObj);
+        vars[key] = evaluateExpression(expr, vars);
     }
     
-    return vObj;
+    return vars;
 }
 
-function checkCondition(condition, vObj) {
+function checkCondition(condition, vars) {
     if (!condition) return true;
     
     let processed = condition;
-    for (const [key, val] of Object.entries(vObj)) {
+    for (const [key, val] of Object.entries(vars)) {
         processed = processed.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
     }
     
@@ -95,141 +91,131 @@ function checkCondition(condition, vObj) {
     }
 }
 
-function prepareQuestion(qTemplate) {
-    let vObj = generateVariables(qTemplate.v);
+function prepareQuestion(template) {
+    let vars = generateVariables(template.v);
     
-    let deneme = 0;
-    while (!checkCondition(qTemplate.kosul, vObj) && deneme < 100) {
-        vObj = generateVariables(qTemplate.v);
-        deneme++;
+    let attempts = 0;
+    while (!checkCondition(template.kosul, vars) && attempts < 50) {
+        vars = generateVariables(template.v);
+        attempts++;
     }
     
-    const soru = placeVariables(qTemplate.s, vObj);
+    const questionText = placeVariables(template.s, vars);
     
-    let cevap = qTemplate.c;
-    if (typeof cevap === 'string' && cevap.includes('{')) {
-        cevap = placeVariables(cevap, vObj);
-        if (/^[0-9+\-*/() ]+$/.test(cevap)) {
+    let answer = template.c;
+    if (typeof answer === 'string' && answer.includes('{')) {
+        answer = placeVariables(answer, vars);
+        if (/^[0-9+\-*/() ]+$/.test(answer)) {
             try {
-                cevap = Function('"use strict";return (' + cevap + ')')();
+                answer = Function('"use strict";return (' + answer + ')')();
             } catch(e) {}
         }
     }
     
     return {
-        id: qTemplate.id,
-        soru: soru,
-        cevap: cevap,
-        zorluk: qTemplate.z,
-        altDal: qTemplate.alt
+        id: template.id,
+        text: questionText,
+        answer: answer,
+        difficulty: template.z,
+        topic: template.alt
     };
 }
 
 // ============================================
-// SORU ÜRETİM FONKSİYONLARI
+// SORU ÜRETİMİ
 // ============================================
 
-function getSorular(seviye, zorluk = null) {
-    if (!QUESTIONS[seviye]) return [];
+let currentQuestions = [];
+let userAnswers = {};
+let questionResults = {};
+
+function getQuestionsByLevel(level, difficulty, topic = null) {
+    if (!QUESTIONS[level]) return [];
     
-    let sorular = [...QUESTIONS[seviye]];
+    let filtered = [...QUESTIONS[level]];
     
-    if (zorluk) {
-        sorular = sorular.filter(q => q.z === zorluk);
+    if (difficulty) {
+        filtered = filtered.filter(q => q.z === difficulty);
     }
     
-    return sorular;
+    if (topic) {
+        filtered = filtered.filter(q => q.alt === topic);
+    }
+    
+    return filtered;
 }
 
-function generateQuestions(seviye, zorluk, soruSayisi, altDal = null) {
-    let havuz = getSorular(seviye, zorluk);
+function generateQuestions(count, level, difficulty, topic = null) {
+    const pool = getQuestionsByLevel(level, difficulty, topic);
     
-    if (altDal) {
-        havuz = havuz.filter(q => q.alt === altDal);
+    if (pool.length === 0) return [];
+    
+    const questions = [];
+    for (let i = 0; i < count; i++) {
+        const template = randomChoice(pool);
+        questions.push(prepareQuestion(template));
     }
     
-    if (havuz.length === 0) return [];
-    
-    const sorular = [];
-    for (let i = 0; i < soruSayisi; i++) {
-        const template = randomChoice(havuz);
-        sorular.push(prepareQuestion(template));
-    }
-    
-    return sorular;
+    return questions;
 }
 
-function getSeviyeBilgileri() {
-    const bilgiler = {};
-    for (const [seviye, sorular] of Object.entries(QUESTIONS)) {
-        if (isNaN(parseInt(seviye))) continue;
-        bilgiler[seviye] = {
-            toplamSoru: sorular.length,
-            altDallar: [...new Set(sorular.map(q => q.alt).filter(Boolean))]
-        };
-    }
-    return bilgiler;
-}
-
-function getAltDallar(seviye) {
-    if (!QUESTIONS[seviye]) return [];
-    return [...new Set(QUESTIONS[seviye].map(q => q.alt).filter(Boolean))];
+function getTopics(level) {
+    if (!QUESTIONS[level]) return [];
+    const topics = new Set();
+    QUESTIONS[level].forEach(q => {
+        if (q.alt) topics.add(q.alt);
+    });
+    return Array.from(topics);
 }
 
 // ============================================
 // UI İŞLEMLERİ
 // ============================================
 
-let currentQuestions = [];
-let userAnswers = {};
-
 function renderQuestions() {
-    const container = document.getElementById('sorularContainer');
+    const container = document.getElementById('questionsArea');
     if (!container) return;
     
     container.innerHTML = '';
     
     currentQuestions.forEach((q, index) => {
         const isAnswered = userAnswers[index] !== undefined;
-        const isCorrect = isAnswered && Math.abs(userAnswers[index] - q.cevap) < 0.01;
+        const isCorrect = questionResults[index];
         
-        const soruCard = document.createElement('div');
-        soruCard.className = `soru-card ${isAnswered ? 'cevaplanmis' : ''}`;
-        
-        const zorlukClass = {
+        const difficultyClass = {
             'kolay': 'kolay',
             'orta': 'orta',
             'zor': 'zor',
             'cok_zor': 'cok_zor'
-        }[q.zorluk] || 'orta';
+        }[q.difficulty] || 'orta';
         
-        soruCard.innerHTML = `
-            <div class="soru-header">
-                <span class="soru-numara">Soru ${index + 1}</span>
-                <span class="soru-zorluk ${zorlukClass}">${q.zorluk.toUpperCase()}</span>
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">Soru ${index + 1}</span>
+                <span class="question-difficulty ${difficultyClass}">${q.difficulty.toUpperCase()}</span>
             </div>
-            <div class="soru-metin">${q.soru}</div>
-            <div class="soru-cevap-alani">
-                <input type="number" class="soru-input" id="input_${index}" 
-                       placeholder="Cevabınızı girin..." 
-                       ${isAnswered ? 'disabled' : ''}
-                       value="${isAnswered ? userAnswers[index] : ''}">
-                <button class="soru-kontrol-btn" data-index="${index}" ${isAnswered ? 'disabled' : ''}>
-                    ${isAnswered ? '✓ Cevaplandı' : 'Kontrol Et'}
-                </button>
-            </div>
+            <div class="question-text">${q.text}</div>
+            <input type="number" class="question-input" id="input_${index}" 
+                   placeholder="Cevabınızı girin..." 
+                   ${isAnswered ? 'disabled' : ''}
+                   value="${isAnswered ? userAnswers[index] : ''}">
+            <button class="check-btn" data-index="${index}" ${isAnswered ? 'disabled' : ''}>
+                ${isAnswered ? (isCorrect ? '✓ Doğru' : '✗ Yanlış') : 'Kontrol Et'}
+            </button>
             ${isAnswered ? `
-                <div class="soru-sonuc ${isCorrect ? 'dogru' : 'yanlis'}">
-                    ${isCorrect ? '✓ Doğru Cevap!' : `✗ Yanlış! Doğru cevap: ${q.cevap}`}
+                <div class="result ${isCorrect ? 'correct' : 'wrong'}">
+                    ${isCorrect ? '✓ Tebrikler! Doğru cevap.' : `✗ Üzgünüm! Doğru cevap: ${q.answer}`}
                 </div>
             ` : ''}
         `;
         
-        container.appendChild(soruCard);
+        container.appendChild(card);
     });
     
-    // Kontrol butonlarına event listener ekle
-    document.querySelectorAll('.soru-kontrol-btn').forEach(btn => {
+    // Event listener ekle
+    document.querySelectorAll('.check-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const index = parseInt(btn.dataset.index);
             const input = document.getElementById(`input_${index}`);
@@ -241,6 +227,8 @@ function renderQuestions() {
             }
             
             userAnswers[index] = userValue;
+            questionResults[index] = Math.abs(userValue - currentQuestions[index].answer) < 0.01;
+            
             updateStats();
             renderQuestions();
         });
@@ -248,46 +236,41 @@ function renderQuestions() {
 }
 
 function updateStats() {
-    let dogru = 0;
-    let yanlis = 0;
+    let correct = 0;
+    let wrong = 0;
     
     for (let i = 0; i < currentQuestions.length; i++) {
         if (userAnswers[i] !== undefined) {
-            if (Math.abs(userAnswers[i] - currentQuestions[i].cevap) < 0.01) {
-                dogru++;
+            if (questionResults[i]) {
+                correct++;
             } else {
-                yanlis++;
+                wrong++;
             }
         }
     }
     
-    const toplamCevaplanan = dogru + yanlis;
-    const basari = toplamCevaplanan > 0 ? (dogru / toplamCevaplanan * 100).toFixed(0) : 0;
+    const total = correct + wrong;
+    const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
     
-    const statsDiv = document.getElementById('stats');
-    if (statsDiv) {
-        statsDiv.style.display = 'flex';
-    }
+    const correctSpan = document.getElementById('correctCount');
+    const wrongSpan = document.getElementById('wrongCount');
+    const rateSpan = document.getElementById('successRate');
     
-    const dogruSpan = document.getElementById('dogruSayisi');
-    const yanlisSpan = document.getElementById('yanlisSayisi');
-    const basariSpan = document.getElementById('basariYuzdesi');
-    
-    if (dogruSpan) dogruSpan.textContent = dogru;
-    if (yanlisSpan) yanlisSpan.textContent = yanlis;
-    if (basariSpan) basariSpan.textContent = `${basari}%`;
+    if (correctSpan) correctSpan.textContent = correct;
+    if (wrongSpan) wrongSpan.textContent = wrong;
+    if (rateSpan) rateSpan.textContent = `${rate}%`;
 }
 
-function loadAltDallar(seviye) {
-    const altDallar = getAltDallar(seviye);
-    const select = document.getElementById('altDalSelect');
+function loadTopics(level) {
+    const topics = getTopics(level);
+    const select = document.getElementById('topicSelect');
     if (!select) return;
     
     select.innerHTML = '<option value="">Tüm Konular</option>';
-    altDallar.forEach(alt => {
+    topics.forEach(topic => {
         const option = document.createElement('option');
-        option.value = alt;
-        option.textContent = alt.replace(/_/g, ' ').toUpperCase();
+        option.value = topic;
+        option.textContent = topic.replace(/_/g, ' ').toUpperCase();
         select.appendChild(option);
     });
 }
@@ -297,53 +280,42 @@ function loadAltDallar(seviye) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Seviye bilgilerini göster
-    const bilgiler = getSeviyeBilgileri();
-    let toplamSoru = 0;
-    for (const [seviye, bilgi] of Object.entries(bilgiler)) {
-        toplamSoru += bilgi.toplamSoru;
-    }
-    const toplamSpan = document.getElementById('toplamSoru');
-    if (toplamSpan) toplamSpan.textContent = toplamSoru;
+    let currentLevel = 0;
+    let currentDifficulty = 'orta';
+    let currentTopic = '';
     
-    // Seviye değişince alt dalları güncelle
-    const seviyeSelect = document.getElementById('seviyeSelect');
-    if (seviyeSelect) {
-        seviyeSelect.addEventListener('change', () => {
-            loadAltDallar(parseInt(seviyeSelect.value));
+    const levelSelect = document.getElementById('levelSelect');
+    const topicSelect = document.getElementById('topicSelect');
+    const newBtn = document.getElementById('newQuestionsBtn');
+    
+    if (levelSelect) {
+        levelSelect.addEventListener('change', () => {
+            currentLevel = parseInt(levelSelect.value);
+            loadTopics(currentLevel);
         });
-        loadAltDallar(parseInt(seviyeSelect.value));
+        currentLevel = parseInt(levelSelect.value);
+        loadTopics(currentLevel);
     }
     
-    // Zorluk butonları
-    let seciliZorluk = 'orta';
-    document.querySelectorAll('.zorluk-btn').forEach(btn => {
+    if (topicSelect) {
+        topicSelect.addEventListener('change', () => {
+            currentTopic = topicSelect.value;
+        });
+    }
+    
+    document.querySelectorAll('.diff-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.zorluk-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            seciliZorluk = btn.dataset.zorluk;
+            currentDifficulty = btn.dataset.diff;
         });
     });
     
-    // Soru sayısı slider
-    const soruSayisiSlider = document.getElementById('soruSayisi');
-    const soruSayisiValue = document.getElementById('soruSayisiValue');
-    if (soruSayisiSlider && soruSayisiValue) {
-        soruSayisiSlider.addEventListener('input', () => {
-            soruSayisiValue.textContent = `${soruSayisiSlider.value} soru`;
-        });
-    }
-    
-    // Soru üret butonu
-    const soruUretBtn = document.getElementById('soruUretBtn');
-    if (soruUretBtn) {
-        soruUretBtn.addEventListener('click', () => {
-            const seviye = parseInt(document.getElementById('seviyeSelect').value);
-            const altDal = document.getElementById('altDalSelect').value;
-            const soruSayisi = parseInt(document.getElementById('soruSayisi').value);
-            
-            currentQuestions = generateQuestions(seviye, seciliZorluk, soruSayisi, altDal || null);
+    if (newBtn) {
+        newBtn.addEventListener('click', () => {
+            currentQuestions = generateQuestions(10, currentLevel, currentDifficulty, currentTopic || null);
             userAnswers = {};
+            questionResults = {};
             
             if (currentQuestions.length === 0) {
                 alert('Bu kriterlere uygun soru bulunamadı!');
@@ -353,10 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderQuestions();
             updateStats();
         });
+        
+        // İlk yükleme
+        newBtn.click();
     }
-    
-    // İlk soruları yükle
-    setTimeout(() => {
-        soruUretBtn.click();
-    }, 100);
 });
