@@ -1,7 +1,7 @@
 // ============================================
 // config.js - KPSS & DGS MATEMATİK
 // Sabitler, Konular, Seviyeler, Formüller
-// Versiyon: 2.1
+// Versiyon: 2.2 (GEOMETRİ & GRAFİK EKLENDİ)
 // ============================================
 
 // ==================== STATE VERSİYON ====================
@@ -77,7 +77,11 @@ const TOPICS = [
     { id: 25, order: 25, p: 'İLERİ KONULAR (DGS)',      n: '2. Dereceden Denklemler',         e: '📉', kpss: 'YOK',      dgs: '1-2 soru' },
     { id: 26, order: 26, p: 'İLERİ KONULAR (DGS)',      n: 'Fonksiyonlar',                    e: '𝑓',  kpss: 'YOK',      dgs: '2-3 soru' },
     { id: 27, order: 27, p: 'İLERİ KONULAR (DGS)',      n: 'Permütasyon & Kombinasyon',       e: '🎯', kpss: 'YOK',      dgs: '1-2 soru' },
-    { id: 28, order: 28, p: 'İLERİ KONULAR (DGS)',      n: 'Olasılık',                        e: '🎲', kpss: '1 soru',   dgs: '1-2 soru' }
+    { id: 28, order: 28, p: 'İLERİ KONULAR (DGS)',      n: 'Olasılık',                        e: '🎲', kpss: '1 soru',   dgs: '1-2 soru' },
+
+    // ========== FAZ 11: GEOMETRİ & GRAFİK (YENİ) ==========
+    { id: 29, order: 29, p: 'GEOMETRİ',                 n: 'Temel Geometri',                  e: '📐', kpss: '1-2 soru', dgs: '1 soru' },
+    { id: 30, order: 30, p: 'GRAFİK',                   n: 'Grafik Problemleri',              e: '📊', kpss: '1 soru',   dgs: '1 soru' }
 ];
 
 // ==================== FORMÜLLER ====================
@@ -265,12 +269,27 @@ const FORMULAS = {
         "✅ P(A) + P(A') = 1 (tümleyen)",
         "🎯 Bağımsız olay: P(A∩B) = P(A)·P(B)",
         "🎯 Bağımlı olay: P(A∩B) = P(A)·P(B|A)"
+    ],
+    // ==================== YENİ KONULAR ====================
+    29: [
+        "📐 Üçgen: İç açılar toplamı 180°",
+        "📏 Dikdörtgen: Alan = kısa kenar × uzun kenar",
+        "🟪 Kare: Alan = kenar²",
+        "🔴 Daire: Alan = πr², Çevre = 2πr",
+        "📐 Pisagor: a² + b² = c² (dik üçgen)"
+    ],
+    30: [
+        "📊 Sütun grafiği: Verilerin karşılaştırılması",
+        "🥧 Daire grafiği: Merkez açı = (oran × 360°)",
+        "📈 Çizgi grafiği: Zaman içindeki değişim",
+        "📊 Aritmetik ortalama = Toplam / Adet",
+        "📉 Açıklık = En büyük - En küçük"
     ]
 };
 
 // ==================== SABİTLER ====================
 const CONSTANTS = {
-    TOTAL_TOPICS: 28,
+    TOTAL_TOPICS: 30, // 28 → 30 yapıldı
     QUESTIONS_PER_TOPIC: 30,
     QUESTION_BANK_SIZE: 300,
     EXAM_SETS: 5,
@@ -307,4 +326,4 @@ function getNextLevel(levelName) {
     return idx < levels.length - 1 ? levels[idx + 1] : null;
 }
 
-console.log('✅ config.js (v3) yüklendi -', TOPICS.length, 'konu | KPSS → DGS sıralı');
+console.log('✅ config.js (v3 - 30 konu) yüklendi -', TOPICS.length, 'konu | KPSS → DGS sıralı');
