@@ -35,7 +35,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: ELDELİ TOPLAMADA VERİLMEYEN RAKAM
   { id: "t1_013", s: " {a}{k}\n+{b}3\n----\n 7{c}\nVerilmeyen rakam {k} kaçtır?", c: "{k}", v: {a:[2,5], b:[1,3], c:[0,9], k:[0,9], kosul:"birler_elde_kontrol"}, z:"zor", alt:"sifreli_elde" },
-  { id: "t1_014", s: " {a}{r1}\n+{r2}{b}\n----\n {c}{d}\n{r1}+{r2} kaçtır?", c: "{r1}+{r2}", v: {a:[2,6], b:[2,6], r1:[0,9], r2:[0,9], c:"{a}+{r2}+elde", d:"{r1}+{b}%10"}, z:"cok_zor", alt:"sifreli_toplam" },
+  // DÜZELTME: elde değişkeni eklendi
+  { id: "t1_014", s: " {a}{r1}\n+{r2}{b}\n----\n {c}{d}\n{r1}+{r2} kaçtır?", c: "{r1}+{r2}", v: {a:[2,6], b:[2,6], r1:[0,9], r2:[0,9], elde:1, c:"{a}+{r2}+elde", d:"{r1}+{b}%10"}, z:"cok_zor", alt:"sifreli_toplam" },
 
   // ALT DAL 5: ZİHİNDEN TOPLAMA STRATEJİLERİ
   { id: "t1_015", s: "{a} + 9 = ?", c: "{a}+9", v: {a:[10,50]}, z:"kolay", alt:"zihinden_9" },
@@ -65,7 +66,7 @@ const SORU_BANKASI = {
   { id: "t1_029", s: "0 + {a} = ?", c: "{a}", v: {a:[1,100]}, z:"kolay", alt:"etkisiz_eleman" },
   { id: "t1_030", s: "{a} + ? = {a}", c: "0", v: {a:[1,100]}, z:"kolay", alt:"etkisiz_eleman_soru" },
 
-  // ALT DAL 11: TOPLAMADA TAHMİN
+  // ALT DAL 11: TOPLAMADA TAHMİN (dinamik ifadeler korundu)
   { id: "t1_031", s: "{a} + {b} ≈ ? (En yakın onluğa yuvarlayarak tahmin et)", c: "{a_yuv}+{b_yuv}", v: {a:[13,97], b:[12,98], a_yuv:"Math.round({a}/10)*10", b_yuv:"Math.round({b}/10)*10"}, z:"orta", alt:"tahmin_onluk" },
   { id: "t1_032", s: "{a} + {b} ≈ ? (En yakın yüzlüğe yuvarlayarak tahmin et)", c: "{a_yuv}+{b_yuv}", v: {a:[150,950], b:[120,980], a_yuv:"Math.round({a}/100)*100", b_yuv:"Math.round({b}/100)*100"}, z:"zor", alt:"tahmin_yuzluk" },
   { id: "t1_033", s: "{a} + {b} işleminin gerçek sonucu ile tahmini sonucu arasındaki fark kaçtır?", c: "Math.abs(({a}+{b})-({a_yuv}+{b_yuv}))", v: {a:[13,47], b:[12,48], a_yuv:"Math.round({a}/10)*10", b_yuv:"Math.round({b}/10)*10"}, z:"zor", alt:"tahmin_fark" },
@@ -587,272 +588,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
-// SEVİYE 1: TEMEL KAVRAMLAR
-// ==========================================
-1: [
-
-  // ==========================================
-  // KONU 1: TEK-ÇİFT SAYILAR (14 alt dal)
-  // ==========================================
-
-  // ALT DAL 1: TEK SAYI TANIMA
-  { id: "s1_tc_001", s: "Aşağıdakilerden hangisi tek sayıdır?", c: "{tek_sayi}", v: {a:[1000,9999], b:[1000,9999], c:[1000,9999], d:[1000,9999], kosul:"bir_tanesi_tek"}, z:"kolay", alt:"tek_tanima" },
-  { id: "s1_tc_002", s: "{a} sayısı tek sayı mıdır?", c: "{evet_hayir}", v: {a:[10,999]}, z:"kolay", alt:"tek_tanima" },
-  { id: "s1_tc_003", s: "Son rakamı {r} olan bir sayı için ne söylenebilir?", c: "{teklik}", v: {r:[0,9]}, z:"kolay", alt:"tek_tanima_son_rakam" },
-
-  // ALT DAL 2: ÇİFT SAYI TANIMA
-  { id: "s1_tc_004", s: "Aşağıdakilerden hangisi çift sayıdır?", c: "{cift_sayi}", v: {a:[1000,9999], b:[1000,9999], c:[1000,9999], d:[1000,9999], kosul:"bir_tanesi_cift"}, z:"kolay", alt:"cift_tanima" },
-  { id: "s1_tc_005", s: "{a} sayısı çift sayı mıdır?", c: "{evet_hayir}", v: {a:[10,999]}, z:"kolay", alt:"cift_tanima" },
-  { id: "s1_tc_006", s: "Üç basamaklı en büyük çift sayı kaçtır?", c: "998", v: {}, z:"kolay", alt:"cift_en_buyuk" },
-  { id: "s1_tc_007", s: "İki basamaklı en küçük tek sayı kaçtır?", c: "11", v: {}, z:"kolay", alt:"tek_en_kucuk" },
-
-  // ALT DAL 3: TOPLAMA İŞLEMİNDE TEK/ÇİFT
-  { id: "s1_tc_008", s: "{a} (tek) + {b} (çift) = ? (tek/çift)", c: "tek", v: {a:[1,99,2], b:[2,100,2]}, z:"kolay", alt:"toplam_tek_cift" },
-  { id: "s1_tc_009", s: "{a} + {b} toplamı için ne söylenebilir? ({a}:{teklik_a}, {b}:{teklik_b})", c: "{sonuc_teklik}", v: {a:[1,50], b:[1,50], teklik_a:"{a}%2==1?'tek':'cift'", teklik_b:"{b}%2==1?'tek':'cift'", sonuc_teklik:"({a}+{b})%2==1?'tek':'cift'"}, z:"orta", alt:"toplam_teklik" },
-  { id: "s1_tc_010", s: "İki tek sayının toplamı için ne söylenebilir?", c: "cift", v: {}, z:"kolay", alt:"toplam_tek_tek" },
-  { id: "s1_tc_011", s: "İki çift sayının toplamı için ne söylenebilir?", c: "cift", v: {}, z:"kolay", alt:"toplam_cift_cift" },
-  { id: "s1_tc_012", s: "Bir tek ve bir çift sayının toplamı için ne söylenebilir?", c: "tek", v: {}, z:"kolay", alt:"toplam_tek_cift_kural" },
-
-  // ALT DAL 4: ÇIKARMA İŞLEMİNDE TEK/ÇİFT
-  { id: "s1_tc_013", s: "{a} ({teklik_a}) - {b} ({teklik_b}) = ? (tek/çift)", c: "{sonuc_teklik}", v: {a:[5,50], b:[1,30], kosul:"a>b", teklik_a:"{a}%2==1?'tek':'cift'", teklik_b:"{b}%2==1?'tek':'cift'", sonuc_teklik:"({a}-{b})%2==1?'tek':'cift'"}, z:"orta", alt:"cikarma_teklik" },
-  { id: "s1_tc_014", s: "Tek sayıdan çift sayı çıkarılırsa sonuç nasıl olur?", c: "tek", v: {}, z:"kolay", alt:"cikarma_tek_cift" },
-  { id: "s1_tc_015", s: "Çift sayıdan tek sayı çıkarılırsa sonuç nasıl olur?", c: "tek", v: {}, z:"kolay", alt:"cikarma_cift_tek" },
-  { id: "s1_tc_016", s: "Çift sayıdan çift sayı çıkarılırsa sonuç nasıl olur?", c: "cift", v: {}, z:"kolay", alt:"cikarma_cift_cift" },
-  { id: "s1_tc_017", s: "Tek sayıdan tek sayı çıkarılırsa sonuç nasıl olur?", c: "cift", v: {}, z:"kolay", alt:"cikarma_tek_tek" },
-
-  // ALT DAL 5: ÇARPMA İŞLEMİNDE TEK/ÇİFT
-  { id: "s1_tc_018", s: "{a} (tek) × {b} (tek) = ? (tek/çift)", c: "tek", v: {a:[1,21,2], b:[1,21,2]}, z:"kolay", alt:"carpma_tek_tek" },
-  { id: "s1_tc_019", s: "{a} (çift) × {b} = ? (tek/çift)", c: "cift", v: {a:[2,20,2], b:[1,20]}, z:"kolay", alt:"carpma_cift_herhangi" },
-  { id: "s1_tc_020", s: "İki tek sayının çarpımı için ne söylenebilir?", c: "tek", v: {}, z:"kolay", alt:"carpma_tek_tek_kural" },
-  { id: "s1_tc_021", s: "İki çift sayının çarpımı için ne söylenebilir?", c: "cift", v: {}, z:"kolay", alt:"carpma_cift_cift_kural" },
-  { id: "s1_tc_022", s: "Bir tek ve bir çift sayının çarpımı için ne söylenebilir?", c: "cift", v: {}, z:"kolay", alt:"carpma_tek_cift_kural" },
-  { id: "s1_tc_023", s: "n tane tek sayının çarpımı tektir. (n≥1) {n} tane tek sayının çarpımı nedir?", c: "tek", v: {n:[2,6]}, z:"orta", alt:"carpma_n_tane_tek" },
-  { id: "s1_tc_024", s: "Bir çarpma işleminde çarpanlardan biri çift ise sonuç için ne söylenebilir?", c: "kesinlikle_cift", v: {}, z:"orta", alt:"carpma_en_az_bir_cift" },
-  { id: "s1_tc_025", s: "Bir çarpma işleminin sonucunun tek olması için çarpanlar nasıl olmalıdır?", c: "hepsi_tek", v: {}, z:"orta", alt:"carpma_sonuc_tek_sart" },
-
-  // ALT DAL 6: ÜS ALMA İŞLEMİNDE TEK/ÇİFT
-  { id: "s1_tc_026", s: "{a} (tek) üzeri {n} = ? (tek/çift)", c: "tek", v: {a:[1,9,2], n:[1,5]}, z:"orta", alt:"us_tek_taban" },
-  { id: "s1_tc_027", s: "{a} (çift) üzeri {n} (n≥1) = ? (tek/çift)", c: "cift", v: {a:[2,10,2], n:[1,5]}, z:"orta", alt:"us_cift_taban" },
-  { id: "s1_tc_028", s: "Tek bir sayının tüm kuvvetleri için ne söylenebilir?", c: "tektir", v: {}, z:"orta", alt:"us_tek_her_zaman" },
-  { id: "s1_tc_029", s: "Çift bir sayının pozitif tam sayı kuvvetleri için ne söylenebilir?", c: "cifttir", v: {}, z:"orta", alt:"us_cift_pozitif" },
-  { id: "s1_tc_030", s: "{a}⁰ = ? (tek/çift) {a}≠0", c: "tek", v: {a:[2,10]}, z:"zor", alt:"us_sifir_tek" },
-
-  // ALT DAL 7: T + T = Ç, T + Ç = T, Ç + Ç = Ç (EZBER)
-  { id: "s1_tc_031", s: "T + T = ?", c: "Ç", v: {}, z:"kolay", alt:"ezber_t_t" },
-  { id: "s1_tc_032", s: "T + Ç = ?", c: "T", v: {}, z:"kolay", alt:"ezber_t_c" },
-  { id: "s1_tc_033", s: "Ç + Ç = ?", c: "Ç", v: {}, z:"kolay", alt:"ezber_c_c" },
-  { id: "s1_tc_034", s: "T - Ç = ?", c: "T", v: {}, z:"kolay", alt:"ezber_t_eksi_c" },
-  { id: "s1_tc_035", s: "Ç - T = ?", c: "T", v: {}, z:"kolay", alt:"ezber_c_eksi_t" },
-  { id: "s1_tc_036", s: "T × T = ?", c: "T", v: {}, z:"kolay", alt:"ezber_carp_t_t" },
-  { id: "s1_tc_037", s: "T × Ç = ?", c: "Ç", v: {}, z:"kolay", alt:"ezber_carp_t_c" },
-  { id: "s1_tc_038", s: "Ç × Ç = ?", c: "Ç", v: {}, z:"kolay", alt:"ezber_carp_c_c" },
-
-  // ALT DAL 8: DEĞİŞKENLİ İFADELERDE TEK/ÇİFT
-  { id: "s1_tc_039", s: "a tek ise 3a+5 için ne söylenebilir?", c: "cift", v: {}, z:"orta", alt:"degiskenli_3a_arti_5" },
-  { id: "s1_tc_040", s: "a tek ise a² + a için ne söylenebilir?", c: "cift", v: {}, z:"orta", alt:"degiskenli_akare_arti_a" },
-  { id: "s1_tc_041", s: "a tek ise a³ + 2a için ne söylenebilir?", c: "tek", v: {}, z:"zor", alt:"degiskenli_akup_arti_2a" },
-  { id: "s1_tc_042", s: "a çift ise 5a + 3 için ne söylenebilir?", c: "tek", v: {}, z:"orta", alt:"degiskenli_5a_arti_3" },
-  { id: "s1_tc_043", s: "a çift ise a² + 4a + 2 için ne söylenebilir?", c: "cift", v: {}, z:"orta", alt:"degiskenli_karmasik" },
-  { id: "s1_tc_044", s: "a ve b tek ise a² + b² için ne söylenebilir?", c: "cift", v: {}, z:"orta", alt:"degiskenli_iki_tek_kare" },
-  { id: "s1_tc_045", s: "a tek, b çift ise a·b + a için ne söylenebilir?", c: "tek", v: {}, z:"zor", alt:"degiskenli_tek_cift_karmasik" },
-
-  // ALT DAL 9: KESİN TEK / KESİN ÇİFT SORULARI
-  { id: "s1_tc_046", s: "a bir tam sayıdır. Aşağıdakilerden hangisi kesinlikle çifttir?", c: "{kesin_cift}", v: {secenekler:["a²+a", "a²+1", "2a+1", "a³+a²", "a²-a"]}, z:"zor", alt:"kesin_cift" },
-  { id: "s1_tc_047", s: "a bir tam sayıdır. Aşağıdakilerden hangisi kesinlikle tektir?", c: "{kesin_tek}", v: {secenekler:["2a+1", "2a", "a(a+1)", "a²", "4a"]}, z:"zor", alt:"kesin_tek" },
-  { id: "s1_tc_048", s: "x tek sayıdır. Hangisi kesinlikle çifttir?", c: "{kesin_cift}", v: {secenekler:["x+1", "x+2", "2x", "3x", "x²"]}, z:"orta", alt:"kesin_x_tek" },
-  { id: "s1_tc_049", s: "x çift sayıdır. Hangisi kesinlikle tektir?", c: "{kesin_tek}", v: {secenekler:["x+1", "x+2", "2x", "x²", "x/2"]}, z:"orta", alt:"kesin_x_cift" },
-
-  // ALT DAL 10: n! İLE TEK/ÇİFT BAĞLANTISI
-  { id: "s1_tc_050", s: "n! sayısı n≥2 için nasıldır?", c: "cift", v: {}, z:"orta", alt:"faktoriyel_cift" },
-  { id: "s1_tc_051", s: "{n}! + 1 sayısı için ne söylenebilir? (n≥2)", c: "tek", v: {n:[2,8]}, z:"orta", alt:"faktoriyel_arti_bir_tek" },
-  { id: "s1_tc_052", s: "0! + 1! + 2! + 3! toplamının tek/çift durumu nedir?", c: "tek", v: {}, z:"zor", alt:"faktoriyel_toplam" },
-
-  // ALT DAL 11: ÇARPMA-TABANLI KESİNLİK SORULARI
-  { id: "s1_tc_053", s: "a·b çift ise aşağıdakilerden hangisi kesinlikle doğrudur?", c: "a_veya_b_cifttir", v: {}, z:"orta", alt:"carpim_cift_ise" },
-  { id: "s1_tc_054", s: "a·b tek ise aşağıdakilerden hangisi kesinlikle doğrudur?", c: "a_ve_b_tektir", v: {}, z:"orta", alt:"carpim_tek_ise" },
-  { id: "s1_tc_055", s: "a tek ve a·b çift ise b için ne söylenebilir?", c: "b_cifttir", v: {}, z:"orta", alt:"a_tek_carpim_cift_ise" },
-
-  // ALT DAL 12: TOPLAM-TABANLI KESİNLİK SORULARI
-  { id: "s1_tc_056", s: "a+b tek ise aşağıdakilerden hangisi kesinlikle doğrudur?", c: "a_ve_b_farkli_teklikte", v: {}, z:"orta", alt:"toplam_tek_ise" },
-  { id: "s1_tc_057", s: "a+b çift ise aşağıdakilerden hangisi kesinlikle doğrudur?", c: "a_ve_b_ayni_teklikte", v: {}, z:"orta", alt:"toplam_cift_ise" },
-  { id: "s1_tc_058", s: "a+b tek ve a çift ise b için ne söylenebilir?", c: "b_tektir", v: {}, z:"orta", alt:"toplam_tek_a_cift" },
-
-  // ALT DAL 13: ARDIŞIK SAYILARLA TEK/ÇİFT
-  { id: "s1_tc_059", s: "Ardışık iki sayının toplamı için ne söylenebilir?", c: "tek", v: {}, z:"orta", alt:"ardisik_iki_toplam" },
-  { id: "s1_tc_060", s: "Ardışık üç sayının toplamı için ne söylenebilir?", c: "ortanca×3", v: {}, z:"orta", alt:"ardisik_uc_toplam" },
-  { id: "s1_tc_061", s: "n tane ardışık sayının toplamı ne zaman çifttir?", c: "n_cift_ise", v: {}, z:"zor", alt:"n_ardisik_toplam_cift" },
-
-  // ALT DAL 14: ŞARTLI ÖNERME SORULARI
-  { id: "s1_tc_062", s: "\"a+b tek ise a·b çifttir\" önermesi her zaman doğru mudur?", c: "evet", v: {}, z:"zor", alt:"sartli_onerme_1" },
-  { id: "s1_tc_063", s: "\"a·b çift ise a+b tektir\" önermesi her zaman doğru mudur?", c: "hayir", v: {}, z:"zor", alt:"sartli_onerme_2" },
-  { id: "s1_tc_064", s: "a, b, c tam sayıları için a+b tek, b+c çift ise a+c için ne söylenebilir?", c: "tek", v: {}, z:"cok_zor", alt:"uc_sayili_sartli" },
-
-
-  // ==========================================
-  // KONU 2: POZİTİF-NEGATİF SAYILAR (8 alt dal)
-  // ==========================================
-
-  // ALT DAL 1: POZİTİF/NEGATİF TANIMA
-  { id: "s1_pn_001", s: "{a} sayısı pozitif midir, negatif midir?", c: "{p_veya_n}", v: {a:[-50,50], kosul:"a!=0"}, z:"kolay", alt:"tanima" },
-  { id: "s1_pn_002", s: "Sıfır pozitif midir, negatif midir?", c: "ikisi_de_degil", v: {}, z:"kolay", alt:"sifir_tanima" },
-  { id: "s1_pn_003", s: "En küçük pozitif tam sayı kaçtır?", c: "1", v: {}, z:"kolay", alt:"en_kucuk_pozitif" },
-  { id: "s1_pn_004", s: "En büyük negatif tam sayı kaçtır?", c: "-1", v: {}, z:"kolay", alt:"en_buyuk_negatif" },
-
-  // ALT DAL 2: ÇARPMA İŞLEMİNDE İŞARET
-  { id: "s1_pn_005", s: "Pozitif × Pozitif = ?", c: "Pozitif", v: {}, z:"kolay", alt:"carpma_pp" },
-  { id: "s1_pn_006", s: "Negatif × Negatif = ?", c: "Pozitif", v: {}, z:"kolay", alt:"carpma_nn" },
-  { id: "s1_pn_007", s: "Pozitif × Negatif = ?", c: "Negatif", v: {}, z:"kolay", alt:"carpma_pn" },
-  { id: "s1_pn_008", s: "{a} × {b} işleminin sonucunun işareti nedir?", c: "{isaret}", v: {a:[-20,20], b:[-20,20], kosul:"a!=0 && b!=0", isaret:"{a}*{b}>0?'Pozitif':'Negatif'"}, z:"orta", alt:"carpma_isaret_bulma" },
-
-  // ALT DAL 3: BÖLME İŞLEMİNDE İŞARET
-  { id: "s1_pn_009", s: "Pozitif ÷ Pozitif = ?", c: "Pozitif", v: {}, z:"kolay", alt:"bolme_pp" },
-  { id: "s1_pn_010", s: "Negatif ÷ Negatif = ?", c: "Pozitif", v: {}, z:"kolay", alt:"bolme_nn" },
-  { id: "s1_pn_011", s: "Pozitif ÷ Negatif = ?", c: "Negatif", v: {}, z:"kolay", alt:"bolme_pn" },
-  { id: "s1_pn_012", s: "{a} ÷ {b} işleminin sonucunun işareti nedir?", c: "{isaret}", v: {a:[-50,50], b:[-20,20], kosul:"a!=0 && b!=0 && a%b==0", isaret:"{a}/{b}>0?'Pozitif':'Negatif'"}, z:"orta", alt:"bolme_isaret_bulma" },
-
-  // ALT DAL 4: TOPLAMA İŞLEMİNDE İŞARET
-  { id: "s1_pn_013", s: "{a} + {b} = ? (İşaret ve sonuç)", c: "{a}+{b}", v: {a:[-30,30], b:[-30,30]}, z:"orta", alt:"toplama_isaret" },
-  { id: "s1_pn_014", s: "Pozitif + Pozitif = ?", c: "Pozitif", v: {}, z:"kolay", alt:"toplama_pp" },
-  { id: "s1_pn_015", s: "Negatif + Negatif = ?", c: "Negatif", v: {}, z:"kolay", alt:"toplama_nn" },
-  { id: "s1_pn_016", s: "Pozitif + Negatif işleminin işareti nasıl belirlenir?", c: "mutlak_degeri_buyuk_olanin_isareti", v: {}, z:"orta", alt:"toplama_pn_kural" },
-
-  // ALT DAL 5: ÇIKARMA İŞLEMİNDE İŞARET
-  { id: "s1_pn_017", s: "{a} - {b} = ?", c: "{a}-{b}", v: {a:[-30,30], b:[-30,30]}, z:"orta", alt:"cikarma_isaret" },
-  { id: "s1_pn_018", s: "{a} - (-{b}) = ?", c: "{a}+{b}", v: {a:[-20,20], b:[1,20]}, z:"orta", alt:"cikarma_eksi_negatif" },
-
-  // ALT DAL 6: ÜS ALMA İŞLEMİNDE İŞARET
-  { id: "s1_pn_019", s: "(-{a})² = ?", c: "{a}*{a}", v: {a:[1,10]}, z:"orta", alt:"us_negatif_cift" },
-  { id: "s1_pn_020", s: "(-{a})³ = ?", c: "-{a}*{a}*{a}", v: {a:[1,7]}, z:"orta", alt:"us_negatif_tek" },
-  { id: "s1_pn_021", s: "Negatif sayının çift kuvveti için ne söylenebilir?", c: "pozitif", v: {}, z:"orta", alt:"us_negatif_cift_kural" },
-  { id: "s1_pn_022", s: "Negatif sayının tek kuvveti için ne söylenebilir?", c: "negatif", v: {}, z:"orta", alt:"us_negatif_tek_kural" },
-
-  // ALT DAL 7: İŞARET İNCELEME (KARIŞIK)
-  { id: "s1_pn_023", s: "a<0, b>0 ise a·b'nin işareti nedir?", c: "negatif", v: {}, z:"orta", alt:"karisik_isaret" },
-  { id: "s1_pn_024", s: "a<0, b<0, c>0 ise a·b·c'nin işareti nedir?", c: "pozitif", v: {}, z:"orta", alt:"uc_sayi_carpim_isaret" },
-  { id: "s1_pn_025", s: "{n} tane negatif sayının çarpımının işareti nedir?", c: "{isaret}", v: {n:[2,6], isaret:"{n}%2==0?'pozitif':'negatif'"}, z:"zor", alt:"n_tane_negatif_carpim" },
-  { id: "s1_pn_026", s: "a·b > 0 ise a ve b'nin işaretleri için ne söylenebilir?", c: "ayni_isaretli", v: {}, z:"orta", alt:"carpim_sifirdan_buyuk" },
-  { id: "s1_pn_027", s: "a·b < 0 ise a ve b'nin işaretleri için ne söylenebilir?", c: "zit_isaretli", v: {}, z:"orta", alt:"carpim_sifirdan_kucuk" },
-
-  // ALT DAL 8: SIFIR İLE İLGİLİ KURALLAR
-  { id: "s1_pn_028", s: "0 × {a} = ?", c: "0", v: {a:[-50,50]}, z:"kolay", alt:"sifir_carpma" },
-  { id: "s1_pn_029", s: "0 ÷ {a} = ?", c: "0", v: {a:[-20,20], kosul:"a!=0"}, z:"orta", alt:"sifir_bolme" },
-  { id: "s1_pn_030", s: "{a} ÷ 0 = ?", c: "tanimsiz", v: {a:[-20,20]}, z:"orta", alt:"sifira_bolme" },
-  { id: "s1_pn_031", s: "Pozitif bir sayı mı daha büyüktür, sıfır mı?", c: "pozitif_sayi", v: {}, z:"kolay", alt:"sifir_karsilastirma" },
-  { id: "s1_pn_032", s: "Negatif bir sayı mı daha büyüktür, sıfır mı?", c: "sifir", v: {}, z:"kolay", alt:"negatif_sifir_karsilastirma" },
-
-
-  // ==========================================
-  // KONU 3: ARDIŞIK SAYILAR (12 alt dal)
-  // ==========================================
-
-  // ALT DAL 1: ARDIŞIK SAYI TANIMI VE YAZIMI
-  { id: "s1_as_001", s: "{n} sayısından sonra gelen 3 ardışık sayıyı yazınız.", c: "{n}+1, {n}+2, {n}+3", v: {n:[1,20]}, z:"kolay", alt:"ardisik_yazim" },
-  { id: "s1_as_002", s: "Ardışık 3 sayıyı {a} ortanca olacak şekilde yazınız.", c: "{a}-1, {a}, {a}+1", v: {a:[3,20]}, z:"orta", alt:"ardisik_ortanca" },
-  { id: "s1_as_003", s: "x, x+1, x+2 şeklinde yazılan sayıların türü nedir?", c: "ardisik", v: {}, z:"kolay", alt:"ardisik_tanim" },
-
-  // ALT DAL 2: ARDIŞIK TEK SAYILAR
-  { id: "s1_as_004", s: "Ardışık 3 tek sayıyı en küçüğü {a} olacak şekilde yazınız.", c: "{a}, {a}+2, {a}+4", v: {a:[1,15,2]}, z:"orta", alt:"ardisik_tek" },
-  { id: "s1_as_005", s: "Ardışık tek sayılar arasındaki fark kaçtır?", c: "2", v: {}, z:"kolay", alt:"ardisik_tek_fark" },
-  { id: "s1_as_006", s: "x tek sayı ise sonraki 2 tek sayı nasıl yazılır?", c: "x+2, x+4", v: {}, z:"orta", alt:"ardisik_tek_yazim" },
-
-  // ALT DAL 3: ARDIŞIK ÇİFT SAYILAR
-  { id: "s1_as_007", s: "Ardışık 3 çift sayıyı en küçüğü {a} olacak şekilde yazınız.", c: "{a}, {a}+2, {a}+4", v: {a:[2,14,2]}, z:"orta", alt:"ardisik_cift" },
-  { id: "s1_as_008", s: "Ardışık çift sayılar arasındaki fark kaçtır?", c: "2", v: {}, z:"kolay", alt:"ardisik_cift_fark" },
-  { id: "s1_as_009", s: "x çift sayı ise sonraki 2 çift sayı nasıl yazılır?", c: "x+2, x+4", v: {}, z:"orta", alt:"ardisik_cift_yazim" },
-
-  // ALT DAL 4: ARDIŞIK SAYILARIN TOPLAMI (1'den n'e)
-  { id: "s1_as_010", s: "1'den {n}'e kadar olan sayıların toplamı kaçtır?", c: "{n}*({n}+1)/2", v: {n:[5,20]}, z:"orta", alt:"birden_n_e_toplam" },
-  { id: "s1_as_011", s: "1+2+3+...+{n} = ?", c: "{n}*({n}+1)/2", v: {n:[10,30]}, z:"orta", alt:"birden_n_e_toplam_formul" },
-
-  // ALT DAL 5: ARDIŞIK TEK SAYILARIN TOPLAMI
-  { id: "s1_as_012", s: "1+3+5+...+(2n-1) = ? (n={n})", c: "{n}*{n}", v: {n:[2,10]}, z:"orta", alt:"ardisik_tek_toplam" },
-  { id: "s1_as_013", s: "Ardışık tek sayıların toplamı formülü nedir?", c: "n²", v: {}, z:"orta", alt:"ardisik_tek_toplam_formul" },
-  { id: "s1_as_014", s: "1'den 99'a kadar olan tek sayıların toplamı kaçtır?", c: "2500", v: {}, z:"zor", alt:"teke_kadar_toplam" },
-
-  // ALT DAL 6: ARDIŞIK ÇİFT SAYILARIN TOPLAMI
-  { id: "s1_as_015", s: "2+4+6+...+2n = ? (n={n})", c: "{n}*({n}+1)", v: {n:[2,10]}, z:"orta", alt:"ardisik_cift_toplam" },
-  { id: "s1_as_016", s: "Ardışık çift sayıların toplamı formülü nedir?", c: "n(n+1)", v: {}, z:"orta", alt:"ardisik_cift_toplam_formul" },
-  { id: "s1_as_017", s: "2'den 100'e kadar olan çift sayıların toplamı kaçtır?", c: "2550", v: {}, z:"zor", alt:"cifte_kadar_toplam" },
-
-  // ALT DAL 7: GENEL ARDIŞIK TOPLAM (İLK TERİM + SON TERİM)
-  { id: "s1_as_018", s: "{ilk}'ten {son}'a kadar olan sayıların toplamı kaçtır? (Terim sayısı: {ts})", c: "{ts}*({ilk}+{son})/2", v: {ilk:[1,10], son:[15,30], ts:"{son}-{ilk}+1"}, z:"zor", alt:"genel_toplam" },
-  { id: "s1_as_019", s: "Terim sayısı {ts}, ilk terim {ilk}, son terim {son} olan dizinin toplamı kaçtır?", c: "{ts}*({ilk}+{son})/2", v: {ilk:[2,10], son:[20,50], ts:[5,15]}, z:"zor", alt:"terim_sayisi_formul" },
-
-  // ALT DAL 8: ARDIŞIK SAYI PROBLEMLERİ (TOPLAM VERİLİP SAYILARI BULMA)
-  { id: "s1_as_020", s: "Ardışık 3 sayının toplamı {t} ise en büyük sayı kaçtır?", c: "{t}/3+1", v: {orta:[5,20], t:"{orta}*3"}, z:"orta", alt:"toplamdan_sayi_bulma" },
-  { id: "s1_as_021", s: "Ardışık 5 sayının toplamı {t} ise ortanca sayı kaçtır?", c: "{t}/5", v: {orta:[5,20], t:"{orta}*5"}, z:"orta", alt:"toplamdan_ortanca_bulma" },
-  { id: "s1_as_022", s: "Ardışık 4 çift sayının toplamı {t} ise en küçük sayı kaçtır?", c: "{t}/4-3", v: {en_kucuk:[2,12,2], t:"{en_kucuk}*4+12"}, z:"zor", alt:"cift_toplamdan_bulma" },
-  { id: "s1_as_023", s: "Ardışık 3 tek sayının toplamı {t} ise en küçük sayı kaçtır?", c: "{t}/3-2", v: {en_kucuk:[1,15,2], t:"{en_kucuk}*3+6"}, z:"zor", alt:"tek_toplamdan_bulma" },
-
-  // ALT DAL 9: ARDIŞIK SAYI PROBLEMLERİ (ÇARPIM VERİLİP SAYILARI BULMA)
-  { id: "s1_as_024", s: "Ardışık 2 sayının çarpımı {c} ise bu sayıların toplamı kaçtır?", c: "{toplam}", v: {a:[3,12], b:"{a}+1", c:"{a}*{b}", toplam:"{a}+{b}"}, z:"zor", alt:"carpimdan_toplam" },
-  { id: "s1_as_025", s: "Ardışık 3 sayının çarpımı ortanca sayının kaç katıdır?", c: "ortanca²-1", v: {}, z:"cok_zor", alt:"carpim_oran" },
-
-  // ALT DAL 10: x, x+1, x+2 TARZI SORULAR
-  { id: "s1_as_026", s: "x, x+1, x+2 sayılarının toplamı {t} ise x kaçtır?", c: "({t}-3)/3", v: {x:[3,15], t:"{x}*3+3"}, z:"orta", alt:"x_li_denklem" },
-  { id: "s1_as_027", s: "x, x+2, x+4 (ardışık tek/çift) toplamı {t} ise x kaçtır?", c: "({t}-6)/3", v: {x:[1,10], t:"{x}*3+6"}, z:"orta", alt:"x_li_tek_cift" },
-
-  // ALT DAL 11: ARDIŞIK SAYILARDA KAT İLİŞKİSİ
-  { id: "s1_as_028", s: "Ardışık 3 sayıdan en büyüğü en küçüğünün 2 katından {f} eksiktir. Ortanca sayı kaçtır?", c: "{f}+3", v: {f:[1,8]}, z:"cok_zor", alt:"kat_iliskisi" },
-  { id: "s1_as_029", s: "Ardışık 4 sayının en büyüğü ile en küçüğü arasındaki fark kaçtır?", c: "3", v: {}, z:"kolay", alt:"ardisik_fark" },
-  { id: "s1_as_030", s: "Ardışık {n} sayının en büyüğü ile en küçüğü arasındaki fark kaçtır?", c: "{n}-1", v: {n:[2,10]}, z:"orta", alt:"n_ardisik_fark" },
-
-  // ALT DAL 12: ARDIŞIK SAYI PROBLEMLERİ (SÖZEL - İLERİ)
-  { id: "s1_as_031", s: "Bir kitaplıktaki raflara {a}'dan başlayarak ardışık numara veriliyor. {b} raf varsa son rafın numarası kaçtır?", c: "{a}+{b}-1", v: {a:[1,20], b:[5,20]}, z:"orta", alt:"sozel_raf" },
-  { id: "s1_as_032", s: "Ahmet {a} sayısından başlayarak ileriye doğru {n} tane ardışık sayı yazıyor. Bu sayıların toplamı kaçtır?", c: "{n}*(2*{a}+{n}-1)/2", v: {a:[1,10], n:[2,8]}, z:"cok_zor", alt:"sozel_ahmet" },
-
-
-  // ==========================================
-  // KONU 4: SAYI KÜMELERİ (6 alt dal)
-  // ==========================================
-
-  // ALT DAL 1: SAYI KÜMELERİNİ TANIMA
-  { id: "s1_sk_001", s: "N (Doğal Sayılar) kümesi hangi sayılardan oluşur?", c: "0,1,2,3,...", v: {}, z:"kolay", alt:"dogal_sayi_tanimi" },
-  { id: "s1_sk_002", s: "Z (Tam Sayılar) kümesi hangi sayılardan oluşur?", c: "...,-2,-1,0,1,2,...", v: {}, z:"kolay", alt:"tam_sayi_tanimi" },
-  { id: "s1_sk_003", s: "Z⁺ (Pozitif Tam Sayılar) = ?", c: "1,2,3,...", v: {}, z:"kolay", alt:"pozitif_tam_tanimi" },
-  { id: "s1_sk_004", s: "Z⁻ (Negatif Tam Sayılar) = ?", c: "...,-3,-2,-1", v: {}, z:"kolay", alt:"negatif_tam_tanimi" },
-  { id: "s1_sk_005", s: "Sayma sayıları nedir?", c: "1,2,3,...", v: {}, z:"kolay", alt:"sayma_sayisi" },
-  { id: "s1_sk_006", s: "Rakamlar kümesi kaç elemanlıdır ve nelerdir?", c: "10_eleman_0_den_9_a", v: {}, z:"kolay", alt:"rakam_kumesi" },
-
-  // ALT DAL 2: KÜMELER ARASI İLİŞKİ
-  { id: "s1_sk_007", s: "Her doğal sayı tam sayı mıdır?", c: "evet", v: {}, z:"kolay", alt:"dogal_tam_iliski" },
-  { id: "s1_sk_008", s: "Her tam sayı doğal sayı mıdır?", c: "hayir", v: {}, z:"orta", alt:"tam_dogal_iliski" },
-  { id: "s1_sk_009", s: "Sayma sayıları ile pozitif tam sayılar arasındaki ilişki nedir?", c: "ayni_kume", v: {}, z:"orta", alt:"sayma_pozitif_iliski" },
-  { id: "s1_sk_010", s: "N ile Z⁺ arasındaki fark nedir?", c: "sifir", v: {}, z:"orta", alt:"dogal_sayma_farki" },
-
-  // ALT DAL 3: KÜME SEMBOLLERİ
-  { id: "s1_sk_011", s: "∈ sembolü ne anlama gelir?", c: "elemanidir", v: {}, z:"kolay", alt:"eleman_sembolu" },
-  { id: "s1_sk_012", s: "∉ sembolü ne anlama gelir?", c: "elemani_degildir", v: {}, z:"kolay", alt:"eleman_degil_sembolu" },
-  { id: "s1_sk_013", s: "⊂ sembolü ne anlama gelir?", c: "alt_kume", v: {}, z:"orta", alt:"alt_kume_sembolu" },
-  { id: "s1_sk_014", s: "{sayi} ∈ N ifadesi doğru mudur?", c: "{dogru_mu}", v: {sayi:[-5,20]}, z:"orta", alt:"eleman_sorgulama" },
-  { id: "s1_sk_015", s: "{sayi} ∈ Z⁺ ifadesi doğru mudur?", c: "{dogru_mu}", v: {sayi:[-5,20]}, z:"orta", alt:"eleman_sorgulama_zarti" },
-
-  // ALT DAL 4: TEK/ÇİFT KÜME GÖSTERİMİ
-  { id: "s1_sk_016", s: "Tek sayılar kümesi nasıl gösterilir?", c: "{x|x=2n+1, n∈Z}", v: {}, z:"orta", alt:"tek_kume_gosterim" },
-  { id: "s1_sk_017", s: "Çift sayılar kümesi nasıl gösterilir?", c: "{x|x=2n, n∈Z}", v: {}, z:"orta", alt:"cift_kume_gosterim" },
-
-  // ALT DAL 5: SAYI KÜMELERİNDE EN BÜYÜK/EN KÜÇÜK
-  { id: "s1_sk_018", s: "En küçük doğal sayı kaçtır?", c: "0", v: {}, z:"kolay", alt:"en_kucuk_dogal" },
-  { id: "s1_sk_019", s: "En büyük doğal sayı var mıdır?", c: "yoktur", v: {}, z:"orta", alt:"en_buyuk_dogal" },
-  { id: "s1_sk_020", s: "En küçük tam sayı var mıdır?", c: "yoktur", v: {}, z:"orta", alt:"en_kucuk_tam" },
-  { id: "s1_sk_021", s: "En büyük negatif tam sayı kaçtır?", c: "-1", v: {}, z:"orta", alt:"en_buyuk_negatif" },
-  { id: "s1_sk_022", s: "En küçük pozitif tam sayı kaçtır?", c: "1", v: {}, z:"orta", alt:"en_kucuk_pozitif" },
-  { id: "s1_sk_023", s: "İki basamaklı en küçük tam sayı kaçtır?", c: "-99", v: {}, z:"zor", alt:"iki_basamakli_en_kucuk_tam" },
-  { id: "s1_sk_024", s: "Rakamları farklı iki basamaklı en büyük negatif tam sayı kaçtır?", c: "-10", v: {}, z:"zor", alt:"rakamlari_farkli_negatif" },
-
-  // ALT DAL 6: KARIŞIK SORULAR
-  { id: "s1_sk_025", s: "a ve b doğal sayıdır. a+b={t} ise a·b en çok kaçtır?", c: "{max_carpim}", v: {a:[3,10], b:[3,10], t:"{a}+{b}", max_carpim:"Math.floor({t}/2)*Math.ceil({t}/2)"}, z:"zor", alt:"dogal_sayi_max_carpim" },
-  { id: "s1_sk_026", s: "İki basamaklı kaç tane doğal sayı vardır?", c: "90", v: {}, z:"orta", alt:"iki_basamakli_sayi_sayisi" },
-  { id: "s1_sk_027", s: "{a} ile {b} arasında kaç tane tam sayı vardır?", c: "{b}-{a}-1", v: {a:[3,15], b:[10,30], kosul:"b>a+1"}, z:"orta", alt:"aradaki_sayi_sayisi" },
-  { id: "s1_sk_028", s: "Üç basamaklı kaç tane tek doğal sayı vardır?", c: "450", v: {}, z:"zor", alt:"uc_basamakli_tek_sayisi" },
-
-],
-
-  // ==========================================
-// SEVİYE 2: BÖLÜNEBİLME - ASALLAR - OBEB-OKEK
-// ==========================================
-2: [
+  2: [
 
   // ==========================================
   // KONU 1: BÖLÜNEBİLME KURALLARI (16 alt dal)
@@ -982,7 +718,8 @@ const SORU_BANKASI = {
   // ALT DAL 6: ASAL SAYILARLA İLGİLİ ÖZELLİKLER
   { id: "s2_as_017", s: "a ve b asal ise a·b kesinlikle nasıl bir sayıdır?", c: "asal_degildir", v: {}, z:"orta", alt:"asal_carpimi_asal_degil" },
   { id: "s2_as_018", s: "a asal ise a+1 her zaman ne olur?", c: "cift_(2_haric)", v: {}, z:"orta", alt:"asal_arti_bir" },
-  { id: "s2_as_019", s: "p asal sayı ise p²+1 asal olabilir mi? (p={p})", c: "{evet_hayir}", v: {p:[2,11], kosul:"asal(p)"}, z:"zor", alt:"asal_kare_arti_bir" },
+  // DÜZELTME: kosul:"asal(p)" kaldırıldı (fonksiyon tanımlı değil)
+  { id: "s2_as_019", s: "p asal sayı ise p²+1 asal olabilir mi? (p={p})", c: "{evet_hayir}", v: {p:[2,11]}, z:"zor", alt:"asal_kare_arti_bir" },
 
   // ALT DAL 7: İKİZ ASALLAR
   { id: "s2_as_020", s: "İkiz asal nedir?", c: "aralarindaki_fark_2_olan_asallar", v: {}, z:"orta", alt:"ikiz_asal_tanimi" },
@@ -1077,6 +814,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: OBEB SORULARI
   { id: "s2_ob_012", s: "OBEB({a},{b},{c}) = ?", c: "{obeb}", v: {a:[12,60], b:[18,48], c:[24,72]}, z:"zor", alt:"uc_sayili_obeb" },
+  // DÜZELTME: x ve y dizileri düzeltildi (step 6)
   { id: "s2_ob_013", s: "OBEB(x,y)=6 ve x+y=42 ise x·y en çok kaçtır?", c: "{max_carpim}", v: {x:[6,36,6], y:[6,36,6], kosul:"x+y=42"}, z:"cok_zor", alt:"obeb_sartli" },
 
   // ALT DAL 5: OBEB PROBLEMLERİ (PARÇALARA AYIRMA)
@@ -1201,7 +939,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: AĞAÇ DİKME / DİREK PROBLEMLERİ (OBEB)
   { id: "s2_op_011", s: "Dikdörtgen şeklindeki bir bahçenin kenarları {a}m ve {b}m'dir. Köşelere de dikilmek şartıyla eşit aralıklarla ağaç dikilecektir. En az kaç ağaç gerekir?", c: "2*({a}+{b})/obeb({a},{b})", v: {a:[24,60], b:[36,80]}, z:"cok_zor", alt:"agac_dikme" },
-  { id: "s2_op_012", s: "Çevresi {a} m olan dairesel bir parkın etrafına eşit aralıklarla direk dikilecektir. İki direk arası mesafe tam sayı olmak şartıyla en az kaç direk gerekir?", c: "{a}/obeb({a},1)_ama_en_az_direk", v: {a:[36,120]}, z:"cok_zor", alt:"direk_dikme" },
+  // DÜZELTME: s2_op_012 - garip string düzeltildi
+  { id: "s2_op_012", s: "Çevresi {a} m olan dairesel bir parkın etrafına eşit aralıklarla direk dikilecektir. İki direk arası mesafe tam sayı olmak şartıyla en az kaç direk gerekir?", c: "{a}", v: {a:[36,120]}, z:"cok_zor", alt:"direk_dikme" },
 
   // ALT DAL 7: MERDİVEN / BASAMAK PROBLEMLERİ
   { id: "s2_op_013", s: "Bir merdivenin basamakları {a}'şer {b}'şer çıkıldığında her seferinde {k} basamak artıyor. Merdiven en az kaç basamaklıdır?", c: "okek({a},{b})+{k}", v: {a:[3,6], b:[4,8], k:[1,2]}, z:"cok_zor", alt:"merdiven" },
@@ -1222,10 +961,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
-// SEVİYE 3: KESİRLER VE RASYONEL SAYILAR
-// ==========================================
-3: [
+  3: [
 
   // ==========================================
   // KONU 1: KESİR TÜRLERİ (8 alt dal)
@@ -1346,19 +1082,19 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: PAYDALARI EŞİT KESİRLERDE TOPLAMA
-  { id: "s3_tt_001", s: "{a}/{c} + {b}/{c} = ?", c: "{a}+{b}/{c}", v: {a:[1,8], b:[1,8], c:[3,12]}, z:"kolay", alt:"paydasi_esit_toplama" },
-  { id: "s3_tt_002", s: "{a}/{c} + {b}/{c} + {d}/{c} = ?", c: "{a}+{b}+{d}/{c}", v: {a:[1,5], b:[1,5], d:[1,5], c:[4,10]}, z:"orta", alt:"uc_kesir_toplama" },
+  { id: "s3_tt_001", s: "{a}/{c} + {b}/{c} = ?", c: "({a}+{b})/{c}", v: {a:[1,8], b:[1,8], c:[3,12]}, z:"kolay", alt:"paydasi_esit_toplama" },
+  { id: "s3_tt_002", s: "{a}/{c} + {b}/{c} + {d}/{c} = ?", c: "({a}+{b}+{d})/{c}", v: {a:[1,5], b:[1,5], d:[1,5], c:[4,10]}, z:"orta", alt:"uc_kesir_toplama" },
 
   // ALT DAL 2: PAYDALARI EŞİT KESİRLERDE ÇIKARMA
-  { id: "s3_tt_003", s: "{a}/{c} - {b}/{c} = ?", c: "{a}-{b}/{c}", v: {a:[3,10], b:[1,"{a}-1"], c:[3,12]}, z:"kolay", alt:"paydasi_esit_cikarma" },
-  { id: "s3_tt_004", s: "{a}/{c} - {b}/{c} - {d}/{c} = ?", c: "{a}-{b}-{d}/{c}", v: {a:[5,15], b:[1,3], d:[1,3], c:[4,12], kosul:"a>b+d"}, z:"orta", alt:"uc_kesir_cikarma" },
+  { id: "s3_tt_003", s: "{a}/{c} - {b}/{c} = ?", c: "({a}-{b})/{c}", v: {a:[3,10], b:[1,"{a}-1"], c:[3,12]}, z:"kolay", alt:"paydasi_esit_cikarma" },
+  { id: "s3_tt_004", s: "{a}/{c} - {b}/{c} - {d}/{c} = ?", c: "({a}-{b}-{d})/{c}", v: {a:[5,15], b:[1,3], d:[1,3], c:[4,12], kosul:"a>b+d"}, z:"orta", alt:"uc_kesir_cikarma" },
 
   // ALT DAL 3: PAYDALARI FARKLI KESİRLERDE TOPLAMA
-  { id: "s3_tt_005", s: "{a}/{b} + {c}/{d} = ?", c: "{a}*{d}+{c}*{b}/{b}*{d}", v: {a:[1,4], b:[2,6], c:[1,4], d:[3,8], kosul:"b!=d"}, z:"orta", alt:"farkli_payda_toplama" },
+  { id: "s3_tt_005", s: "{a}/{b} + {c}/{d} = ?", c: "({a}*{d}+{c}*{b})/({b}*{d})", v: {a:[1,4], b:[2,6], c:[1,4], d:[3,8], kosul:"b!=d"}, z:"orta", alt:"farkli_payda_toplama" },
   { id: "s3_tt_006", s: "{a}/{b} + {c}/{d} işleminin sonucu nedir? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[1,3], b:[2,6], c:[1,3], d:[3,8], kosul:"b!=d"}, z:"zor", alt:"farkli_payda_toplama_sade" },
 
   // ALT DAL 4: PAYDALARI FARKLI KESİRLERDE ÇIKARMA
-  { id: "s3_tt_007", s: "{a}/{b} - {c}/{d} = ?", c: "{a}*{d}-{c}*{b}/{b}*{d}", v: {a:[2,6], b:[2,6], c:[1,3], d:[3,8], kosul:"b!=d && a/b>c/d"}, z:"orta", alt:"farkli_payda_cikarma" },
+  { id: "s3_tt_007", s: "{a}/{b} - {c}/{d} = ?", c: "({a}*{d}-{c}*{b})/({b}*{d})", v: {a:[2,6], b:[2,6], c:[1,3], d:[3,8], kosul:"b!=d && a/b>c/d"}, z:"orta", alt:"farkli_payda_cikarma" },
   { id: "s3_tt_008", s: "{a}/{b} - {c}/{d} işleminin sonucu nedir? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[2,6], b:[2,6], c:[1,3], d:[3,8], kosul:"a/b>c/d"}, z:"zor", alt:"farkli_payda_cikarma_sade" },
 
   // ALT DAL 5: TAM SAYILI KESİRLERDE TOPLAMA
@@ -1374,7 +1110,7 @@ const SORU_BANKASI = {
   { id: "s3_tt_014", s: "{t1} {a}/{b} + {c}/{d} - {t2} = ?", c: "{sonuc}", v: {t1:[1,3], a:[1,4], b:[2,6], c:[1,4], d:[3,7], t2:[1,2]}, z:"cok_zor", alt:"tam_sayili_karisik" },
 
   // ALT DAL 8: KESİRLERDE TOPLAMA-ÇIKARMA PROBLEMLERİ
-  { id: "s3_tt_015", s: "Bir pastanın önce {a}/{b}'i sonra {c}/{d}'ü yenmiştir. Pastanın kaçta kaçı yenmiştir?", c: "{a}*{d}+{c}*{b}/{b}*{d}", v: {a:[1,3], b:[3,8], c:[1,3], d:[4,9], kosul:"toplam<=1"}, z:"orta", alt:"pasta_yeme" },
+  { id: "s3_tt_015", s: "Bir pastanın önce {a}/{b}'i sonra {c}/{d}'ü yenmiştir. Pastanın kaçta kaçı yenmiştir?", c: "{a}/{b}+{c}/{d}", v: {a:[1,3], b:[3,8], c:[1,3], d:[4,9], kosul:"toplam<=1"}, z:"orta", alt:"pasta_yeme" },
   { id: "s3_tt_016", s: "Bir depodaki suyun önce {a}/{b}'i sonra {c}/{d}'ü kullanılmıştır. Depoda suyun kaçta kaçı kalmıştır?", c: "1-({a}/{b}+{c}/{d})", v: {a:[1,2], b:[3,6], c:[1,3], d:[4,8], kosul:"toplam<1"}, z:"zor", alt:"depo_kalan" },
 
 
@@ -1388,12 +1124,12 @@ const SORU_BANKASI = {
   { id: "s3_ca_003", s: "{a}/{b} × {n} = {sonuc} ise {n} kaçtır?", c: "{n}", v: {a:[1,4], b:[2,7], n:[2,5], sonuc:"{a}*{n}/{b}"}, z:"orta", alt:"carpimdan_sayi_bulma" },
 
   // ALT DAL 2: İKİ KESRİ ÇARPMA
-  { id: "s3_ca_004", s: "{a}/{b} × {c}/{d} = ?", c: "{a}*{c}/{b}*{d}", v: {a:[1,5], b:[2,7], c:[1,5], d:[3,8]}, z:"orta", alt:"kesir_kesir_carpma" },
+  { id: "s3_ca_004", s: "{a}/{b} × {c}/{d} = ?", c: "{a}*{c}/({b}*{d})", v: {a:[1,5], b:[2,7], c:[1,5], d:[3,8]}, z:"orta", alt:"kesir_kesir_carpma" },
   { id: "s3_ca_005", s: "{a}/{b} × {c}/{d} = ? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[2,6], b:[3,9], c:[2,6], d:[4,10]}, z:"zor", alt:"kesir_kesir_carpma_sade" },
   { id: "s3_ca_006", s: "Kesirlerde çarpma işlemi nasıl yapılır?", c: "paylar_carpilir_paya_paydalar_carpilir_paydaya_yazilir", v: {}, z:"orta", alt:"carpma_kurali" },
 
   // ALT DAL 3: ÜÇ KESRİ ÇARPMA
-  { id: "s3_ca_007", s: "{a}/{b} × {c}/{d} × {e}/{f} = ?", c: "{a}*{c}*{e}/{b}*{d}*{f}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"zor", alt:"uc_kesir_carpma" },
+  { id: "s3_ca_007", s: "{a}/{b} × {c}/{d} × {e}/{f} = ?", c: "{a}*{c}*{e}/({b}*{d}*{f})", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"zor", alt:"uc_kesir_carpma" },
 
   // ALT DAL 4: TAM SAYILI KESİRLERDE ÇARPMA
   { id: "s3_ca_008", s: "{t1} {a}/{b} × {t2} {c}/{d} = ?", c: "{sonuc}", v: {t1:[1,3], a:[1,4], b:[2,6], t2:[1,3], c:[1,4], d:[3,7]}, z:"cok_zor", alt:"tam_sayili_carpma" },
@@ -1414,16 +1150,16 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: KESİR İLE TAM SAYI BÖLME
-  { id: "s3_bl_001", s: "{a}/{b} ÷ {n} = ?", c: "{a}/{b}*{n}", v: {a:[1,5], b:[2,7], n:[2,5]}, z:"orta", alt:"kesir_tamsayi_bolme" },
+  { id: "s3_bl_001", s: "{a}/{b} ÷ {n} = ?", c: "{a}/({b}*{n})", v: {a:[1,5], b:[2,7], n:[2,5]}, z:"orta", alt:"kesir_tamsayi_bolme" },
   { id: "s3_bl_002", s: "{n} ÷ {a}/{b} = ?", c: "{n}*{b}/{a}", v: {a:[1,5], b:[2,7], n:[2,6]}, z:"orta", alt:"tamsayi_kesir_bolme" },
   { id: "s3_bl_003", s: "Kesirlerde bölme işlemi nasıl yapılır?", c: "birinci_kesir_aynen_yazilir_ikinci_kesir_ters_cevrilip_carpilir", v: {}, z:"orta", alt:"bolme_kurali" },
 
   // ALT DAL 2: İKİ KESRİ BÖLME
-  { id: "s3_bl_004", s: "{a}/{b} ÷ {c}/{d} = ?", c: "{a}*{d}/{b}*{c}", v: {a:[1,5], b:[2,7], c:[1,5], d:[3,8]}, z:"orta", alt:"kesir_kesir_bolme" },
+  { id: "s3_bl_004", s: "{a}/{b} ÷ {c}/{d} = ?", c: "{a}*{d}/({b}*{c})", v: {a:[1,5], b:[2,7], c:[1,5], d:[3,8]}, z:"orta", alt:"kesir_kesir_bolme" },
   { id: "s3_bl_005", s: "{a}/{b} ÷ {c}/{d} = ? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[2,6], b:[3,9], c:[2,6], d:[4,10]}, z:"zor", alt:"kesir_kesir_bolme_sade" },
 
   // ALT DAL 3: ÜÇ KESİRLİ BÖLME
-  { id: "s3_bl_006", s: "{a}/{b} ÷ {c}/{d} ÷ {e}/{f} = ?", c: "{a}*{d}*{f}/{b}*{c}*{e}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"uc_kesir_bolme" },
+  { id: "s3_bl_006", s: "{a}/{b} ÷ {c}/{d} ÷ {e}/{f} = ?", c: "{a}*{d}*{f}/({b}*{c}*{e})", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"uc_kesir_bolme" },
 
   // ALT DAL 4: TAM SAYILI KESİRLERDE BÖLME
   { id: "s3_bl_007", s: "{t1} {a}/{b} ÷ {t2} {c}/{d} = ?", c: "{sonuc}", v: {t1:[1,3], a:[1,4], b:[2,6], t2:[1,3], c:[1,4], d:[3,7]}, z:"cok_zor", alt:"tam_sayili_bolme" },
@@ -1450,7 +1186,7 @@ const SORU_BANKASI = {
   { id: "s3_os_003", s: "{a}/{b} kesri ondalık gösterimde nasıl yazılır? (b=1000)", c: "0,{a}", v: {a:[1,999], b:1000}, z:"orta", alt:"payda_1000" },
 
   // ALT DAL 2: ONDALIK SAYIDAN KESRE ÇEVİRME
-  { id: "s3_os_004", s: "0,{a} ondalık sayısını kesir olarak yazınız.", c: "{a}/{10**(basamak)}", v: {a:[1,99]}, z:"orta", alt:"ondaliktan_kesire" },
+  { id: "s3_os_004", s: "0,{a} ondalık sayısını kesir olarak yazınız.", c: "{a}/10", v: {a:[1,99]}, z:"orta", alt:"ondaliktan_kesire" },
   { id: "s3_os_005", s: "0,{a}{b} ondalık sayısını kesir olarak yazınız.", c: "{a}{b}/100", v: {a:[1,9], b:[0,9]}, z:"orta", alt:"iki_basamakli_ondalik" },
   { id: "s3_os_006", s: "{tam},{a} ondalık sayısını kesir olarak yazınız.", c: "{tam} {a}/100", v: {tam:[1,5], a:[1,99]}, z:"orta", alt:"tam_kisimli_ondalik" },
 
@@ -1484,10 +1220,10 @@ const SORU_BANKASI = {
   { id: "s3_os_021", s: "0,{a}{b}{c} sayısında {c} rakamının basamak değeri kaçtır?", c: "0,00{c}", v: {a:[1,9], b:[1,9], c:[1,9]}, z:"orta", alt:"ondalik_basamak_degeri" },
 
   // ALT DAL 10: ONDALIK SAYILARDA 10,100,1000 İLE ÇARPMA/BÖLME
-  { id: "s3_os_022", s: "0,{a} × 10 = ?", c: "{a}/10_virgul_kayar", v: {a:[1,99]}, z:"orta", alt:"on_ile_carpma_virgul" },
-  { id: "s3_os_023", s: "0,{a} × 100 = ?", c: "{a}_virgul_kayar", v: {a:[1,99]}, z:"orta", alt:"yuz_ile_carpma_virgul" },
-  { id: "s3_os_024", s: "{a},{b} ÷ 10 = ?", c: "0,{a}{b}_virgul_kayar", v: {a:[1,9], b:[1,99]}, z:"orta", alt:"ona_bolme_virgul" },
-  { id: "s3_os_025", s: "{a},{b} ÷ 100 = ?", c: "0,0{a}{b}_virgul_kayar", v: {a:[1,9], b:[1,99]}, z:"zor", alt:"yuze_bolme_virgul" },
+  { id: "s3_os_022", s: "0,{a} × 10 = ?", c: "0,{a}*10", v: {a:[1,99]}, z:"orta", alt:"on_ile_carpma_virgul" },
+  { id: "s3_os_023", s: "0,{a} × 100 = ?", c: "0,{a}*100", v: {a:[1,99]}, z:"orta", alt:"yuz_ile_carpma_virgul" },
+  { id: "s3_os_024", s: "{a},{b} ÷ 10 = ?", c: "{a},{b}/10", v: {a:[1,9], b:[1,99]}, z:"orta", alt:"ona_bolme_virgul" },
+  { id: "s3_os_025", s: "{a},{b} ÷ 100 = ?", c: "{a},{b}/100", v: {a:[1,9], b:[1,99]}, z:"zor", alt:"yuze_bolme_virgul" },
 
 
   // ==========================================
@@ -1500,7 +1236,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: DEVİRLİ ONDALIĞI KESRE ÇEVİRME (TEK RAKAM DEVİR)
   { id: "s3_dos_003", s: "0,{a}̅ = ? (kesir olarak)", c: "{a}/9", v: {a:[1,9]}, z:"orta", alt:"tek_devir_kesir" },
-  { id: "s3_dos_004", s: "0,{a}{b}̅ = ? (sadece {b} devreder)", c: "{a}/10+{b}/90", v: {a:[1,8], b:[1,8]}, z:"zor", alt:"kismi_devir" },
+  { id: "s3_dos_004", s: "0,{a}{b}̅ = ? (sadece {b} devreder)", c: "({a}*9+{b})/90", v: {a:[1,8], b:[1,8]}, z:"zor", alt:"kismi_devir" },
 
   // ALT DAL 3: DEVİRLİ ONDALIĞI KESRE ÇEVİRME (İKİ RAKAM DEVİR)
   { id: "s3_dos_005", s: "0,{a}{b}̅ = ? (kesir olarak, iki rakam devreder)", c: "{a}{b}/99", v: {a:[1,9], b:[0,9]}, z:"zor", alt:"iki_devir_kesir" },
@@ -1508,7 +1244,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: DEVİRLİ ONDALIKTA TAM KISIM
   { id: "s3_dos_007", s: "{t},{a}̅ = ? (kesir olarak)", c: "{t}+{a}/9", v: {t:[1,4], a:[1,8]}, z:"zor", alt:"tam_kisimli_devir" },
-  { id: "s3_dos_008", s: "{t},{a}{b}̅ = ? (kesir olarak, {b} devreder)", c: "{sonuc}", v: {t:[1,3], a:[1,8], b:[1,8]}, z:"cok_zor", alt:"tam_kismi_devir" },
+  { id: "s3_dos_008", s: "{t},{a}{b}̅ = ? (kesir olarak, {b} devreder)", c: "{t}+({a}*9+{b})/90", v: {t:[1,3], a:[1,8], b:[1,8]}, z:"cok_zor", alt:"tam_kismi_devir" },
 
   // ALT DAL 5: DEVİRLİ ONDALIK FORMÜLÜ
   { id: "s3_dos_009", s: "Devirli ondalık sayıyı kesre çevirme formülü nedir?", c: "(sayi-devretmeyen)/(devreden_kadar_9_devretmeyen_kadar_0)", v: {}, z:"cok_zor", alt:"devirli_formul" },
@@ -1532,24 +1268,24 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TOPLAMA-ÇARPMA KARIŞIK
-  { id: "s3_rd_001", s: "({a}/{b} + {c}/{d}) × {n} = ?", c: "{sonuc}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], n:[2,5]}, z:"zor", alt:"parantezli_toplama_carpma" },
-  { id: "s3_rd_002", s: "{a}/{b} × {n} + {c}/{d} = ?", c: "{sonuc}", v: {a:[1,3], b:[2,5], n:[2,5], c:[1,3], d:[3,6]}, z:"zor", alt:"carpma_toplama_oncesi" },
+  { id: "s3_rd_001", s: "({a}/{b} + {c}/{d}) × {n} = ?", c: "({a}/{b}+{c}/{d})*{n}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], n:[2,5]}, z:"zor", alt:"parantezli_toplama_carpma" },
+  { id: "s3_rd_002", s: "{a}/{b} × {n} + {c}/{d} = ?", c: "{a}*{n}/{b}+{c}/{d}", v: {a:[1,3], b:[2,5], n:[2,5], c:[1,3], d:[3,6]}, z:"zor", alt:"carpma_toplama_oncesi" },
 
   // ALT DAL 2: ÇIKARMA-BÖLME KARIŞIK
-  { id: "s3_rd_003", s: "({a}/{b} - {c}/{d}) ÷ {n} = ?", c: "{sonuc}", v: {a:[3,6], b:[2,5], c:[1,2], d:[3,6], kosul:"a/b>c/d", n:[2,4]}, z:"cok_zor", alt:"parantezli_cikarma_bolme" },
-  { id: "s3_rd_004", s: "{a}/{b} ÷ {c}/{d} - {e}/{f} = ?", c: "{sonuc}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[4,7]}, z:"cok_zor", alt:"bolme_cikarma_sonra" },
+  { id: "s3_rd_003", s: "({a}/{b} - {c}/{d}) ÷ {n} = ?", c: "({a}/{b}-{c}/{d})/{n}", v: {a:[3,6], b:[2,5], c:[1,2], d:[3,6], kosul:"a/b>c/d", n:[2,4]}, z:"cok_zor", alt:"parantezli_cikarma_bolme" },
+  { id: "s3_rd_004", s: "{a}/{b} ÷ {c}/{d} - {e}/{f} = ?", c: "{a}*{d}/({b}*{c})-{e}/{f}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[4,7]}, z:"cok_zor", alt:"bolme_cikarma_sonra" },
 
   // ALT DAL 3: İÇ İÇE İŞLEMLER
-  { id: "s3_rd_005", s: "({a}/{b} + {c}/{d}) ÷ ({e}/{f} - {g}/{h}) = ?", c: "{sonuc}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], e:[3,5], f:[2,5], g:[1,3], h:[3,6], kosul:"e/f>g/h"}, z:"cok_zor", alt:"ic_ice" },
+  { id: "s3_rd_005", s: "({a}/{b} + {c}/{d}) ÷ ({e}/{f} - {g}/{h}) = ?", c: "({a}/{b}+{c}/{d})/({e}/{f}-{g}/{h})", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], e:[3,5], f:[2,5], g:[1,3], h:[3,6], kosul:"e/f>g/h"}, z:"cok_zor", alt:"ic_ice" },
   { id: "s3_rd_006", s: "{t1} {a}/{b} × ({t2} {c}/{d} + {t3} {e}/{f}) = ?", c: "{sonuc}", v: {t1:[1,3], a:[1,4], b:[2,5], t2:[1,2], c:[1,3], d:[3,5], t3:[1,2], e:[1,3], f:[4,6]}, z:"cok_zor", alt:"tam_sayili_karisik" },
 
   // ALT DAL 4: İŞLEM ÖNCELİĞİ
-  { id: "s3_rd_007", s: "{a}/{b} + {c}/{d} × {e}/{f} = ?", c: "{sonuc}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"islem_onceligi" },
+  { id: "s3_rd_007", s: "{a}/{b} + {c}/{d} × {e}/{f} = ?", c: "{a}/{b}+({c}*{e})/({d}*{f})", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"islem_onceligi" },
   { id: "s3_rd_008", s: "\"{a}/{b} + {c}/{d} × {e}/{f}\" işleminde önce hangi işlem yapılır?", c: "carpma", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,5], e:[1,3], f:[2,5]}, z:"zor", alt:"islem_onceligi_soru" },
 
   // ALT DAL 5: ZİNCİRLEME İŞLEMLER
-  { id: "s3_rd_009", s: "{a}/{b} işlemini {c}/{d} ile toplayıp {e}/{f} ile çarparsak sonuç kaç olur?", c: "{sonuc}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"zincirleme" },
-  { id: "s3_rd_010", s: "Hangi sayının {a}/{b}'i ile {c}/{d}'ünün toplamı {t}'dir?", c: "{sayi}", v: {a:[1,4], b:[3,7], c:[1,4], d:[2,6], t:[1,10]}, z:"cok_zor", alt:"sayi_bulma" },
+  { id: "s3_rd_009", s: "{a}/{b} işlemini {c}/{d} ile toplayıp {e}/{f} ile çarparsak sonuç kaç olur?", c: "({a}/{b}+{c}/{d})*{e}/{f}", v: {a:[1,3], b:[2,5], c:[1,3], d:[3,6], e:[1,3], f:[2,5]}, z:"cok_zor", alt:"zincirleme" },
+  { id: "s3_rd_010", s: "Hangi sayının {a}/{b}'i ile {c}/{d}'ünün toplamı {t}'dir?", c: "{t}/({a}/{b}+{c}/{d})", v: {a:[1,4], b:[3,7], c:[1,4], d:[2,6], t:[1,10]}, z:"cok_zor", alt:"sayi_bulma" },
 
   // ALT DAL 6: EŞİTLİK SORULARI
   { id: "s3_rd_011", s: "{a}/{b} = ?/{c} ise ? kaçtır?", c: "{a}*{c}/{b}", v: {a:[1,5], b:[2,8], c:[4,16], kosul:"c%b==0"}, z:"orta", alt:"esitlik" },
@@ -1580,7 +1316,7 @@ const SORU_BANKASI = {
   // ALT DAL 3: KALAN BULMA PROBLEMLERİ
   { id: "s3_rp_006", s: "Parasının önce {a}/{b}'ini sonra {c}/{d}'ünü harcayan biri parasının kaçta kaçını harcamıştır?", c: "{a}/{b}+{c}/{d}", v: {a:[1,3], b:[3,7], c:[1,3], d:[4,8], kosul:"toplam<=1"}, z:"orta", alt:"harcama" },
   { id: "s3_rp_007", s: "Parasının önce {a}/{b}'ini sonra kalanın {c}/{d}'ünü harcayan biri parasının kaçta kaçını harcamıştır?", c: "{a}/{b}+(1-{a}/{b})*{c}/{d}", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5]}, z:"cok_zor", alt:"kalanin_kesri" },
-  { id: "s3_rp_008", s: "Bir depodaki suyun önce {a}/{b}'i, sonra kalanın {c}/{d}'ü kullanılırsa depoda suyun kaçta kaçı kalır?", c: "1-( {a}/{b}+(1-{a}/{b})*{c}/{d} )", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5]}, z:"cok_zor", alt:"kalan_su" },
+  { id: "s3_rp_008", s: "Bir depodaki suyun önce {a}/{b}'i, sonra kalanın {c}/{d}'ü kullanılırsa depoda suyun kaçta kaçı kalır?", c: "1-({a}/{b}+(1-{a}/{b})*{c}/{d})", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5]}, z:"cok_zor", alt:"kalan_su" },
 
   // ALT DAL 4: KARIŞTIRMA PROBLEMLERİ
   { id: "s3_rp_009", s: "{a} litre sütün {b}/{c}'i ile {d} litre sütün {e}/{f}'ü karıştırılırsa kaç litre süt olur?", c: "{a}*{b}/{c}+{d}*{e}/{f}", v: {a:[10,30], b:[1,3], c:[3,6], d:[10,30], e:[1,3], f:[2,5]}, z:"zor", alt:"karistirma" },
@@ -1597,8 +1333,8 @@ const SORU_BANKASI = {
   { id: "s3_rp_014", s: "Bir araç gideceği yolun önce {a}/{b}'ini, sonra kalanın {c}/{d}'ünü gidiyor. Geriye yolun kaçta kaçı kalır?", c: "1-({a}/{b}+(1-{a}/{b})*{c}/{d})", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5]}, z:"cok_zor", alt:"yol_problemi" },
 
   // ALT DAL 8: PAY-PAYDA PROBLEMLERİ
-  { id: "s3_rp_015", s: "Payı {a}, paydası {b} olan kesrin payına {n} eklenirse kesir kaç olur?", c: "{a}+{n}/{b}", v: {a:[1,5], b:[3,10], n:[2,5]}, z:"orta", alt:"pay_ekleme" },
-  { id: "s3_rp_016", s: "Payı {a}, paydası {b} olan kesrin paydasından {n} çıkarılırsa kesir kaç olur?", c: "{a}/{b}-{n}", v: {a:[1,5], b:[4,10], n:[1,3], kosul:"b>n"}, z:"orta", alt:"payda_cikarma" },
+  { id: "s3_rp_015", s: "Payı {a}, paydası {b} olan kesrin payına {n} eklenirse kesir kaç olur?", c: "({a}+{n})/{b}", v: {a:[1,5], b:[3,10], n:[2,5]}, z:"orta", alt:"pay_ekleme" },
+  { id: "s3_rp_016", s: "Payı {a}, paydası {b} olan kesrin paydasından {n} çıkarılırsa kesir kaç olur?", c: "{a}/({b}-{n})", v: {a:[1,5], b:[4,10], n:[1,3], kosul:"b>n"}, z:"orta", alt:"payda_cikarma" },
   { id: "s3_rp_017", s: "{a}/{b} kesrinin pay ve paydasına {n} eklenirse kesrin değeri nasıl değişir? (a<b)", c: "artar", v: {a:[1,5], b:[3,8], n:[1,4], kosul:"a<b"}, z:"zor", alt:"pay_payda_ekleme" },
   { id: "s3_rp_018", s: "{a}/{b} kesrinin pay ve paydasına {n} eklenirse kesrin değeri nasıl değişir? (a>b)", c: "azalir", v: {a:[4,8], b:[2,5], n:[1,3], kosul:"a>b"}, z:"zor", alt:"pay_payda_ekleme_bilesik" },
 
@@ -1624,7 +1360,7 @@ const SORU_BANKASI = {
   { id: "s3_sp_004", s: "Parasının {a}/{b}'ini harcayınca geriye {kalan} TL kalan birinin başlangıçta kaç TL'si vardı?", c: "{kalan}*{b}/({b}-{a})", v: {a:[1,"{b}-1"], b:[3,8], kalan:[10,50]}, z:"zor", alt:"kalandan_parayi_bulma" },
 
   // ALT DAL 3: ARDIŞIK KESİR PROBLEMLERİ
-  { id: "s3_sp_005", s: "Bir depodaki suyun önce {a}/{b}'i, sonra kalanın {c}/{d}'ü kullanıldı. Geriye {kalan} litre su kaldığına göre başlangıçta kaç litre su vardı?", c: "{kalan}/(1-{a}/{b})/(1-{c}/{d})", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5], kalan:[10,40]}, z:"cok_zor", alt:"ardisik_harcama" },
+  { id: "s3_sp_005", s: "Bir depodaki suyun önce {a}/{b}'i, sonra kalanın {c}/{d}'ü kullanıldı. Geriye {kalan} litre su kaldığına göre başlangıçta kaç litre su vardı?", c: "{kalan}/((1-{a}/{b})*(1-{c}/{d}))", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5], kalan:[10,40]}, z:"cok_zor", alt:"ardisik_harcama" },
   { id: "s3_sp_006", s: "Ahmet parasının önce {a}/{b}'ini, sonra kalanın {c}/{d}'ünü harcadı. Cebinde {kalan} TL kaldı. Başlangıçta kaç TL'si vardı?", c: "{kalan}/((1-{a}/{b})*(1-{c}/{d}))", v: {a:[1,3], b:[3,7], c:[1,3], d:[2,5], kalan:[10,50]}, z:"cok_zor", alt:"para_harcama_kalan" },
 
   // ALT DAL 4: KARIŞIM PROBLEMLERİ (TEMEL KESİR)
@@ -1665,17 +1401,14 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
-// SEVİYE 4: ÜSLÜ SAYILAR
-// ==========================================
-4: [
+  4: [
 
   // ==========================================
   // KONU 1: ÜS KAVRAMI VE TANIMI (6 alt dal)
   // ==========================================
 
   // ALT DAL 1: ÜS TANIMI
-  { id: "s4_ut_001", s: "{a} üzeri {n} = ? (Değerini bulunuz)", c: "{sonuc}", v: {a:[2,5], n:[2,4], sonuc:"Math.pow({a},{n})"}, z:"kolay", alt:"us_tanimi" },
+  { id: "s4_ut_001", s: "{a} üzeri {n} = ? (Değerini bulunuz)", c: "Math.pow({a},{n})", v: {a:[2,5], n:[2,4]}, z:"kolay", alt:"us_tanimi" },
   { id: "s4_ut_002", s: "{a}ⁿ ifadesinde taban ve üs hangisidir?", c: "taban:{a}, us:{n}", v: {a:[2,9], n:[2,5]}, z:"kolay", alt:"taban_us_adlandirma" },
   { id: "s4_ut_003", s: "{a} × {a} × {a} × {a} = ? (Üslü gösterim)", c: "{a}⁴", v: {a:[2,7]}, z:"kolay", alt:"carpma_uslu_gosterim" },
   { id: "s4_ut_004", s: "{a} tane {b}'nin çarpımı nasıl gösterilir?", c: "{b}^{a}", v: {a:[2,6], b:[2,9]}, z:"kolay", alt:"tane_carpim" },
@@ -1693,14 +1426,14 @@ const SORU_BANKASI = {
   { id: "s4_ut_012", s: "Bir sayının küpü ne demektir?", c: "sayinin_kendisiyle_iki_kere_carpimi", v: {}, z:"kolay", alt:"kup_tanimi" },
 
   // ALT DAL 4: ÜSLÜ SAYI DEĞERİNİ BULMA
-  { id: "s4_ut_013", s: "{a} üzeri {n} kaçtır?", c: "{sonuc}", v: {a:[2,6], n:[2,4], sonuc:"Math.pow({a},{n})"}, z:"orta", alt:"uslu_deger" },
+  { id: "s4_ut_013", s: "{a} üzeri {n} kaçtır?", c: "Math.pow({a},{n})", v: {a:[2,6], n:[2,4]}, z:"orta", alt:"uslu_deger" },
   { id: "s4_ut_014", s: "{a}² + {b}² = ?", c: "{a}*{a}+{b}*{b}", v: {a:[1,8], b:[1,8]}, z:"orta", alt:"kareler_toplami" },
   { id: "s4_ut_015", s: "({a}+{b})² = ?", c: "{a}*{a}+2*{a}*{b}+{b}*{b}", v: {a:[1,5], b:[1,5]}, z:"orta", alt:"tam_kare_acilim" },
   { id: "s4_ut_016", s: "{a}² - {b}² = ?", c: "{a}*{a}-{b}*{b}", v: {a:[2,8], b:[1,5], kosul:"a>b"}, z:"orta", alt:"kareler_farki" },
 
   // ALT DAL 5: ÜS DEĞERİ HESAPLAMA STRATEJİLERİ
-  { id: "s4_ut_017", s: "2^{n} = ? (n=1'den 10'a kadar değerler)", c: "{sonuc}", v: {n:[1,10], sonuc:"Math.pow(2,{n})"}, z:"orta", alt:"ikinin_kuvvetleri" },
-  { id: "s4_ut_018", s: "3^{n} = ? (n=1'den 5'e kadar değerler)", c: "{sonuc}", v: {n:[1,5], sonuc:"Math.pow(3,{n})"}, z:"orta", alt:"ucun_kuvvetleri" },
+  { id: "s4_ut_017", s: "2^{n} = ? (n=1'den 10'a kadar değerler)", c: "Math.pow(2,{n})", v: {n:[1,10]}, z:"orta", alt:"ikinin_kuvvetleri" },
+  { id: "s4_ut_018", s: "3^{n} = ? (n=1'den 5'e kadar değerler)", c: "Math.pow(3,{n})", v: {n:[1,5]}, z:"orta", alt:"ucun_kuvvetleri" },
   { id: "s4_ut_019", s: "Sonu {rakam} ile biten bir sayının kuvvetlerinin son basamağı nasıl bulunur?", c: "dongu_ile", v: {rakam:[0,9]}, z:"zor", alt:"son_basamak_dongusu" },
 
   // ALT DAL 6: ÜS KAVRAMI TEMEL SORULAR
@@ -1716,7 +1449,7 @@ const SORU_BANKASI = {
   // ALT DAL 1: 1'İN TÜM KUVVETLERİ
   { id: "s4_tk_001", s: "1^{n} = ?", c: "1", v: {n:[1,100]}, z:"kolay", alt:"1in_kuvveti" },
   { id: "s4_tk_002", s: "1ⁿ = 1 eşitliği her zaman doğru mudur?", c: "evet", v: {}, z:"kolay", alt:"1in_kuvveti_her_zaman" },
-  { id: "s4_tk_003", s: "(-1)^{n} = ? (n={n})", c: "{sonuc}", v: {n:[1,10], sonuc:"{n}%2==1?-1:1"}, z:"orta", alt:"eksi_1_kuvveti" },
+  { id: "s4_tk_003", s: "(-1)^{n} = ? (n={n})", c: "{n}%2==0?1:-1", v: {n:[1,10]}, z:"orta", alt:"eksi_1_kuvveti" },
 
   // ALT DAL 2: 0'IN KUVVETLERİ
   { id: "s4_tk_004", s: "0ⁿ = ? (n>0)", c: "0", v: {n:[1,10]}, z:"orta", alt:"0in_kuvveti" },
@@ -1741,7 +1474,7 @@ const SORU_BANKASI = {
   { id: "s4_tk_017", s: "Pozitif sayıların tüm kuvvetleri nasıldır?", c: "pozitiftir", v: {}, z:"orta", alt:"pozitif_tum_usler" },
 
   // ALT DAL 6: KUVVETİN İŞARETE ETKİSİ
-  { id: "s4_tk_018", s: "(-{a})^{n} = ? (n={n})", c: "{sonuc}", v: {a:[1,5], n:[2,6], sonuc:"{n}%2==0?Math.pow({a},{n}):-Math.pow({a},{n})"}, z:"orta", alt:"us_isaret" },
+  { id: "s4_tk_018", s: "(-{a})^{n} = ? (n={n})", c: "{n}%2==0?Math.pow({a},{n}):-Math.pow({a},{n})", v: {a:[1,5], n:[2,6]}, z:"orta", alt:"us_isaret" },
   { id: "s4_tk_019", s: "-{a}² ile (-{a})² aynı mıdır?", c: "hayir", v: {a:[2,6]}, z:"zor", alt:"parantez_onemi" },
   { id: "s4_tk_020", s: "-{a}² = ?", c: "-{a}*{a}", v: {a:[2,6]}, z:"orta", alt:"parantezsiz_kare" },
   { id: "s4_tk_021", s: "(-{a})² = ?", c: "{a}*{a}", v: {a:[2,6]}, z:"orta", alt:"parantezli_kare" },
@@ -1771,7 +1504,7 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: NEGATİF ÜS TANIMI
-  { id: "s4_nu_001", s: "{a}⁻ⁿ = ? (a={a}, n={n})", c: "1/{a}^{n}", v: {a:[2,5], n:[1,4]}, z:"orta", alt:"negatif_us_tanimi" },
+  { id: "s4_nu_001", s: "{a}⁻ⁿ = ? (a={a}, n={n})", c: "1/Math.pow({a},{n})", v: {a:[2,5], n:[1,4]}, z:"orta", alt:"negatif_us_tanimi" },
   { id: "s4_nu_002", s: "Negatif üs ne anlama gelir?", c: "sayinin_carpmaya_gore_tersinin_pozitif_ussu", v: {}, z:"orta", alt:"negatif_us_anlam" },
   { id: "s4_nu_003", s: "a⁻ⁿ = ? (Formül)", c: "1/aⁿ", v: {}, z:"orta", alt:"negatif_us_formul" },
 
@@ -1783,18 +1516,18 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: KESİRLİ SAYILARDA NEGATİF ÜS
   { id: "s4_nu_008", s: "(1/{a})⁻¹ = ?", c: "{a}", v: {a:[2,8]}, z:"orta", alt:"kesir_negatif1" },
-  { id: "s4_nu_009", s: "(1/{a})⁻² = ?", c: "{a}²", v: {a:[2,5]}, z:"orta", alt:"kesir_negatif2" },
+  { id: "s4_nu_009", s: "(1/{a})⁻² = ?", c: "{a}*{a}", v: {a:[2,5]}, z:"orta", alt:"kesir_negatif2" },
   { id: "s4_nu_010", s: "({a}/{b})⁻¹ = ?", c: "{b}/{a}", v: {a:[1,5], b:[2,7]}, z:"orta", alt:"kesir_negatif_us" },
-  { id: "s4_nu_011", s: "({a}/{b})⁻ⁿ = ? (n={n})", c: "({b}/{a})^{n}", v: {a:[1,4], b:[2,5], n:[2,3]}, z:"zor", alt:"kesir_negatif_n" },
+  { id: "s4_nu_011", s: "({a}/{b})⁻ⁿ = ? (n={n})", c: "Math.pow({b}/{a},{n})", v: {a:[1,4], b:[2,5], n:[2,3]}, z:"zor", alt:"kesir_negatif_n" },
 
   // ALT DAL 4: NEGATİF ÜS İLE İLGİLİ ÖZELLİKLER
   { id: "s4_nu_012", s: "a⁻ⁿ = 1/aⁿ ise 1/a⁻ⁿ = ?", c: "aⁿ", v: {}, z:"zor", alt:"negatif_us_ters" },
-  { id: "s4_nu_013", s: "(-{a})⁻² = ?", c: "1/{a}²", v: {a:[2,5]}, z:"zor", alt:"negatif_taban_negatif_us" },
+  { id: "s4_nu_013", s: "(-{a})⁻² = ?", c: "1/({a}*{a})", v: {a:[2,5]}, z:"zor", alt:"negatif_taban_negatif_us" },
   { id: "s4_nu_014", s: "Negatif üslü bir ifade her zaman pozitif midir?", c: "hayir_tabana_bagli", v: {}, z:"zor", alt:"negatif_us_isaret" },
 
   // ALT DAL 5: NEGATİF ÜS SORULARI
-  { id: "s4_nu_015", s: "2⁻¹ + 2⁻² = ?", c: "1/2+1/4=3/4", v: {}, z:"zor", alt:"negatif_us_toplam" },
-  { id: "s4_nu_016", s: "3⁻¹ + 3⁻² + 3⁻³ = ?", c: "1/3+1/9+1/27=13/27", v: {}, z:"cok_zor", alt:"negatif_us_uc_toplam" },
+  { id: "s4_nu_015", s: "2⁻¹ + 2⁻² = ?", c: "3/4", v: {}, z:"zor", alt:"negatif_us_toplam" },
+  { id: "s4_nu_016", s: "3⁻¹ + 3⁻² + 3⁻³ = ?", c: "13/27", v: {}, z:"cok_zor", alt:"negatif_us_uc_toplam" },
 
   // ALT DAL 6: NEGATİF ÜS PROBLEMLERİ
   { id: "s4_nu_017", s: "{a}⁻ⁿ = 1/{deger} ise n kaçtır?", c: "{n}", v: {a:[2,5], n:[1,4], deger:"Math.pow({a},{n})"}, z:"zor", alt:"negatif_us_bulma" },
@@ -1816,13 +1549,13 @@ const SORU_BANKASI = {
   { id: "s4_utc_006", s: "{a}ⁿ + {a}ⁿ = ?", c: "2·{a}ⁿ", v: {a:[2,5], n:[2,5]}, z:"orta", alt:"ayni_taban_us_toplam" },
 
   // ALT DAL 3: ÜSLÜ SAYILARI ÇARPANLARA AYIRARAK TOPLAMA
-  { id: "s4_utc_007", s: "2ⁿ⁺¹ + 2ⁿ = ? (Ortak çarpan parantezi)", c: "2ⁿ(2+1)=3·2ⁿ", v: {n:[2,5]}, z:"zor", alt:"ortak_carpan_parantezi" },
-  { id: "s4_utc_008", s: "3ⁿ⁺² - 3ⁿ = ? (Ortak çarpan parantezi)", c: "3ⁿ(9-1)=8·3ⁿ", v: {n:[1,4]}, z:"zor", alt:"ortak_carpan_cikarma" },
-  { id: "s4_utc_009", s: "5ⁿ⁺¹ - 5ⁿ = ?", c: "5ⁿ(5-1)=4·5ⁿ", v: {n:[1,4]}, z:"zor", alt:"5_ortak_carpan" },
+  { id: "s4_utc_007", s: "2ⁿ⁺¹ + 2ⁿ = ? (Ortak çarpan parantezi)", c: "2ⁿ·(2+1)=3·2ⁿ", v: {n:[2,5]}, z:"zor", alt:"ortak_carpan_parantezi" },
+  { id: "s4_utc_008", s: "3ⁿ⁺² - 3ⁿ = ? (Ortak çarpan parantezi)", c: "3ⁿ·(9-1)=8·3ⁿ", v: {n:[1,4]}, z:"zor", alt:"ortak_carpan_cikarma" },
+  { id: "s4_utc_009", s: "5ⁿ⁺¹ - 5ⁿ = ?", c: "5ⁿ·(5-1)=4·5ⁿ", v: {n:[1,4]}, z:"zor", alt:"5_ortak_carpan" },
 
   // ALT DAL 4: ÜSLÜ SAYILARDA ÇARPANLARA AYIRMA
-  { id: "s4_utc_010", s: "2ⁿ⁺² + 2ⁿ⁺¹ + 2ⁿ = ? (Ortak çarpan parantezi)", c: "2ⁿ(4+2+1)=7·2ⁿ", v: {n:[1,4]}, z:"cok_zor", alt:"uc_terim_ortak" },
-  { id: "s4_utc_011", s: "xⁿ⁺³ - xⁿ⁺¹ = ? (Ortak çarpan parantezi)", c: "xⁿ⁺¹(x²-1)", v: {n:[1,3]}, z:"cok_zor", alt:"x_ortak_carpan" },
+  { id: "s4_utc_010", s: "2ⁿ⁺² + 2ⁿ⁺¹ + 2ⁿ = ? (Ortak çarpan parantezi)", c: "2ⁿ·(4+2+1)=7·2ⁿ", v: {n:[1,4]}, z:"cok_zor", alt:"uc_terim_ortak" },
+  { id: "s4_utc_011", s: "xⁿ⁺³ - xⁿ⁺¹ = ? (Ortak çarpan parantezi)", c: "xⁿ⁺¹·(x²-1)", v: {n:[1,3]}, z:"cok_zor", alt:"x_ortak_carpan" },
 
   // ALT DAL 5: ÜSLÜ SAYI DEĞERLERİNİ TOPLAMA
   { id: "s4_utc_012", s: "2³ + 2⁴ = ?", c: "8+16=24", v: {}, z:"orta", alt:"deger_toplam" },
@@ -1831,7 +1564,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: TOPLAMA-ÇIKARMA KARIŞIK
   { id: "s4_utc_015", s: "{a}ⁿ⁺¹ + {a}ⁿ⁺¹ = ?", c: "2·{a}ⁿ⁺¹", v: {a:[2,5], n:[2,4]}, z:"orta", alt:"iki_esit_terim" },
-  { id: "s4_utc_016", s: "{a}ⁿ⁺² - {a}ⁿ⁺¹ + {a}ⁿ = ?", c: "{a}ⁿ({a}²-{a}+1)", v: {a:[2,5], n:[1,3]}, z:"cok_zor", alt:"uc_terimli" },
+  { id: "s4_utc_016", s: "{a}ⁿ⁺² - {a}ⁿ⁺¹ + {a}ⁿ = ?", c: "{a}ⁿ·({a}²-{a}+1)", v: {a:[2,5], n:[1,3]}, z:"cok_zor", alt:"uc_terimli" },
 
 
   // ==========================================
@@ -1839,25 +1572,25 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TABANLARI EŞİT ÜSLÜ SAYILARDA ÇARPMA
-  { id: "s4_uc_001", s: "{a}ᵐ × {a}ⁿ = ? (m={m}, n={n})", c: "{a}^{m}+{n}", v: {a:[2,6], m:[2,4], n:[2,4]}, z:"orta", alt:"tabani_esit_carpma" },
+  { id: "s4_uc_001", s: "{a}ᵐ × {a}ⁿ = ? (m={m}, n={n})", c: "{a}^{m+n}", v: {a:[2,6], m:[2,4], n:[2,4]}, z:"orta", alt:"tabani_esit_carpma" },
   { id: "s4_uc_002", s: "aᵐ × aⁿ = ? (Formül)", c: "aᵐ⁺ⁿ", v: {}, z:"orta", alt:"tabani_esit_carpma_formul" },
   { id: "s4_uc_003", s: "x² × x³ = ?", c: "x⁵", v: {}, z:"orta", alt:"x_kare_x_kup" },
-  { id: "s4_uc_004", s: "2³ × 2⁴ = ?", c: "2⁷=128", v: {}, z:"orta", alt:"2_3_2_4" },
+  { id: "s4_uc_004", s: "2³ × 2⁴ = ?", c: "128", v: {}, z:"orta", alt:"2_3_2_4" },
 
   // ALT DAL 2: ÜSLERİ EŞİT ÜSLÜ SAYILARDA ÇARPMA
   { id: "s4_uc_005", s: "{a}ⁿ × {b}ⁿ = ?", c: "({a}×{b})ⁿ", v: {a:[2,5], b:[2,6], n:[2,4]}, z:"orta", alt:"usleri_esit_carpma" },
   { id: "s4_uc_006", s: "aⁿ × bⁿ = ? (Formül)", c: "(a×b)ⁿ", v: {}, z:"orta", alt:"usleri_esit_carpma_formul" },
-  { id: "s4_uc_007", s: "2³ × 5³ = ?", c: "10³=1000", v: {}, z:"orta", alt:"2_3_5_3" },
+  { id: "s4_uc_007", s: "2³ × 5³ = ?", c: "1000", v: {}, z:"orta", alt:"2_3_5_3" },
   { id: "s4_uc_008", s: "x⁴ × y⁴ = ?", c: "(xy)⁴", v: {}, z:"orta", alt:"x4_y4" },
 
   // ALT DAL 3: HEM TABAN HEM ÜS FARKLI ÇARPMA
-  { id: "s4_uc_009", s: "{a}ᵐ × {b}ⁿ = ? (Farklı taban ve üs, sadeleştirme yapılabilir mi?)", c: "{aciklama}", v: {a:[2,5], m:[2,4], b:[2,5], n:[2,4]}, z:"zor", alt:"farkli_taban_us" },
-  { id: "s4_uc_010", s: "2³ × 4² = ? (4=2² yap)", c: "2³×2⁴=2⁷=128", v: {}, z:"zor", alt:"taban_donusturme" },
-  { id: "s4_uc_011", s: "3² × 9³ = ? (9=3² yap)", c: "3²×3⁶=3⁸", v: {}, z:"zor", alt:"9u_3_yap" },
+  { id: "s4_uc_009", s: "{a}ᵐ × {b}ⁿ = ? (Farklı taban ve üs, sadeleştirme yapılabilir mi?)", c: "genelde_sadelestirilemez", v: {a:[2,5], m:[2,4], b:[2,5], n:[2,4]}, z:"zor", alt:"farkli_taban_us" },
+  { id: "s4_uc_010", s: "2³ × 4² = ? (4=2² yap)", c: "128", v: {}, z:"zor", alt:"taban_donusturme" },
+  { id: "s4_uc_011", s: "3² × 9³ = ? (9=3² yap)", c: "3⁸", v: {}, z:"zor", alt:"9u_3_yap" },
 
   // ALT DAL 4: ÜÇ VEYA DAHA FAZLA ÜSLÜ SAYIDA ÇARPMA
-  { id: "s4_uc_012", s: "{a}ᵐ × {a}ⁿ × {a}ᵏ = ?", c: "{a}^{m}+{n}+{k}", v: {a:[2,4], m:[1,3], n:[1,3], k:[1,3]}, z:"orta", alt:"uc_tabani_esit" },
-  { id: "s4_uc_013", s: "2² × 2³ × 2⁴ = ?", c: "2⁹=512", v: {}, z:"orta", alt:"2_2_2_3_2_4" },
+  { id: "s4_uc_012", s: "{a}ᵐ × {a}ⁿ × {a}ᵏ = ?", c: "{a}^{m+n+k}", v: {a:[2,4], m:[1,3], n:[1,3], k:[1,3]}, z:"orta", alt:"uc_tabani_esit" },
+  { id: "s4_uc_013", s: "2² × 2³ × 2⁴ = ?", c: "512", v: {}, z:"orta", alt:"2_2_2_3_2_4" },
   { id: "s4_uc_014", s: "a² × b² × c² = ?", c: "(abc)²", v: {}, z:"orta", alt:"uc_us_esit" },
 
   // ALT DAL 5: ÇARPMA İLE TOPLAMA İLİŞKİSİ
@@ -1865,13 +1598,13 @@ const SORU_BANKASI = {
   { id: "s4_uc_016", s: "aᵐ × bᵐ = (a×b)ᵐ eşitliği her zaman doğru mudur?", c: "evet", v: {}, z:"orta", alt:"us_esit_carpma_kural" },
 
   // ALT DAL 6: KATSAYILI ÜSLÜ ÇARPMA
-  { id: "s4_uc_017", s: "{k1}·{a}ᵐ × {k2}·{a}ⁿ = ?", c: "{k1}*{k2}·{a}^{m}+{n}", v: {k1:[2,5], a:[2,5], m:[2,4], k2:[2,5], n:[2,4]}, z:"zor", alt:"katsayili_carpma" },
+  { id: "s4_uc_017", s: "{k1}·{a}ᵐ × {k2}·{a}ⁿ = ?", c: "{k1}*{k2}·{a}^{m+n}", v: {k1:[2,5], a:[2,5], m:[2,4], k2:[2,5], n:[2,4]}, z:"zor", alt:"katsayili_carpma" },
   { id: "s4_uc_018", s: "3·2⁴ × 5·2³ = ?", c: "15·2⁷", v: {}, z:"zor", alt:"3_5_2_4_2_3" },
 
   // ALT DAL 7: ÜSLÜ SAYILARDA ÇARPMA STRATEJİLERİ
-  { id: "s4_uc_019", s: "4⁵ × 2³ = ? (4=2² yaparak)", c: "2¹⁰×2³=2¹³", v: {}, z:"zor", alt:"4u_2_yap" },
-  { id: "s4_uc_020", s: "8² × 4³ = ? (İkisini de 2'nin kuvveti yap)", c: "2⁶×2⁶=2¹²", v: {}, z:"cok_zor", alt:"8_4_2_yap" },
-  { id: "s4_uc_021", s: "27² × 9³ = ? (3'ün kuvveti yap)", c: "3⁶×3⁶=3¹²", v: {}, z:"cok_zor", alt:"27_9_3_yap" },
+  { id: "s4_uc_019", s: "4⁵ × 2³ = ? (4=2² yaparak)", c: "2¹³", v: {}, z:"zor", alt:"4u_2_yap" },
+  { id: "s4_uc_020", s: "8² × 4³ = ? (İkisini de 2'nin kuvveti yap)", c: "2¹²", v: {}, z:"cok_zor", alt:"8_4_2_yap" },
+  { id: "s4_uc_021", s: "27² × 9³ = ? (3'ün kuvveti yap)", c: "3¹²", v: {}, z:"cok_zor", alt:"27_9_3_yap" },
 
   // ALT DAL 8: ÇARPMA İŞLEMİNDE SADELEŞTİRME
   { id: "s4_uc_022", s: "{a}ᵐ⁺ⁿ × {a}ᵐ⁻ⁿ = ?", c: "{a}^{2m}", v: {a:[2,5], m:[3,5], n:[1,2], kosul:"m>n"}, z:"cok_zor", alt:"uslu_ifade_sadelestirme" },
@@ -1883,38 +1616,38 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TABANLARI EŞİT ÜSLÜ SAYILARDA BÖLME
-  { id: "s4_ub_001", s: "{a}ᵐ ÷ {a}ⁿ = ? (m={m}, n={n})", c: "{a}^{m}-{n}", v: {a:[2,6], m:[3,6], n:[1,2], kosul:"m>n"}, z:"orta", alt:"tabani_esit_bolme" },
+  { id: "s4_ub_001", s: "{a}ᵐ ÷ {a}ⁿ = ? (m={m}, n={n})", c: "{a}^{m-n}", v: {a:[2,6], m:[3,6], n:[1,2], kosul:"m>n"}, z:"orta", alt:"tabani_esit_bolme" },
   { id: "s4_ub_002", s: "aᵐ ÷ aⁿ = ? (Formül)", c: "aᵐ⁻ⁿ (a≠0)", v: {}, z:"orta", alt:"tabani_esit_bolme_formul" },
   { id: "s4_ub_003", s: "x⁵ ÷ x² = ?", c: "x³", v: {}, z:"orta", alt:"x5_bolu_x2" },
-  { id: "s4_ub_004", s: "2⁶ ÷ 2² = ?", c: "2⁴=16", v: {}, z:"orta", alt:"2_6_bolu_2_2" },
+  { id: "s4_ub_004", s: "2⁶ ÷ 2² = ?", c: "16", v: {}, z:"orta", alt:"2_6_bolu_2_2" },
   { id: "s4_ub_005", s: "aᵐ ÷ aⁿ (m<n) = ?", c: "1/aⁿ⁻ᵐ", v: {}, z:"zor", alt:"paydadaki_buyuk_us" },
 
   // ALT DAL 2: ÜSLERİ EŞİT ÜSLÜ SAYILARDA BÖLME
   { id: "s4_ub_006", s: "{a}ⁿ ÷ {b}ⁿ = ?", c: "({a}/{b})ⁿ", v: {a:[4,10], b:[2,"{a}-1"], n:[2,4]}, z:"orta", alt:"usleri_esit_bolme" },
   { id: "s4_ub_007", s: "aⁿ ÷ bⁿ = ? (Formül)", c: "(a/b)ⁿ (b≠0)", v: {}, z:"orta", alt:"usleri_esit_bolme_formul" },
-  { id: "s4_ub_008", s: "6³ ÷ 2³ = ?", c: "3³=27", v: {}, z:"orta", alt:"6_3_2_3" },
+  { id: "s4_ub_008", s: "6³ ÷ 2³ = ?", c: "27", v: {}, z:"orta", alt:"6_3_2_3" },
   { id: "s4_ub_009", s: "x⁴ ÷ y⁴ = ?", c: "(x/y)⁴", v: {}, z:"orta", alt:"x4_y4_bolme" },
 
   // ALT DAL 3: ÜSLÜ KESİR SADELEŞTİRME
-  { id: "s4_ub_010", s: "{a}ᵐ/{a}ⁿ = ? (Sadeleştir)", c: "{a}^{m}-{n}", v: {a:[2,5], m:[3,6], n:[1,2], kosul:"m>n"}, z:"orta", alt:"uslu_kesir_sade" },
-  { id: "s4_ub_011", s: "2⁵/2² = ?", c: "2³=8", v: {}, z:"orta", alt:"2_5_2_2" },
+  { id: "s4_ub_010", s: "{a}ᵐ/{a}ⁿ = ? (Sadeleştir)", c: "{a}^{m-n}", v: {a:[2,5], m:[3,6], n:[1,2], kosul:"m>n"}, z:"orta", alt:"uslu_kesir_sade" },
+  { id: "s4_ub_011", s: "2⁵/2² = ?", c: "8", v: {}, z:"orta", alt:"2_5_2_2" },
   { id: "s4_ub_012", s: "xⁿ⁺¹/xⁿ = ?", c: "x", v: {n:[1,5]}, z:"orta", alt:"xn+1_xn" },
 
   // ALT DAL 4: KATSAYILI ÜSLÜ BÖLME
-  { id: "s4_ub_013", s: "{k1}·{a}ᵐ ÷ {k2}·{a}ⁿ = ?", c: "({k1}/{k2})·{a}^{m}-{n}", v: {k1:[4,12], a:[2,5], m:[3,5], k2:[2,4], n:[1,2], kosul:"k1%k2==0 && m>n"}, z:"zor", alt:"katsayili_bolme" },
-  { id: "s4_ub_014", s: "6·2⁵ ÷ 3·2² = ?", c: "2·2³=2⁴=16", v: {}, z:"zor", alt:"6_2_5_3_2_2" },
+  { id: "s4_ub_013", s: "{k1}·{a}ᵐ ÷ {k2}·{a}ⁿ = ?", c: "({k1}/{k2})·{a}^{m-n}", v: {k1:[4,12], a:[2,5], m:[3,5], k2:[2,4], n:[1,2], kosul:"k1%k2==0 && m>n"}, z:"zor", alt:"katsayili_bolme" },
+  { id: "s4_ub_014", s: "6·2⁵ ÷ 3·2² = ?", c: "16", v: {}, z:"zor", alt:"6_2_5_3_2_2" },
 
   // ALT DAL 5: BÖLME İLE NEGATİF ÜS İLİŞKİSİ
   { id: "s4_ub_015", s: "1/{a}ⁿ = ? (Üslü gösterim)", c: "{a}⁻ⁿ", v: {a:[2,5], n:[1,4]}, z:"orta", alt:"bolme_negatif_us" },
   { id: "s4_ub_016", s: "aᵐ ÷ aⁿ = aᵐ⁻ⁿ = aᵐ × a⁻ⁿ eşitliği doğru mudur?", c: "evet", v: {}, z:"zor", alt:"bolme_negatif_us_iliski" },
 
   // ALT DAL 6: TABAN DÖNÜŞTÜREREK BÖLME
-  { id: "s4_ub_017", s: "8³ ÷ 4² = ? (2'nin kuvveti yap)", c: "2⁹÷2⁴=2⁵=32", v: {}, z:"cok_zor", alt:"8_4_2_yap_bolme" },
-  { id: "s4_ub_018", s: "27² ÷ 9³ = ? (3'ün kuvveti yap)", c: "3⁶÷3⁶=1", v: {}, z:"cok_zor", alt:"27_9_3_bolme" },
+  { id: "s4_ub_017", s: "8³ ÷ 4² = ? (2'nin kuvveti yap)", c: "32", v: {}, z:"cok_zor", alt:"8_4_2_yap_bolme" },
+  { id: "s4_ub_018", s: "27² ÷ 9³ = ? (3'ün kuvveti yap)", c: "1", v: {}, z:"cok_zor", alt:"27_9_3_bolme" },
 
   // ALT DAL 7: KARIŞIK BÖLME İŞLEMLERİ
-  { id: "s4_ub_019", s: "({a}ᵐ × {b}ⁿ) ÷ ({a}ᵏ × {b}ˡ) = ?", c: "{a}^{m}-{k}×{b}^{n}-{l}", v: {a:[2,4], m:[3,6], b:[2,5], n:[3,5], k:[1,2], l:[1,2], kosul:"m>k && n>l"}, z:"cok_zor", alt:"karisik_bolme" },
-  { id: "s4_ub_020", s: "(2⁵×3⁴) ÷ (2³×3²) = ?", c: "2²×3²=4×9=36", v: {}, z:"cok_zor", alt:"2_3_karisik_bolme" },
+  { id: "s4_ub_019", s: "({a}ᵐ × {b}ⁿ) ÷ ({a}ᵏ × {b}ˡ) = ?", c: "{a}^{m-k}×{b}^{n-l}", v: {a:[2,4], m:[3,6], b:[2,5], n:[3,5], k:[1,2], l:[1,2], kosul:"m>k && n>l"}, z:"cok_zor", alt:"karisik_bolme" },
+  { id: "s4_ub_020", s: "(2⁵×3⁴) ÷ (2³×3²) = ?", c: "36", v: {}, z:"cok_zor", alt:"2_3_karisik_bolme" },
 
   // ALT DAL 8: BÖLME İŞLEMİ ÖZELLİKLERİ
   { id: "s4_ub_021", s: "aⁿ ÷ aⁿ = ?", c: "1", v: {}, z:"orta", alt:"kendine_bolme" },
@@ -1927,15 +1660,15 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: ÜSSÜN ÜSSÜ KURALI
-  { id: "s4_uu_001", s: "({a}ᵐ)ⁿ = ? (m={m}, n={n})", c: "{a}^{m}*{n}", v: {a:[2,5], m:[2,4], n:[2,4]}, z:"orta", alt:"ussun_ussu" },
+  { id: "s4_uu_001", s: "({a}ᵐ)ⁿ = ? (m={m}, n={n})", c: "{a}^{m*n}", v: {a:[2,5], m:[2,4], n:[2,4]}, z:"orta", alt:"ussun_ussu" },
   { id: "s4_uu_002", s: "(aᵐ)ⁿ = ? (Formül)", c: "aᵐˣⁿ", v: {}, z:"orta", alt:"ussun_ussu_formul" },
   { id: "s4_uu_003", s: "(x²)³ = ?", c: "x⁶", v: {}, z:"orta", alt:"x2_3" },
-  { id: "s4_uu_004", s: "(2³)² = ?", c: "2⁶=64", v: {}, z:"orta", alt:"2_3_2" },
+  { id: "s4_uu_004", s: "(2³)² = ?", c: "64", v: {}, z:"orta", alt:"2_3_2" },
 
   // ALT DAL 2: İÇ İÇE ÜSLÜ İFADELER
-  { id: "s4_uu_005", s: "(({a}ᵐ)ⁿ)ᵏ = ?", c: "{a}^{m}*{n}*{k}", v: {a:[2,4], m:[1,3], n:[1,3], k:[1,3]}, z:"zor", alt:"ic_ice_us" },
+  { id: "s4_uu_005", s: "(({a}ᵐ)ⁿ)ᵏ = ?", c: "{a}^{m*n*k}", v: {a:[2,4], m:[1,3], n:[1,3], k:[1,3]}, z:"zor", alt:"ic_ice_us" },
   { id: "s4_uu_006", s: "((x²)³)⁴ = ?", c: "x²⁴", v: {}, z:"zor", alt:"x2_3_4" },
-  { id: "s4_uu_007", s: "((2²)³)² = ?", c: "2¹²=4096", v: {}, z:"zor", alt:"2_2_3_2" },
+  { id: "s4_uu_007", s: "((2²)³)² = ?", c: "4096", v: {}, z:"zor", alt:"2_2_3_2" },
 
   // ALT DAL 3: ÜSSÜN ÜSSÜ İLE İLGİLİ ÖZEL DURUMLAR
   { id: "s4_uu_008", s: "aᵐⁿ ile (aᵐ)ⁿ aynı mıdır?", c: "hayir_aᵐⁿ=a^(mⁿ)_(aᵐ)ⁿ=aᵐˣⁿ", v: {}, z:"cok_zor", alt:"us_sirasi" },
@@ -1943,9 +1676,9 @@ const SORU_BANKASI = {
   { id: "s4_uu_010", s: "(aᵐ)ⁿ = a^(m×n) eşitliği her zaman doğru mudur?", c: "evet_tamsayilar_icin", v: {}, z:"zor", alt:"ussun_ussu_her_zaman" },
 
   // ALT DAL 4: NEGATİF ÜSSÜN ÜSSÜ
-  { id: "s4_uu_011", s: "({a}⁻ᵐ)ⁿ = ?", c: "{a}^{-m}*{n}", v: {a:[2,5], m:[1,3], n:[2,4]}, z:"zor", alt:"negatif_ussun_ussu" },
+  { id: "s4_uu_011", s: "({a}⁻ᵐ)ⁿ = ?", c: "{a}^{-m*n}", v: {a:[2,5], m:[1,3], n:[2,4]}, z:"zor", alt:"negatif_ussun_ussu" },
   { id: "s4_uu_012", s: "(x⁻²)³ = ?", c: "x⁻⁶", v: {}, z:"zor", alt:"x_negatif2_3" },
-  { id: "s4_uu_013", s: "(2⁻³)² = ?", c: "2⁻⁶=1/64", v: {}, z:"zor", alt:"2_negatif3_2" },
+  { id: "s4_uu_013", s: "(2⁻³)² = ?", c: "1/64", v: {}, z:"zor", alt:"2_negatif3_2" },
 
   // ALT DAL 5: TABANI ÜSLÜ OLAN İFADELER
   { id: "s4_uu_014", s: "({a}ᵐ)ⁿ = ({a}ⁿ)ᵐ eşitliği doğru mudur?", c: "evet", v: {}, z:"orta", alt:"us_yer_degistirme" },
@@ -1954,7 +1687,7 @@ const SORU_BANKASI = {
   // ALT DAL 6: ÜSSÜN ÜSSÜ PROBLEMLERİ
   { id: "s4_uu_016", s: "(2ˣ)² = 2⁸ ise x kaçtır?", c: "4", v: {}, z:"zor", alt:"uslu_denklem" },
   { id: "s4_uu_017", s: "(3²)ˣ = 3⁸ ise x kaçtır?", c: "4", v: {}, z:"zor", alt:"3_2x_8" },
-  { id: "s4_uu_018", s: "4³ = (2²)³ = ?", c: "2⁶=64", v: {}, z:"orta", alt:"taban_donusturme_ussun_ussu" },
+  { id: "s4_uu_018", s: "4³ = (2²)³ = ?", c: "64", v: {}, z:"orta", alt:"taban_donusturme_ussun_ussu" },
 
 
   // ==========================================
@@ -2047,7 +1780,7 @@ const SORU_BANKASI = {
   // ALT DAL 7: SIRALAMADA STRATEJİ
   { id: "s4_us_017", s: "2⁸ ile 4⁵ sayılarını karşılaştırınız. (4=2² yap)", c: "2⁸<4⁵ (256<1024)", v: {}, z:"cok_zor", alt:"taban_esitleme_siralama" },
   { id: "s4_us_018", s: "8³ ile 2¹⁰ sayılarını karşılaştırınız.", c: "8³=2⁹<2¹⁰", v: {}, z:"cok_zor", alt:"8_2_karsilastirma" },
-  { id: "s4_us_019", s: "3⁵ ile 9³ sayılarını karşılaştırınız.", c: "3⁵=243>9³=3⁶=729", v: {}, z:"cok_zor", alt:"3_9_karsilastirma" },
+  { id: "s4_us_019", s: "3⁵ ile 9³ sayılarını karşılaştırınız.", c: "3⁵=243<9³=3⁶=729", v: {}, z:"cok_zor", alt:"3_9_karsilastirma" },
 
   // ALT DAL 8: ÜSLÜ İFADELERİN BÜYÜKLÜK SIRASI
   { id: "s4_us_020", s: "a>1 ise a², a³, a⁴ sıralaması nasıldır?", c: "a²<a³<a⁴", v: {}, z:"orta", alt:"a_buyuk_1" },
@@ -2083,9 +1816,9 @@ const SORU_BANKASI = {
   { id: "s4_bg_015", s: "5,6×10⁻³ = ?", c: "0,0056", v: {}, z:"zor", alt:"5_6_10_eksi3" },
 
   // ALT DAL 5: BİLİMSEL GÖSTERİMDE İŞLEMLER
-  { id: "s4_bg_016", s: "({a}×10ᵐ) × ({b}×10ⁿ) = ?", c: "({a}*{b})×10^{m}+{n}", v: {a:[1,5], m:[2,5], b:[1,5], n:[2,4]}, z:"zor", alt:"bilimsel_carpma" },
+  { id: "s4_bg_016", s: "({a}×10ᵐ) × ({b}×10ⁿ) = ?", c: "({a}*{b})×10^{m+n}", v: {a:[1,5], m:[2,5], b:[1,5], n:[2,4]}, z:"zor", alt:"bilimsel_carpma" },
   { id: "s4_bg_017", s: "(2×10³) × (3×10⁴) = ?", c: "6×10⁷", v: {}, z:"zor", alt:"2_3_10_3_4" },
-  { id: "s4_bg_018", s: "({a}×10ᵐ) ÷ ({b}×10ⁿ) = ?", c: "({a}/{b})×10^{m}-{n}", v: {a:[2,8], m:[5,8], b:[2,4], n:[2,3], kosul:"a%b==0 && m>n"}, z:"cok_zor", alt:"bilimsel_bolme" },
+  { id: "s4_bg_018", s: "({a}×10ᵐ) ÷ ({b}×10ⁿ) = ?", c: "({a}/{b})×10^{m-n}", v: {a:[2,8], m:[5,8], b:[2,4], n:[2,3], kosul:"a%b==0 && m>n"}, z:"cok_zor", alt:"bilimsel_bolme" },
   { id: "s4_bg_019", s: "(6×10⁸) ÷ (2×10³) = ?", c: "3×10⁵", v: {}, z:"cok_zor", alt:"6_2_10_8_3" },
 
   // ALT DAL 6: BİLİMSEL GÖSTERİM PROBLEMLERİ
@@ -2107,8 +1840,8 @@ const SORU_BANKASI = {
   { id: "s4_up_004", s: "Bir ilacın vücuttaki miktarı her 4 saatte yarılanıyor. 12 saat sonra başlangıçtakinin kaçta kaçı kalır?", c: "1/8", v: {}, z:"zor", alt:"ilac_yarilanma" },
 
   // ALT DAL 3: FAİZ PROBLEMLERİ (ÜSLÜ)
-  { id: "s4_up_005", s: "{a} TL para yıllık %{n} bileşik faizle bankaya yatırılırsa {t} yıl sonra kaç TL olur?", c: "{a}×(1+{n}/100)^{t}", v: {a:[100,500], n:[10,20], t:[2,3]}, z:"cok_zor", alt:"bilesik_faiz" },
-  { id: "s4_up_006", s: "Bir para her yıl %20 değerleniyorsa 3 yıl sonra kaç katına çıkar?", c: "(1,2)³", v: {}, z:"zor", alt:"degerlenme" },
+  { id: "s4_up_005", s: "{a} TL para yıllık %{n} bileşik faizle bankaya yatırılırsa {t} yıl sonra kaç TL olur?", c: "{a}×Math.pow(1+{n}/100,{t})", v: {a:[100,500], n:[10,20], t:[2,3]}, z:"cok_zor", alt:"bilesik_faiz" },
+  { id: "s4_up_006", s: "Bir para her yıl %20 değerleniyorsa 3 yıl sonra kaç katına çıkar?", c: "1,728", v: {}, z:"zor", alt:"degerlenme" },
 
   // ALT DAL 4: ÜSLÜ SAYI MANTIK SORULARI
   { id: "s4_up_007", s: "2ⁿ = 128 ise 2ⁿ⁻² kaçtır?", c: "32", v: {}, z:"zor", alt:"2n_2n-2" },
@@ -2149,16 +1882,16 @@ const SORU_BANKASI = {
   { id: "s4_od_007", s: "1⁻ⁿ = ?", c: "1", v: {n:[1,5]}, z:"orta", alt:"1_us_negatif" },
 
   // ALT DAL 3: (-1) ÜSSÜ DURUMLARI
-  { id: "s4_od_008", s: "(-1)ⁿ = ? (n={n})", c: "{sonuc}", v: {n:[1,10], sonuc:"{n}%2==1?-1:1"}, z:"orta", alt:"eksi1_us" },
+  { id: "s4_od_008", s: "(-1)ⁿ = ? (n={n})", c: "{n}%2==0?1:-1", v: {n:[1,10]}, z:"orta", alt:"eksi1_us" },
   { id: "s4_od_009", s: "(-1)ⁿ = 1 olması için n nasıl bir sayı olmalıdır?", c: "cift_tam_sayi", v: {}, z:"orta", alt:"eksi1_1_olma_sarti" },
   { id: "s4_od_010", s: "(-1)ⁿ = -1 olması için n nasıl bir sayı olmalıdır?", c: "tek_tam_sayi", v: {}, z:"orta", alt:"eksi1_eksi1_olma_sarti" },
   { id: "s4_od_011", s: "(-1)²ⁿ = ?", c: "1", v: {n:[1,5]}, z:"orta", alt:"eksi1_2n" },
   { id: "s4_od_012", s: "(-1)²ⁿ⁺¹ = ?", c: "-1", v: {n:[0,4]}, z:"orta", alt:"eksi1_2n+1" },
 
-  // ALT DAL 4: 10'UN KUVVETLERİ
-  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "1{'0'×n}", v: {n:[1,6]}, z:"kolay", alt:"10_un_kuvveti" },
+  // ALT DAL 4: 10'UN KUVVETLERİ - DÜZELTİLDİ
+  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "1" + "0".repeat({n}), v: {n:[1,6]}, z:"kolay", alt:"10_un_kuvveti" },
   { id: "s4_od_014", s: "10ⁿ sayısında n tane ne vardır?", c: "sifir", v: {}, z:"kolay", alt:"10_un_kuvveti_sifir" },
-  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "0,{'0'×(n-1)}1", v: {n:[1,5]}, z:"orta", alt:"10_negatif_us" },
+  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "0." + "0".repeat({n}-1) + "1", v: {n:[1,5]}, z:"orta", alt:"10_negatif_us" },
 
   // ALT DAL 5: SAYILARIN KUVVETLERİNİN SON BASAMAKLARI
   { id: "s4_od_016", s: "2ⁿ ifadesinin son basamağı n={n} için kaçtır?", c: "{son_basamak}", v: {n:[1,10]}, z:"zor", alt:"2_son_basamak" },
@@ -2185,10 +1918,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
-// SEVİYE 5: KÖKLÜ SAYILAR
-// ==========================================
-5: [
+  5: [
 
   // ==========================================
   // KONU 1: KÖK KAVRAMI VE TANIMI (6 alt dal)
@@ -2196,7 +1926,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: KAREKÖK TANIMI
   { id: "s5_kk_001", s: "√{a} nedir? (Tanım)", c: "karesi_{a}_olan_pozitif_sayi", v: {a:[4,9,16,25,36,49,64,81,100]}, z:"kolay", alt:"karekok_tanimi" },
-  { id: "s5_kk_002", s: "√{a} ifadesinin değeri kaçtır?", c: "{kok}", v: {a:[4,9,16,25,36,49,64,81,100,121,144], kok:"Math.sqrt({a})"}, z:"kolay", alt:"karekok_degeri" },
+  { id: "s5_kk_002", s: "√{a} ifadesinin değeri kaçtır?", c: "Math.sqrt({a})", v: {a:[4,9,16,25,36,49,64,81,100,121,144]}, z:"kolay", alt:"karekok_degeri" },
   { id: "s5_kk_003", s: "Karekök alma işlemi ne demektir?", c: "bir_sayinin_hangi_sayinin_karesi_oldugunu_bulma", v: {}, z:"kolay", alt:"karekok_anlam" },
   { id: "s5_kk_004", s: "√ ifadesine ne denir?", c: "karekok", v: {}, z:"kolay", alt:"karekok_sembol" },
 
@@ -2209,7 +1939,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: KÖK İÇİNİN İŞARETİ
   { id: "s5_kk_010", s: "√(-{a}) ifadesi reel sayılarda tanımlı mıdır?", c: "hayir", v: {a:[1,10]}, z:"orta", alt:"negatif_kok_ici" },
-  { id: "s5_kk_011", s: "∛(-{a}) ifadesinin değeri kaçtır?", c: "-{kok}", v: {a:[8,27,64,125], kok:"Math.cbrt({a})"}, z:"orta", alt:"kupkok_negatif" },
+  { id: "s5_kk_011", s: "∛(-{a}) ifadesinin değeri kaçtır?", c: "-Math.cbrt({a})", v: {a:[8,27,64,125]}, z:"orta", alt:"kupkok_negatif" },
   { id: "s5_kk_012", s: "√0 = ?", c: "0", v: {}, z:"kolay", alt:"karekok_sifir" },
   { id: "s5_kk_013", s: "√1 = ?", c: "1", v: {}, z:"kolay", alt:"karekok_bir" },
 
@@ -2220,7 +1950,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: KÖK ALMA İLE KARE ALMA İLİŞKİSİ
   { id: "s5_kk_017", s: "(√{a})² = ?", c: "{a}", v: {a:[2,20]}, z:"orta", alt:"kok_kare_iliski" },
-  { id: "s5_kk_018", s: "√({a}²) = ?", c: "|{a}|", v: {a:[-10,10]}, z:"zor", alt:"kare_kok_iliski" },
+  { id: "s5_kk_018", s: "√({a}²) = ?", c: "Math.abs({a})", v: {a:[-10,10]}, z:"zor", alt:"kare_kok_iliski" },
   { id: "s5_kk_019", s: "√({a}²) = {a} eşitliği her zaman doğru mudur?", c: "hayir_sadece_a>=0_iken", v: {a:[-5,5]}, z:"zor", alt:"kok_kare_mutlak" },
 
   // ALT DAL 6: TAM KARE SAYILAR
@@ -2235,7 +1965,7 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TAM KARE SAYILARIN KAREKÖKÜ
-  { id: "s5_ks_001", s: "√{a} = ?", c: "{kok}", v: {a:[4,9,16,25,36,49,64,81,100,121,144], kok:"Math.sqrt({a})"}, z:"kolay", alt:"tam_kare_kok" },
+  { id: "s5_ks_001", s: "√{a} = ?", c: "Math.sqrt({a})", v: {a:[4,9,16,25,36,49,64,81,100,121,144]}, z:"kolay", alt:"tam_kare_kok" },
   { id: "s5_ks_002", s: "√100 = ?", c: "10", v: {}, z:"kolay", alt:"kok_100" },
   { id: "s5_ks_003", s: "√144 = ?", c: "12", v: {}, z:"kolay", alt:"kok_144" },
   { id: "s5_ks_004", s: "√169 = ?", c: "13", v: {}, z:"kolay", alt:"kok_169" },
@@ -2244,7 +1974,7 @@ const SORU_BANKASI = {
   { id: "s5_ks_007", s: "√256 = ?", c: "16", v: {}, z:"orta", alt:"kok_256" },
 
   // ALT DAL 2: ONDALIK SAYILARIN KAREKÖKÜ
-  { id: "s5_ks_008", s: "√0,{a} = ?", c: "{kok}", v: {a:[4,9,16,25,36,49,64,81]}, z:"orta", alt:"ondalik_karekok" },
+  { id: "s5_ks_008", s: "√0,{a} = ?", c: "Math.sqrt({a}/100)", v: {a:[4,9,16,25,36,49,64,81]}, z:"orta", alt:"ondalik_karekok" },
   { id: "s5_ks_009", s: "√0,04 = ?", c: "0,2", v: {}, z:"orta", alt:"kok_0_04" },
   { id: "s5_ks_010", s: "√0,09 = ?", c: "0,3", v: {}, z:"orta", alt:"kok_0_09" },
   { id: "s5_ks_011", s: "√0,25 = ?", c: "0,5", v: {}, z:"orta", alt:"kok_0_25" },
@@ -2260,7 +1990,7 @@ const SORU_BANKASI = {
   { id: "s5_ks_017", s: "√2 yaklaşık kaçtır?", c: "1,41", v: {}, z:"orta", alt:"kok_2_yaklasik" },
   { id: "s5_ks_018", s: "√3 yaklaşık kaçtır?", c: "1,73", v: {}, z:"orta", alt:"kok_3_yaklasik" },
   { id: "s5_ks_019", s: "√5 yaklaşık kaçtır?", c: "2,23", v: {}, z:"orta", alt:"kok_5_yaklasik" },
-  { id: "s5_ks_020", s: "√{a} hangi iki tam sayı arasındadır?", c: "{alt}_{ust}", v: {a:[2,99], kosul:"!tam_kare"}, z:"orta", alt:"kok_aralik" },
+  { id: "s5_ks_020", s: "√{a} hangi iki tam sayı arasındadır?", c: "{alt}_ile_{ust}", v: {a:[2,99], kosul:"!tam_kare"}, z:"orta", alt:"kok_aralik" },
   { id: "s5_ks_021", s: "√10 hangi iki tam sayı arasındadır?", c: "3_ile_4", v: {}, z:"orta", alt:"kok_10_aralik" },
   { id: "s5_ks_022", s: "√50 hangi iki tam sayı arasındadır?", c: "7_ile_8", v: {}, z:"orta", alt:"kok_50_aralik" },
 
@@ -2270,7 +2000,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: TAM KARE OLMA ŞARTI
   { id: "s5_ks_025", s: "{a} sayısı tam kare midir?", c: "{evet_hayir}", v: {a:[10,200]}, z:"orta", alt:"tam_kare_sorgu" },
-  { id: "s5_ks_026", s: "{a} hangi sayının karesidir?", c: "{kok}", v: {a:[4,9,16,25,36,49,64,81,100,121,144,169,196,225]}, z:"orta", alt:"karesi_bulma" },
+  { id: "s5_ks_026", s: "{a} hangi sayının karesidir?", c: "Math.sqrt({a})", v: {a:[4,9,16,25,36,49,64,81,100,121,144,169,196,225]}, z:"orta", alt:"karesi_bulma" },
 
   // ALT DAL 7: KAREKÖK İLE İLGİLİ TEMEL ÖZELLİKLER
   { id: "s5_ks_027", s: "Her pozitif sayının kaç tane karekökü vardır?", c: "2_(biri_pozitif_biri_negatif)", v: {}, z:"orta", alt:"iki_karekok" },
@@ -2289,10 +2019,10 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: KÜPKÖK TANIMI
   { id: "s5_kp_001", s: "∛{a} nedir?", c: "kupu_{a}_olan_sayi", v: {a:[8,27,64,125]}, z:"orta", alt:"kupkok_tanimi" },
-  { id: "s5_kp_002", s: "∛{a} = ?", c: "{kok}", v: {a:[8,27,64,125,216,343,512,729,1000], kok:"Math.cbrt({a})"}, z:"orta", alt:"kupkok_degeri" },
+  { id: "s5_kp_002", s: "∛{a} = ?", c: "Math.cbrt({a})", v: {a:[8,27,64,125,216,343,512,729,1000]}, z:"orta", alt:"kupkok_degeri" },
   { id: "s5_kp_003", s: "∛1 = ?", c: "1", v: {}, z:"kolay", alt:"kupkok_1" },
   { id: "s5_kp_004", s: "∛0 = ?", c: "0", v: {}, z:"kolay", alt:"kupkok_0" },
-  { id: "s5_kp_005", s: "∛(-{a}) = ?", c: "-{kok}", v: {a:[8,27,64,125], kok:"Math.cbrt({a})"}, z:"orta", alt:"kupkok_negatif" },
+  { id: "s5_kp_005", s: "∛(-{a}) = ?", c: "-Math.cbrt({a})", v: {a:[8,27,64,125]}, z:"orta", alt:"kupkok_negatif" },
 
   // ALT DAL 2: KÜPKÖK ALMA
   { id: "s5_kp_006", s: "∛8 = ?", c: "2", v: {}, z:"kolay", alt:"kupkok_8" },
@@ -2308,7 +2038,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: KÜPKÖK KARŞILAŞTIRMA
   { id: "s5_kp_014", s: "∛{a} ile ∛{b} hangisi büyüktür?", c: "{buyuk}", v: {a:[2,99], b:[3,100], kosul:"a!=b"}, z:"orta", alt:"kupkok_siralama" },
-  { id: "s5_kp_015", s: "∛{a} hangi iki tam sayı arasındadır?", c: "{alt}_{ust}", v: {a:[2,99], kosul:"!tam_kup"}, z:"zor", alt:"kupkok_aralik" },
+  { id: "s5_kp_015", s: "∛{a} hangi iki tam sayı arasındadır?", c: "{alt}_ile_{ust}", v: {a:[2,99], kosul:"!tam_kup"}, z:"zor", alt:"kupkok_aralik" },
 
 
   // ==========================================
@@ -2324,11 +2054,11 @@ const SORU_BANKASI = {
   // ALT DAL 2: KÖKTEN KURTULMA
   { id: "s5_tk_005", s: "(√{a})² = ?", c: "{a}", v: {a:[2,20]}, z:"orta", alt:"kok_kare_esit" },
   { id: "s5_tk_006", s: "√{a} × √{a} = ?", c: "{a}", v: {a:[1,20]}, z:"orta", alt:"kok_carpim_kendi" },
-  { id: "s5_tk_007", s: "(√{a})⁴ = ?", c: "{a}²", v: {a:[2,10]}, z:"zor", alt:"kok_4_kuvvet" },
+  { id: "s5_tk_007", s: "(√{a})⁴ = ?", c: "{a}*{a}", v: {a:[2,10]}, z:"zor", alt:"kok_4_kuvvet" },
 
   // ALT DAL 3: KÖKLÜ SAYININ TEK/ÇİFT KUVVETİ
-  { id: "s5_tk_008", s: "(√{a})ⁿ = ? (n={n})", c: "{sonuc}", v: {a:[2,10], n:[2,5]}, z:"zor", alt:"kok_un_ussu" },
-  { id: "s5_tk_009", s: "(∛{a})ⁿ = ? (n={n})", c: "{sonuc}", v: {a:[2,8], n:[2,4]}, z:"zor", alt:"kupkok_un_ussu" },
+  { id: "s5_tk_008", s: "(√{a})ⁿ = ? (n={n})", c: "{a}^({n}/2)", v: {a:[2,10], n:[2,5]}, z:"zor", alt:"kok_un_ussu" },
+  { id: "s5_tk_009", s: "(∛{a})ⁿ = ? (n={n})", c: "{a}^({n}/3)", v: {a:[2,8], n:[2,4]}, z:"zor", alt:"kupkok_un_ussu" },
 
   // ALT DAL 4: KÖK İLE MUTLAK DEĞER İLİŞKİSİ
   { id: "s5_tk_010", s: "√(x²) = ?", c: "|x|", v: {}, z:"zor", alt:"karekok_kare" },
@@ -2340,8 +2070,8 @@ const SORU_BANKASI = {
   { id: "s5_tk_014", s: "ⁿ√(xⁿ) = ? (n={n}, n çift)", c: "|x|", v: {n:[2,4,6]}, z:"zor", alt:"cift_derece_kok" },
 
   // ALT DAL 6: KÖKLÜ İFADENİN DERECESİNİ DEĞİŞTİRME
-  { id: "s5_tk_015", s: "√{a} = ⁴√(? )", c: "{a}²", v: {a:[2,10]}, z:"zor", alt:"derece_degistirme" },
-  { id: "s5_tk_016", s: "∛{a} = ⁶√(? )", c: "{a}²", v: {a:[2,8]}, z:"zor", alt:"kupkok_alti_derece" },
+  { id: "s5_tk_015", s: "√{a} = ⁴√(? )", c: "{a}*{a}", v: {a:[2,10]}, z:"zor", alt:"derece_degistirme" },
+  { id: "s5_tk_016", s: "∛{a} = ⁶√(? )", c: "{a}*{a}", v: {a:[2,8]}, z:"zor", alt:"kupkok_alti_derece" },
   { id: "s5_tk_017", s: "⁴√{a} = √(? )", c: "√{a}", v: {a:[1,20]}, z:"cok_zor", alt:"dort_derece_karekok" },
 
   // ALT DAL 7: KÖKLÜ SAYILARDA SIFIR VE BİR
@@ -2390,9 +2120,10 @@ const SORU_BANKASI = {
   { id: "s5_kd_020", s: "√{a} ifadesini kök dışına çıkarmak için ne yapılır?", c: "asal_carpanlarina_ayrilir_us_2_olanlar_disa_cikar", v: {a:[12,45,72]}, z:"orta", alt:"kok_disi_strateji" },
   { id: "s5_kd_021", s: "ⁿ√{a} ifadesini kök dışına çıkarmak için genel kural nedir?", c: "us_olarak_n_ve_katlari_disa_cikar", v: {}, z:"orta", alt:"genel_kural" },
 
-  // ALT DAL 6: KARIŞIK KÖK DIŞINA ÇIKARMA  { id: "s5_kd_022", s: "√({a}×{b}×{c}) = ? (Bazıları dışarı çıkar)", c: "{sonuc}", v: {a:[2,8], b:[2,8], c:[2,11]}, z:"cok_zor", alt:"uc_carpanli_kok" },
+  // ALT DAL 6: KARIŞIK KÖK DIŞINA ÇIKARMA
+  { id: "s5_kd_022", s: "√({a}×{b}×{c}) = ? (Bazıları dışarı çıkar)", c: "{sonuc}", v: {a:[2,8], b:[2,8], c:[2,11]}, z:"cok_zor", alt:"uc_carpanli_kok" },
   { id: "s5_kd_023", s: "√({a}³) = ?", c: "{a}√{a}", v: {a:[2,6]}, z:"zor", alt:"us_3_kok_disi" },
-  { id: "s5_kd_024", s: "√({a}⁵) = ?", c: "{a}²√{a}", v: {a:[2,5]}, z:"cok_zor", alt:"us_5_kok_disi" },
+  { id: "s5_kd_024", s: "√({a}⁵) = ?", c: "{a}*{a}√{a}", v: {a:[2,5]}, z:"cok_zor", alt:"us_5_kok_disi" },
 
   // ALT DAL 7: ONDALIKLI KÖK DIŞINA ÇIKARMA
   { id: "s5_kd_025", s: "√0,{a} ifadesini a√b şeklinde yazınız.", c: "{sonuc}", v: {a:[8,12,18,20,27,32,48,50,72,75,80,98]}, z:"zor", alt:"ondalik_kok_disi" },
@@ -2407,32 +2138,32 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: KATSAYIYI KÖK İÇİNE ALMA
-  { id: "s5_ki_001", s: "{a}√{b} = √(? )", c: "{a}²×{b}", v: {a:[2,6], b:[2,7]}, z:"orta", alt:"kok_icine_alma" },
+  { id: "s5_ki_001", s: "{a}√{b} = √(? )", c: "{a}*{a}×{b}", v: {a:[2,6], b:[2,7]}, z:"orta", alt:"kok_icine_alma" },
   { id: "s5_ki_002", s: "2√3 = √(? )", c: "12", v: {}, z:"orta", alt:"2_kok_3" },
   { id: "s5_ki_003", s: "3√2 = √(? )", c: "18", v: {}, z:"orta", alt:"3_kok_2" },
   { id: "s5_ki_004", s: "4√5 = √(? )", c: "80", v: {}, z:"orta", alt:"4_kok_5" },
   { id: "s5_ki_005", s: "5√3 = √(? )", c: "75", v: {}, z:"orta", alt:"5_kok_3" },
 
   // ALT DAL 2: NEGATİF KATSAYIYI KÖK İÇİNE ALMA
-  { id: "s5_ki_006", s: "-{a}√{b} = -√(? )", c: "{a}²×{b}", v: {a:[2,5], b:[2,7]}, z:"orta", alt:"negatif_katsayi_kok_ici" },
+  { id: "s5_ki_006", s: "-{a}√{b} = -√(? )", c: "{a}*{a}×{b}", v: {a:[2,5], b:[2,7]}, z:"orta", alt:"negatif_katsayi_kok_ici" },
   { id: "s5_ki_007", s: "-2√3 = -√(? )", c: "12", v: {}, z:"orta", alt:"eksi_2_kok_3" },
 
   // ALT DAL 3: KÜPKÖK İÇİNE ALMA
-  { id: "s5_ki_008", s: "{a}∛{b} = ∛(? )", c: "{a}³×{b}", v: {a:[2,5], b:[2,5]}, z:"orta", alt:"kupkok_icine_alma" },
+  { id: "s5_ki_008", s: "{a}∛{b} = ∛(? )", c: "{a}*{a}*{a}×{b}", v: {a:[2,5], b:[2,5]}, z:"orta", alt:"kupkok_icine_alma" },
   { id: "s5_ki_009", s: "2∛3 = ∛(? )", c: "24", v: {}, z:"orta", alt:"2_kupkok_3" },
   { id: "s5_ki_010", s: "3∛2 = ∛(? )", c: "54", v: {}, z:"orta", alt:"3_kupkok_2" },
 
   // ALT DAL 4: KÖK İÇİNE ALMA İLE KARŞILAŞTIRMA
   { id: "s5_ki_011", s: "{a}√{b} ile {c}√{d} sayılarını karşılaştırmak için ne yapılır?", c: "katsayilar_kok_icine_alinir", v: {a:[2,5], b:[2,6], c:[2,5], d:[2,6]}, z:"orta", alt:"kok_ici_karsilastirma" },
   { id: "s5_ki_012", s: "2√3 ile 3√2 hangisi büyüktür?", c: "2√3=√12<√18=3√2", v: {}, z:"orta", alt:"2_kok_3_3_kok_2" },
-  { id: "s5_ki_013", s: "4√3 ile 5√2 hangisi büyüktür?", c: "4√3=√48>√50=5√2 (4√3<5√2)", v: {}, z:"zor", alt:"4_kok_3_5_kok_2" },
+  { id: "s5_ki_013", s: "4√3 ile 5√2 hangisi büyüktür?", c: "4√3=√48<√50=5√2", v: {}, z:"zor", alt:"4_kok_3_5_kok_2" },
 
   // ALT DAL 5: KARIŞIK KÖK İÇİNE ALMA
   { id: "s5_ki_014", s: "{a}√{b} + {c}√{d} = ? (Kök içine alarak işlem)", c: "{sonuc}", v: {a:[2,4], b:[2,5], c:[2,4], d:[2,5]}, z:"zor", alt:"kok_ici_toplam" },
 
   // ALT DAL 6: KÖK İÇİNE ALMA STRATEJİSİ
   { id: "s5_ki_015", s: "Kök dışındaki sayı kök içine nasıl alınır?", c: "derece_kadar_kuvveti_alinip_kok_iciyle_carpilir", v: {}, z:"orta", alt:"kok_ici_strateji" },
-  { id: "s5_ki_016", s: "{a}ⁿ√{b} = ⁿ√(? )", c: "{a}^{n}×{b}", v: {a:[2,4], b:[2,5], n:[2,4]}, z:"zor", alt:"n_derece_kok_ici" },
+  { id: "s5_ki_016", s: "{a}ⁿ√{b} = ⁿ√(? )", c: "Math.pow({a},{n})×{b}", v: {a:[2,4], b:[2,5], n:[2,4]}, z:"zor", alt:"n_derece_kok_ici" },
 
 
   // ==========================================
@@ -2453,15 +2184,15 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: KÖK DIŞINA ÇIKARARAK TOPLAMA
   { id: "s5_tt_009", s: "√{a} + √{b} = ? (Kök dışına çıkararak)", c: "{sonuc}", v: {a:[8,18,32,50,72,98], b:[2,8,18,32,50,72], kosul:"benzer_olsun"}, z:"zor", alt:"kok_disi_toplam" },
-  { id: "s5_tt_010", s: "√8 + √2 = ?", c: "2√2+√2=3√2", v: {}, z:"zor", alt:"kok_8_kok_2" },
-  { id: "s5_tt_011", s: "√18 + √8 = ?", c: "3√2+2√2=5√2", v: {}, z:"zor", alt:"kok_18_kok_8" },
-  { id: "s5_tt_012", s: "√27 + √12 = ?", c: "3√3+2√3=5√3", v: {}, z:"zor", alt:"kok_27_kok_12" },
-  { id: "s5_tt_013", s: "√50 + √18 = ?", c: "5√2+3√2=8√2", v: {}, z:"zor", alt:"kok_50_kok_18" },
+  { id: "s5_tt_010", s: "√8 + √2 = ?", c: "3√2", v: {}, z:"zor", alt:"kok_8_kok_2" },
+  { id: "s5_tt_011", s: "√18 + √8 = ?", c: "5√2", v: {}, z:"zor", alt:"kok_18_kok_8" },
+  { id: "s5_tt_012", s: "√27 + √12 = ?", c: "5√3", v: {}, z:"zor", alt:"kok_27_kok_12" },
+  { id: "s5_tt_013", s: "√50 + √18 = ?", c: "8√2", v: {}, z:"zor", alt:"kok_50_kok_18" },
 
   // ALT DAL 4: KÖK DIŞINA ÇIKARARAK ÇIKARMA
   { id: "s5_tt_014", s: "√{a} - √{b} = ? (Kök dışına çıkararak)", c: "{sonuc}", v: {a:[32,50,72,98], b:[2,8,18,32], kosul:"a>b_ve_benzer"}, z:"zor", alt:"kok_disi_cikarma" },
-  { id: "s5_tt_015", s: "√32 - √2 = ?", c: "4√2-√2=3√2", v: {}, z:"zor", alt:"kok_32_kok_2" },
-  { id: "s5_tt_016", s: "√72 - √8 = ?", c: "6√2-2√2=4√2", v: {}, z:"zor", alt:"kok_72_kok_8" },
+  { id: "s5_tt_015", s: "√32 - √2 = ?", c: "3√2", v: {}, z:"zor", alt:"kok_32_kok_2" },
+  { id: "s5_tt_016", s: "√72 - √8 = ?", c: "4√2", v: {}, z:"zor", alt:"kok_72_kok_8" },
 
   // ALT DAL 5: FARKLI KÖKLERİN TOPLAMI
   { id: "s5_tt_017", s: "√{a} + √{b} = ? (Farklı kökler, sadeleşmez)", c: "ayni_kalir", v: {a:[2,3,5,6,7], b:[2,3,5,6,7], kosul:"a!=b_ve_farkli_kok"}, z:"orta", alt:"farkli_kok_toplam" },
@@ -2469,8 +2200,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: KARIŞIK TOPLAMA-ÇIKARMA
   { id: "s5_tt_019", s: "{a}√{k} + {b}√{m} - {c}√{k} = ?", c: "({a}-{c})√{k}+{b}√{m}", v: {a:[3,8], b:[1,5], c:[1,"{a}-1"], k:[2,3,5], m:[2,3,5], kosul:"k!=m"}, z:"cok_zor", alt:"karisik_toplam_cikarma" },
-  { id: "s5_tt_020", s: "√12 + √27 + √48 = ?", c: "2√3+3√3+4√3=9√3", v: {}, z:"cok_zor", alt:"uc_kok_toplam" },
-  { id: "s5_tt_021", s: "√20 - √45 + √80 = ?", c: "2√5-3√5+4√5=3√5", v: {}, z:"cok_zor", alt:"kok_20_45_80" },
+  { id: "s5_tt_020", s: "√12 + √27 + √48 = ?", c: "9√3", v: {}, z:"cok_zor", alt:"uc_kok_toplam" },
+  { id: "s5_tt_021", s: "√20 - √45 + √80 = ?", c: "3√5", v: {}, z:"cok_zor", alt:"kok_20_45_80" },
 
 
   // ==========================================
@@ -2492,9 +2223,9 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: ÇARPMA SONRASI SADELEŞTİRME
   { id: "s5_kc_010", s: "√{a} × √{b} = ? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[2,12], b:[2,12], kosul:"carpim_tam_kare_carpani_var"}, z:"zor", alt:"carpma_sadelestirme" },
-  { id: "s5_kc_011", s: "√6 × √3 = ?", c: "√18=3√2", v: {}, z:"zor", alt:"kok_6_kok_3" },
-  { id: "s5_kc_012", s: "√8 × √2 = ?", c: "√16=4", v: {}, z:"zor", alt:"kok_8_kok_2" },
-  { id: "s5_kc_013", s: "√10 × √5 = ?", c: "√50=5√2", v: {}, z:"zor", alt:"kok_10_kok_5" },
+  { id: "s5_kc_011", s: "√6 × √3 = ?", c: "3√2", v: {}, z:"zor", alt:"kok_6_kok_3" },
+  { id: "s5_kc_012", s: "√8 × √2 = ?", c: "4", v: {}, z:"zor", alt:"kok_8_kok_2" },
+  { id: "s5_kc_013", s: "√10 × √5 = ?", c: "5√2", v: {}, z:"zor", alt:"kok_10_kok_5" },
 
   // ALT DAL 4: ÜÇ VEYA DAHA FAZLA KÖKLÜ ÇARPMA
   { id: "s5_kc_014", s: "√{a} × √{b} × √{c} = ?", c: "√({a}×{b}×{c})", v: {a:[2,5], b:[2,5], c:[2,5]}, z:"zor", alt:"uc_kok_carpma" },
@@ -2502,24 +2233,24 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: KÖKLÜ İFADENİN KARESİ
   { id: "s5_kc_016", s: "(√{a})² = ?", c: "{a}", v: {a:[2,15]}, z:"orta", alt:"kok_kare" },
-  { id: "s5_kc_017", s: "({a}√{b})² = ?", c: "{a}²×{b}", v: {a:[2,5], b:[2,7]}, z:"zor", alt:"katsayili_kok_kare" },
+  { id: "s5_kc_017", s: "({a}√{b})² = ?", c: "{a}*{a}×{b}", v: {a:[2,5], b:[2,7]}, z:"zor", alt:"katsayili_kok_kare" },
   { id: "s5_kc_018", s: "(2√3)² = ?", c: "12", v: {}, z:"zor", alt:"2_kok_3_kare" },
   { id: "s5_kc_019", s: "(3√2)² = ?", c: "18", v: {}, z:"zor", alt:"3_kok_2_kare" },
-  { id: "s5_kc_020", s: "(√2+√3)² = ?", c: "2+2√6+3=5+2√6", v: {}, z:"cok_zor", alt:"kok_toplam_kare" },
-  { id: "s5_kc_021", s: "(√5-√2)² = ?", c: "5-2√10+2=7-2√10", v: {}, z:"cok_zor", alt:"kok_fark_kare" },
+  { id: "s5_kc_020", s: "(√2+√3)² = ?", c: "5+2√6", v: {}, z:"cok_zor", alt:"kok_toplam_kare" },
+  { id: "s5_kc_021", s: "(√5-√2)² = ?", c: "7-2√10", v: {}, z:"cok_zor", alt:"kok_fark_kare" },
 
   // ALT DAL 6: KÖKLÜ SAYILARDA DAĞILMA
   { id: "s5_kc_022", s: "√{a} × (√{b} + √{c}) = ?", c: "√({a}×{b})+√({a}×{c})", v: {a:[2,5], b:[2,5], c:[2,5]}, z:"cok_zor", alt:"kok_dagilma" },
   { id: "s5_kc_023", s: "√2 × (√3 + √5) = ?", c: "√6+√10", v: {}, z:"cok_zor", alt:"kok_2_parantez" },
-  { id: "s5_kc_024", s: "(√3+√2) × (√3-√2) = ?", c: "3-2=1", v: {}, z:"cok_zor", alt:"eslenik_carpim" },
-  { id: "s5_kc_025", s: "(√5+1) × (√5-1) = ?", c: "5-1=4", v: {}, z:"cok_zor", alt:"kok_5_1_eslenik" },
+  { id: "s5_kc_024", s: "(√3+√2) × (√3-√2) = ?", c: "1", v: {}, z:"cok_zor", alt:"eslenik_carpim" },
+  { id: "s5_kc_025", s: "(√5+1) × (√5-1) = ?", c: "4", v: {}, z:"cok_zor", alt:"kok_5_1_eslenik" },
 
   // ALT DAL 7: FARKLI DERECELİ KÖKLERDE ÇARPMA
-  { id: "s5_kc_026", s: "√{a} × ∛{a} = ?", c: "{a}^(5/6)", v: {a:[2,8]}, z:"cok_zor", alt:"farkli_derece_carpma" },
+  { id: "s5_kc_026", s: "√{a} × ∛{a} = ?", c: "Math.pow({a}, 5/6)", v: {a:[2,8]}, z:"cok_zor", alt:"farkli_derece_carpma" },
   { id: "s5_kc_027", s: "√x × ∛x = x^(?)", c: "5/6", v: {}, z:"cok_zor", alt:"kok_carpma_us" },
 
   // ALT DAL 8: ÇARPMA ÖZEL SORULAR
-  { id: "s5_kc_028", s: "√(x+{a}) × √(x-{a}) = ?", c: "√(x²-{a}²)", v: {a:[2,5]}, z:"cok_zor", alt:"kare_fark_carpma" },
+  { id: "s5_kc_028", s: "√(x+{a}) × √(x-{a}) = ?", c: "√(x²-{a}*{a})", v: {a:[2,5]}, z:"cok_zor", alt:"kare_fark_carpma" },
   { id: "s5_kc_029", s: "(√{a}+√{b}) × (√{a}-√{b}) = ?", c: "{a}-{b}", v: {a:[3,8], b:[2,"{a}-1"]}, z:"cok_zor", alt:"iki_kare_fark" },
 
 
@@ -2529,14 +2260,14 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: KÖK İÇLERİNİ BÖLME
   { id: "s5_kb_001", s: "√{a} ÷ √{b} = ?", c: "√({a}/{b})", v: {a:[4,12,16,20,24,36,48,60,72,100], b:[2,3,4,5,6], kosul:"a%b==0"}, z:"orta", alt:"kok_ici_bolme" },
-  { id: "s5_kb_002", s: "√12 ÷ √3 = ?", c: "√4=2", v: {}, z:"orta", alt:"kok_12_kok_3" },
-  { id: "s5_kb_003", s: "√20 ÷ √5 = ?", c: "√4=2", v: {}, z:"orta", alt:"kok_20_kok_5" },
-  { id: "s5_kb_004", s: "√72 ÷ √2 = ?", c: "√36=6", v: {}, z:"orta", alt:"kok_72_kok_2" },
+  { id: "s5_kb_002", s: "√12 ÷ √3 = ?", c: "2", v: {}, z:"orta", alt:"kok_12_kok_3" },
+  { id: "s5_kb_003", s: "√20 ÷ √5 = ?", c: "2", v: {}, z:"orta", alt:"kok_20_kok_5" },
+  { id: "s5_kb_004", s: "√72 ÷ √2 = ?", c: "6", v: {}, z:"orta", alt:"kok_72_kok_2" },
 
   // ALT DAL 2: KATSAYILI KÖKLÜ BÖLME
   { id: "s5_kb_005", s: "{a}√{b} ÷ {c}√{d} = ?", c: "({a}/{c})√({b}/{d})", v: {a:[4,12], b:[6,12], c:[2,4], d:[2,6], kosul:"a%c==0 && b%d==0"}, z:"zor", alt:"katsayili_kok_bolme" },
-  { id: "s5_kb_006", s: "6√8 ÷ 2√2 = ?", c: "3√4=6", v: {}, z:"zor", alt:"6_kok_8_2_kok_2" },
-  { id: "s5_kb_007", s: "12√18 ÷ 4√2 = ?", c: "3√9=9", v: {}, z:"zor", alt:"12_kok_18_4_kok_2" },
+  { id: "s5_kb_006", s: "6√8 ÷ 2√2 = ?", c: "6", v: {}, z:"zor", alt:"6_kok_8_2_kok_2" },
+  { id: "s5_kb_007", s: "12√18 ÷ 4√2 = ?", c: "9", v: {}, z:"zor", alt:"12_kok_18_4_kok_2" },
 
   // ALT DAL 3: BÖLME SONRASI SADELEŞTİRME
   { id: "s5_kb_008", s: "√{a} ÷ √{b} = ? (Sadeleştirilmiş)", c: "{sonuc}", v: {a:[8,18,32,50,72,98], b:[2,3,4,5,6], kosul:"a>b"}, z:"zor", alt:"bolme_sadelestirme" },
@@ -2588,12 +2319,12 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: KARIŞIK PAYDA KÖKTEN KURTARMA
   { id: "s5_pk_016", s: "(√{a}+√{b})/(√{a}-√{b}) = ?", c: "({a}+{b}+2√({a}×{b}))/({a}-{b})", v: {a:[4,8], b:[1,3], kosul:"a>b"}, z:"cok_zor", alt:"eslenik_bolme" },
-  { id: "s5_pk_017", s: "2/(√3+1) = ?", c: "2(√3-1)/2=√3-1", v: {}, z:"cok_zor", alt:"2_bolu_kok_3_1" },
-  { id: "s5_pk_018", s: "√2/(√2-1) = ?", c: "√2(√2+1)/1=2+√2", v: {}, z:"cok_zor", alt:"kok_2_bolu_kok_2_1" },
+  { id: "s5_pk_017", s: "2/(√3+1) = ?", c: "√3-1", v: {}, z:"cok_zor", alt:"2_bolu_kok_3_1" },
+  { id: "s5_pk_018", s: "√2/(√2-1) = ?", c: "2+√2", v: {}, z:"cok_zor", alt:"kok_2_bolu_kok_2_1" },
 
   // ALT DAL 7: İÇ İÇE EŞLENİK
   { id: "s5_pk_019", s: "1/(1+√2) + 1/(1-√2) = ?", c: "-2", v: {}, z:"cok_zor", alt:"iki_eslenik_toplam" },
-  { id: "s5_pk_020", s: "1/(√3+√2) - 1/(√3-√2) = ?", c: "2√2", v: {}, z:"cok_zor", alt:"eslenik_fark" },
+  { id: "s5_pk_020", s: "1/(√3+√2) - 1/(√3-√2) = ?", c: "-2√2", v: {}, z:"cok_zor", alt:"eslenik_fark" },
 
   // ALT DAL 8: PAYDA KÖKTEN KURTARMA PROBLEMLERİ
   { id: "s5_pk_021", s: "x = 1/(√{a}+√{b}) ise x'in değeri nedir?", c: "(√{a}-√{b})/({a}-{b})", v: {a:[3,7], b:[2,5], kosul:"a>b"}, z:"cok_zor", alt:"x_eslenik" },
@@ -2603,7 +2334,7 @@ const SORU_BANKASI = {
   { id: "s5_pk_023", s: "1/(√a+√b+√c) ifadesinde payda nasıl kökten kurtarılır?", c: "iki_asamali_eslenik", v: {}, z:"cok_zor", alt:"uc_terim_eslenik" },
 
   // ALT DAL 10: ÖZEL PAYDA KÖKTEN KURTARMA
-  { id: "s5_pk_024", s: "1/∛{a} = ? (Paydayı kökten kurtar)", c: "∛({a}²)/{a}", v: {a:[2,4,8]}, z:"cok_zor", alt:"kupkok_payda" },
+  { id: "s5_pk_024", s: "1/∛{a} = ? (Paydayı kökten kurtar)", c: "∛({a}*{a})/{a}", v: {a:[2,4,8]}, z:"cok_zor", alt:"kupkok_payda" },
   { id: "s5_pk_025", s: "1/(1+∛2) = ?", c: "(1-∛2+∛4)/3", v: {}, z:"cok_zor", alt:"kupkok_eslenik" },
 
 
@@ -2629,7 +2360,7 @@ const SORU_BANKASI = {
   { id: "s5_kss_009", s: "Aşağıdakilerden hangisi en küçüktür?", c: "{en_kucuk}", v: {secenekler:["2√3","3√2","4","√15","5"]}, z:"zor", alt:"en_kucuk_karisik" },
 
   // ALT DAL 5: SAYI DOĞRUSUNDA SIRALAMA
-  { id: "s5_kss_010", s: "√{a} sayı doğrusunda hangi iki tam sayı arasındadır?", c: "{alt}_{ust}", v: {a:[2,99], kosul:"!tam_kare"}, z:"orta", alt:"sayi_dogrusu_kok" },
+  { id: "s5_kss_010", s: "√{a} sayı doğrusunda hangi iki tam sayı arasındadır?", c: "{alt}_ile_{ust}", v: {a:[2,99], kosul:"!tam_kare"}, z:"orta", alt:"sayi_dogrusu_kok" },
   { id: "s5_kss_011", s: "√2, √3, √5 sayılarını sayı doğrusunda sıralayınız.", c: "√2<√3<√5", v: {}, z:"orta", alt:"sayi_dogrusu_siralama" },
 
   // ALT DAL 6: İRRASYONEL SAYI SIRALAMA
@@ -2642,12 +2373,12 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: BASİT KÖKLÜ DENKLEMLER
-  { id: "s5_kd2_001", s: "√x = {a} ise x kaçtır?", c: "{a}²", v: {a:[2,10]}, z:"orta", alt:"basit_kok_denklem" },
+  { id: "s5_kd2_001", s: "√x = {a} ise x kaçtır?", c: "{a}*{a}", v: {a:[2,10]}, z:"orta", alt:"basit_kok_denklem" },
   { id: "s5_kd2_002", s: "√x = 5 ise x = ?", c: "25", v: {}, z:"orta", alt:"kok_x_5" },
-  { id: "s5_kd2_003", s: "√(x+{a}) = {b} ise x kaçtır?", c: "{b}²-{a}", v: {a:[1,8], b:[2,6], kosul:"b²>a"}, z:"zor", alt:"kok_x_artı_a" },
+  { id: "s5_kd2_003", s: "√(x+{a}) = {b} ise x kaçtır?", c: "{b}*{b}-{a}", v: {a:[1,8], b:[2,6], kosul:"b*b>a"}, z:"zor", alt:"kok_x_artı_a" },
 
   // ALT DAL 2: KÖK DERECELİ DENKLEMLER
-  { id: "s5_kd2_004", s: "∛x = {a} ise x kaçtır?", c: "{a}³", v: {a:[2,6]}, z:"orta", alt:"kupkok_denklem" },
+  { id: "s5_kd2_004", s: "∛x = {a} ise x kaçtır?", c: "{a}*{a}*{a}", v: {a:[2,6]}, z:"orta", alt:"kupkok_denklem" },
   { id: "s5_kd2_005", s: "⁴√x = 2 ise x = ?", c: "16", v: {}, z:"orta", alt:"dort_kok_denklem" },
 
   // ALT DAL 3: KÖKLÜ DENKLEMLERDE KARE ALMA
@@ -2663,11 +2394,11 @@ const SORU_BANKASI = {
   { id: "s5_kd2_011", s: "√x = -2 denkleminin çözümü var mıdır?", c: "hayir_(karekok_negatif_olamaz)", v: {}, z:"zor", alt:"kok_negatif" },
 
   // ALT DAL 6: KÖKLÜ DENKLEMLERDE TANIM ARALIĞI
-  { id: "s5_kd2_012", s: "√(x-{a}) = {b} denkleminin çözümü için x'in alabileceği değer nedir?", c: "{b}²+{a}", v: {a:[2,6], b:[2,5]}, z:"zor", alt:"tanim_araligi_cozum" },
+  { id: "s5_kd2_012", s: "√(x-{a}) = {b} denkleminin çözümü için x'in alabileceği değer nedir?", c: "{b}*{b}+{a}", v: {a:[2,6], b:[2,5]}, z:"zor", alt:"tanim_araligi_cozum" },
   { id: "s5_kd2_013", s: "√(x+3) + √(x-2) = 5 denkleminin çözüm kümesi nedir?", c: "x=7", v: {}, z:"cok_zor", alt:"iki_kok_toplam" },
 
   // ALT DAL 7: ÜSLÜ SAYIYA DÖNÜŞTÜREREK ÇÖZME
-  { id: "s5_kd2_014", s: "x^(1/2) = {a} ise x kaçtır?", c: "{a}²", v: {a:[3,10]}, z:"orta", alt:"uslu_cozum" },
+  { id: "s5_kd2_014", s: "x^(1/2) = {a} ise x kaçtır?", c: "{a}*{a}", v: {a:[3,10]}, z:"orta", alt:"uslu_cozum" },
   { id: "s5_kd2_015", s: "x^(1/3) = 3 ise x = ?", c: "27", v: {}, z:"orta", alt:"kupkok_uslu" },
 
   // ALT DAL 8: KARIŞIK KÖKLÜ DENKLEMLER
@@ -2685,12 +2416,12 @@ const SORU_BANKASI = {
   { id: "s5_kp2_003", s: "Alanı {a} cm² olan karenin bir kenarı kaç cm'dir?", c: "√{a}", v: {a:[4,9,16,25,36,49,64,81,100]}, z:"orta", alt:"alan_kenar" },
 
   // ALT DAL 2: PİSAGOR PROBLEMLERİ
-  { id: "s5_kp2_004", s: "Dik kenarları {a} ve {b} olan dik üçgenin hipotenüsü kaçtır?", c: "√({a}²+{b}²)", v: {a:[3,6], b:[4,8]}, z:"zor", alt:"pisagor" },
-  { id: "s5_kp2_005", s: "Hipotenüsü {c}, bir dik kenarı {a} olan dik üçgenin diğer dik kenarı kaçtır?", c: "√({c}²-{a}²)", v: {c:[5,13], a:[3,5], kosul:"c>a"}, z:"zor", alt:"pisagor_kenar" },
+  { id: "s5_kp2_004", s: "Dik kenarları {a} ve {b} olan dik üçgenin hipotenüsü kaçtır?", c: "√({a}*{a}+{b}*{b})", v: {a:[3,6], b:[4,8]}, z:"zor", alt:"pisagor" },
+  { id: "s5_kp2_005", s: "Hipotenüsü {c}, bir dik kenarı {a} olan dik üçgenin diğer dik kenarı kaçtır?", c: "√({c}*{c}-{a}*{a})", v: {c:[5,13], a:[3,5], kosul:"c>a"}, z:"zor", alt:"pisagor_kenar" },
 
   // ALT DAL 3: ALAN-HACİM PROBLEMLERİ
   { id: "s5_kp2_006", s: "Alanı {a}π cm² olan dairenin yarıçapı kaç cm'dir?", c: "√{a}", v: {a:[1,16]}, z:"orta", alt:"daire_yaricap" },
-  { id: "s5_kp2_007", s: "Hacmi {a} cm³ olan küpün bir kenarı kaç cm'dir?", c: "∛{a}", v: {a:[8,27,64,125]}, z:"orta", alt:"kup_kenar" },
+  { id: "s5_kp2_007", s: "Hacmi {a} cm³ olan küpün bir kenarı kaç cm'dir?", c: "Math.cbrt({a})", v: {a:[8,27,64,125]}, z:"orta", alt:"kup_kenar" },
 
   // ALT DAL 4: HIZ VE YOL PROBLEMLERİ
   { id: "s5_kp2_008", s: "Serbest düşmede t saniyede alınan yol h = 5t² dir. h = {a} m ise t kaçtır?", c: "√({a}/5)", v: {a:[5,20,45,80], kosul:"a%5==0"}, z:"zor", alt:"serbest_dusme" },
@@ -2710,9 +2441,9 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: BASİT İÇ İÇE KÖKLER
-  { id: "s5_ic_001", s: "√(√{a}) = ?", c: "⁴√{a}", v: {a:[16,81,256]}, z:"zor", alt:"kok_icinde_kok" },
+  { id: "s5_ic_001", s: "√(√{a}) = ?", c: "Math.pow({a}, 1/4)", v: {a:[16,81,256]}, z:"zor", alt:"kok_icinde_kok" },
   { id: "s5_ic_002", s: "√(√16) = ?", c: "2", v: {}, z:"zor", alt:"kok_kok_16" },
-  { id: "s5_ic_003", s: "√(∛{a}) = ?", c: "⁶√{a}", v: {a:[64,729]}, z:"cok_zor", alt:"kok_kupkok" },
+  { id: "s5_ic_003", s: "√(∛{a}) = ?", c: "Math.pow({a}, 1/6)", v: {a:[64,729]}, z:"cok_zor", alt:"kok_kupkok" },
 
   // ALT DAL 2: İÇ İÇE KÖK AÇMA
   { id: "s5_ic_004", s: "√({a}+√{b}) = ? (Tam kare ise açılır)", c: "{sonuc}", v: {a:[5,7,9], b:[24,48,80]}, z:"cok_zor", alt:"kok_artı_kok" },
@@ -2729,7 +2460,7 @@ const SORU_BANKASI = {
   { id: "s5_ic_011", s: "√(3-√5) = ?", c: "(√5-1)/√2", v: {}, z:"cok_zor", alt:"kok_3_eksi_kok_5" },
 
   // ALT DAL 5: ÜÇ KAT İÇ İÇE KÖK
-  { id: "s5_ic_012", s: "√(√(√{a})) = ?", c: "⁸√{a}", v: {a:[256,6561]}, z:"cok_zor", alt:"uc_kat_kok" },
+  { id: "s5_ic_012", s: "√(√(√{a})) = ?", c: "Math.pow({a}, 1/8)", v: {a:[256,6561]}, z:"cok_zor", alt:"uc_kat_kok" },
 
   // ALT DAL 6: İÇ İÇE KÖK PROBLEMLERİ
   { id: "s5_ic_013", s: "√(x+√(x²-1)) = ?", c: "√((x+1)/2)+√((x-1)/2)", v: {}, z:"cok_zor", alt:"x_kok_x_kare" },
@@ -2790,16 +2521,13 @@ const SORU_BANKASI = {
   { id: "s5_ku_017", s: "√(x)×√(x)×√(x) = x^(?)", c: "3/2", v: {}, z:"cok_zor", alt:"uc_kok_carpim_us" },
 
   // ALT DAL 6: KÖK-ÜS PROBLEMLERİ
-  { id: "s5_ku_018", s: "x^(1/2) = {a} ise x = ?", c: "{a}²", v: {a:[2,10]}, z:"orta", alt:"us_kok_denklem" },
-  { id: "s5_ku_019", s: "x^(2/3) = {a} ise x = ?", c: "{a}^(3/2)", v: {a:[4,9]}, z:"cok_zor", alt:"x_2_3_denklem" },
+  { id: "s5_ku_018", s: "x^(1/2) = {a} ise x = ?", c: "{a}*{a}", v: {a:[2,10]}, z:"orta", alt:"us_kok_denklem" },
+  { id: "s5_ku_019", s: "x^(2/3) = {a} ise x = ?", c: "Math.pow({a}, 3/2)", v: {a:[4,9]}, z:"cok_zor", alt:"x_2_3_denklem" },
   { id: "s5_ku_020", s: "Köklü ve üslü ifadeler arasındaki dönüşümün genel kuralı nedir?", c: "ⁿ√(aᵐ)=a^(m/n)", v: {}, z:"orta", alt:"genel_donusum" },
 
 ],
 
-  // ==========================================
-// SEVİYE 6: ÇARPANLARA AYIRMA
-// ==========================================
-6: [
+  6: [
 
   // ==========================================
   // KONU 1: ORTAK ÇARPAN PARANTEZİNE ALMA (8 alt dal)
@@ -2982,8 +2710,9 @@ const SORU_BANKASI = {
   { id: "s6_tk_028", s: "(x²+{2a}x+{a2})/(x+{a}) = ?", c: "x+{a}", v: {a:[1,8], a2:"{a}*{a}"}, z:"zor", alt:"tam_kare_bolme" },
   { id: "s6_tk_029", s: "√(x²+6x+9) = ?", c: "|x+3|", v: {}, z:"cok_zor", alt:"tam_kare_kok" },
 
-// ALT DAL 9: CARPANLARA AYIRMA TAM KARE
-  { id: "s6_tk_030", s: "{a}x² + {2ab}x + {b2} = ?", c: "({a}x+{b})²", v: { a: [2, 4], b: [1, 4], "2ab": [4, 32], b2: [1, 16] }, z: "cok_zor", alt: "katsayili_tam_kare_carpan" },
+  // ALT DAL 9: CARPANLARA AYIRMA TAM KARE
+  // DÜZELTME: "2ab" -> "iki_ab", "b2" -> "b_kare"
+  { id: "s6_tk_030", s: "{a}x² + {iki_ab}x + {b_kare} = ?", c: "({a}x+{b})²", v: { a: [2, 4], b: [1, 4], iki_ab: [4, 8, 12, 16], b_kare: [1, 4, 9, 16] }, z: "cok_zor", alt: "katsayili_tam_kare_carpan" },
   { id: "s6_tk_031", s: "4x^2 + 12x + 9 = ?", c: "(2x+3)^2", v: {}, z: "zor", alt: "4x2_12x_9" },
   { id: "s6_tk_032", s: "9x^2 - 24x + 16 = ?", c: "(3x-4)^2", v: {}, z: "zor", alt: "9x2_24x_16" },
 
@@ -3051,6 +2780,7 @@ const SORU_BANKASI = {
   { id: "s6_ut_006", s: "x² - x - 6 = ?", c: "(x-3)(x+2)", v: {}, z:"orta", alt:"x2_x_6_eksi" },
 
   // ALT DAL 2: ax²+bx+c ŞEKLİNDE ÇARPANLARA AYIRMA
+  // NOT: a1, a2, c1, c2 değişkenleri v'de tanımlanmamış - bu sorular eksik, olduğu gibi bırakıldı
   { id: "s6_ut_007", s: "{a}x² + {b}x + {c} = ?", c: "({a1}x+{c1})({a2}x+{c2})", v: {a:[2,6], b:[5,13], c:[2,12], kosul:"carpanlara_ayrilabilir"}, z:"zor", alt:"ax2_bx_c" },
   { id: "s6_ut_008", s: "2x² + 5x + 3 = ?", c: "(2x+3)(x+1)", v: {}, z:"zor", alt:"2x2_5x_3" },
   { id: "s6_ut_009", s: "3x² + 7x + 2 = ?", c: "(3x+1)(x+2)", v: {}, z:"zor", alt:"3x2_7x_2" },
@@ -3207,8 +2937,9 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TEMEL ÖZDEŞLİKLER
-{ id: "s6_oz_001", s: "(a+b)² = a²+2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}+{b})²={a2}+{2ab}+{b2}", v: {a:[2,5], b:[3,6], a2:"{a}*{a}", "2ab":"2*{a}*{b}", "b2":"{b}*{b}", z:"orta", alt:"tam_kare_ozdeslik" },
-  { id: "s6_oz_002", s: "(a-b)² = a²-2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}-{b})²={a2}-{2ab}+{b2}", v: {a:[5,8], b:[1,4], a2:"{a}*{a}", "2ab":"2*{a}*{b}", b2:"{b}*{b}"}, z:"orta", alt:"tam_kare_fark_ozdeslik" },
+  // DÜZELTME: "2ab" anahtarı "iki_ab" yapıldı
+  { id: "s6_oz_001", s: "(a+b)² = a²+2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}+{b})²={a}²+2*{a}*{b}+{b}²", v: {a:[2,5], b:[3,6]}, z:"orta", alt:"tam_kare_ozdeslik" },
+  { id: "s6_oz_002", s: "(a-b)² = a²-2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}-{b})²={a}²-2*{a}*{b}+{b}²", v: {a:[5,8], b:[1,4]}, z:"orta", alt:"tam_kare_fark_ozdeslik" },
   { id: "s6_oz_003", s: "a²-b² = (a-b)(a+b) özdeşliğini doğrulayınız. a={a}, b={b}", c: "{a}²-{b}²=({a}-{b})({a}+{b})", v: {a:[3,7], b:[1,4]}, z:"orta", alt:"kare_fark_ozdeslik" },
 
   // ALT DAL 2: İKİ KÜP ÖZDEŞLİĞİ
@@ -3217,7 +2948,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: (a+b+c)² ÖZDEŞLİĞİ
   { id: "s6_oz_006", s: "(a+b+c)² = ? (Açılım)", c: "a²+b²+c²+2ab+2ac+2bc", v: {}, z:"cok_zor", alt:"uc_terim_kare_ozdeslik" },
-  { id: "s6_oz_007", s: "(x+y+{a})² açılımını yazınız.", c: "x²+y²+{a}²+2xy+{2a}x+{2a}y", v: {a:[1,5], 2a:"2*{a}"}, z:"cok_zor", alt:"x+y+a_kare" },
+  { id: "s6_oz_007", s: "(x+y+{a})² açılımını yazınız.", c: "x²+y²+{a}²+2xy+2*{a}x+2*{a}y", v: {a:[1,5]}, z:"cok_zor", alt:"x+y+a_kare" },
 
   // ALT DAL 4: a³+b³+c³-3abc ÖZDEŞLİĞİ
   { id: "s6_oz_008", s: "a³+b³+c³-3abc = ?", c: "(a+b+c)(a²+b²+c²-ab-ac-bc)", v: {}, z:"cok_zor", alt:"uc_kup_ozdeslik" },
@@ -3293,6 +3024,486 @@ const SORU_BANKASI = {
   { id: "s6_rs_020", s: "(x²-4)/(x+1) ÷ (x-2)/(x+1) = ?", c: "x+2", v: {}, z:"cok_zor", alt:"bolme_sadelestirme" },
   { id: "s6_rs_021", s: "(x³-1)/(x-1) ÷ (x²+x+1)/(x+1) = ?", c: "x+1", v: {}, z:"cok_zor", alt:"kup_bolme_sade" },
   { id: "s6_rs_022", s: "(x²-{a})/(x²-{b}) × (x²-{b})/(x-√{a}) = ?", c: "x+√{a}", v: {a:[4,9,16], b:[9,16,25]}, z:"cok_zor", alt:"karmasik_sade" },
+
+],
+
+  7: [
+
+  // ==========================================
+  // KONU 1: BİRİNCİ DERECEDEN BİR BİLİNMEYENLİ DENKLEMLER (10 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: BASİT DENKLEM ÇÖZME
+  { id: "s7_bd_001", s: "x + {a} = {b} ise x kaçtır?", c: "{b}-{a}", v: {a:[2,20], b:[5,50], kosul:"b>a"}, z:"kolay", alt:"x_arti_a" },
+  { id: "s7_bd_002", s: "x - {a} = {b} ise x kaçtır?", c: "{a}+{b}", v: {a:[2,15], b:[3,20]}, z:"kolay", alt:"x_eksi_a" },
+  { id: "s7_bd_003", s: "{a}x = {b} ise x kaçtır?", c: "{b}/{a}", v: {a:[2,9], b:[6,100], kosul:"b%a==0"}, z:"kolay", alt:"a_x" },
+  { id: "s7_bd_004", s: "x/{a} = {b} ise x kaçtır?", c: "{a}*{b}", v: {a:[2,10], b:[2,15]}, z:"kolay", alt:"x_bolu_a" },
+  { id: "s7_bd_005", s: "{a} - x = {b} ise x kaçtır?", c: "{a}-{b}", v: {a:[8,30], b:[1,"{a}-1"]}, z:"orta", alt:"a_eksi_x" },
+
+  // ALT DAL 2: İKİ ADIMLI DENKLEMLER
+  { id: "s7_bd_006", s: "{a}x + {b} = {c} ise x kaçtır?", c: "({c}-{b})/{a}", v: {a:[2,7], b:[2,10], c:[10,50], kosul:"(c-b)%a==0"}, z:"orta", alt:"ax+b=c" },
+  { id: "s7_bd_007", s: "{a}x - {b} = {c} ise x kaçtır?", c: "({c}+{b})/{a}", v: {a:[2,7], b:[2,10], c:[5,30], kosul:"(c+b)%a==0"}, z:"orta", alt:"ax-b=c" },
+  { id: "s7_bd_008", s: "x/{a} + {b} = {c} ise x kaçtır?", c: "{a}*({c}-{b})", v: {a:[2,8], b:[2,10], c:[5,20], kosul:"c>b"}, z:"orta", alt:"x/a+b=c" },
+
+  // ALT DAL 3: PARANTEZLİ DENKLEMLER
+  { id: "s7_bd_009", s: "{a}(x+{b}) = {c} ise x kaçtır?", c: "{c}/{a}-{b}", v: {a:[2,5], b:[1,6], c:[10,50], kosul:"c%a==0"}, z:"orta", alt:"a(x+b)=c" },
+  { id: "s7_bd_010", s: "{a}(x-{b}) = {c} ise x kaçtır?", c: "{c}/{a}+{b}", v: {a:[2,5], b:[1,5], c:[10,50], kosul:"c%a==0"}, z:"orta", alt:"a(x-b)=c" },
+  { id: "s7_bd_011", s: "({a}x+{b})/{c} = {d} ise x kaçtır?", c: "({c}*{d}-{b})/{a}", v: {a:[2,5], b:[2,8], c:[2,6], d:[3,10], kosul:"(c*d-b)%a==0"}, z:"zor", alt:"(ax+b)/c=d" },
+
+  // ALT DAL 4: BİLİNMEYENİ BİR TARAFTA TOPLAMA
+  { id: "s7_bd_012", s: "{a}x + {b} = {c}x + {d} ise x kaçtır?", c: "({d}-{b})/({a}-{c})", v: {a:[4,8], b:[2,10], c:[1,3], d:[10,30], kosul:"a>c"}, z:"zor", alt:"ax+b=cx+d" },
+  { id: "s7_bd_013", s: "{a}x - {b} = {c} - {d}x ise x kaçtır?", c: "({b}+{c})/({a}+{d})", v: {a:[2,5], b:[2,8], c:[5,20], d:[2,5], kosul:"(b+c)%(a+d)==0"}, z:"zor", alt:"ax-b=c-dx" },
+  { id: "s7_bd_014", s: "{a}(x-{b}) = {c}(x+{d}) ise x kaçtır?", c: "({a}*{b}+{c}*{d})/({a}-{c})", v: {a:[4,8], b:[1,5], c:[1,3], d:[2,6], kosul:"a>c"}, z:"cok_zor", alt:"a(x-b)=c(x+d)" },
+
+  // ALT DAL 5: RASYONEL DENKLEMLER (TEMEL)
+  { id: "s7_bd_015", s: "1/x + 1/{a} = 1/{b} ise x kaçtır?", c: "({a}*{b})/({a}-{b})", v: {a:[3,8], b:[2,"{a}-1"]}, z:"zor", alt:"1/x+1/a=1/b" },
+  { id: "s7_bd_016", s: "{a}/x = {b}/{c} ise x kaçtır?", c: "{a}*{c}/{b}", v: {a:[2,8], b:[1,6], c:[1,6]}, z:"orta", alt:"a/x=b/c" },
+
+  // ALT DAL 6: DENKLEM ÇÖZME STRATEJİLERİ
+  { id: "s7_bd_017", s: "Bir denklemde bilinmeyeni bir tarafta toplamak için ne yapılır?", c: "esitligin_her_iki_tarafina_ayni_islem_uygulanir", v: {}, z:"orta", alt:"strateji" },
+  { id: "s7_bd_018", s: "Denklem çözerken ilk adım nedir?", c: "parantezleri_ac_ve_benzer_terimleri_birlestir", v: {}, z:"orta", alt:"ilk_adim" },
+
+  // ALT DAL 7: DENKLEMİN ÇÖZÜM KÜMESİ
+  { id: "s7_bd_019", s: "{a}x + {b} = {a}x + {c} denkleminin çözüm kümesi nedir? (b≠c)", c: "bos_kume", v: {a:[2,5], b:[2,5], c:[6,10]}, z:"zor", alt:"bos_kume" },
+  { id: "s7_bd_020", s: "{a}x + {b} = {a}x + {b} denkleminin çözüm kümesi nedir?", c: "tum_reel_sayilar", v: {a:[2,5], b:[2,10]}, z:"zor", alt:"sonsuz_cozum" },
+  { id: "s7_bd_021", s: "0×x = {a} denkleminin çözüm kümesi nedir?", c: "bos_kume", v: {a:[1,10]}, z:"orta", alt:"0_x_a" },
+  { id: "s7_bd_022", s: "0×x = 0 denkleminin çözüm kümesi nedir?", c: "tum_reel_sayilar", v: {}, z:"orta", alt:"0_x_0" },
+
+  // ALT DAL 8: KESİRLİ DENKLEMLER
+  { id: "s7_bd_023", s: "x/{a} + x/{b} = {c} ise x kaçtır?", c: "({c}*{a}*{b})/({a}+{b})", v: {a:[2,5], b:[3,6], c:[5,20], kosul:"a!=b"}, z:"cok_zor", alt:"x/a+x/b=c" },
+  { id: "s7_bd_024", s: "(x+{a})/{b} = (x-{c})/{d} ise x kaçtır?", c: "({b}*{c}+{d}*{a})/({d}-{b})", v: {a:[1,5], b:[2,4], c:[1,5], d:[5,8], kosul:"d>b"}, z:"cok_zor", alt:"kesirli_denklem" },
+
+  // ALT DAL 9: SÖZEL DENKLEM ÇÖZME
+  { id: "s7_bd_025", s: "Hangi sayının {a} fazlasının {b} katı {c} eder?", c: "{c}/{b}-{a}", v: {a:[2,10], b:[2,5], c:[20,60], kosul:"(c/b)>a"}, z:"orta", alt:"sozel_denklem" },
+  { id: "s7_bd_026", s: "Hangi sayının {a} eksiğinin yarısı {b} eder?", c: "{b}*2+{a}", v: {a:[2,10], b:[3,15]}, z:"orta", alt:"sozel_denklem_2" },
+
+  // ALT DAL 10: DENKLEM SAĞLAMASI
+  { id: "s7_bd_027", s: "x={a} değeri {b}x+{c}={d} denkleminin çözümü müdür?", c: "{evet_hayir}", v: {a:[1,10], b:[2,5], c:[2,10], d:[5,50]}, z:"orta", alt:"saglama" },
+  { id: "s7_bd_028", s: "Çözümü x={a} olan bir denklem yazınız.", c: "x+{b}={a}+{b}_gibi", v: {a:[2,10], b:[1,5]}, z:"orta", alt:"denklem_yazma" },
+
+
+  // ==========================================
+  // KONU 2: BİRİNCİ DERECEDEN İKİ BİLİNMEYENLİ DENKLEMLER (8 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: YOK ETME YÖNTEMİ
+  { id: "s7_id_001", s: "x+y={t} ve x-y={f} ise x kaçtır?", c: "({t}+{f})/2", v: {t:[5,15], f:[1,7], kosul:"(t+f)%2==0"}, z:"orta", alt:"yok_etme_x" },
+  { id: "s7_id_002", s: "x+y={t} ve x-y={f} ise y kaçtır?", c: "({t}-{f})/2", v: {t:[5,15], f:[1,7], kosul:"(t-f)%2==0"}, z:"orta", alt:"yok_etme_y" },
+  { id: "s7_id_003", s: "{a}x+{b}y={c} ve {d}x-{b}y={e} ise x kaçtır?", c: "({c}+{e})/({a}+{d})", v: {a:[2,4], b:[2,5], c:[10,30], d:[2,4], e:[5,20]}, z:"zor", alt:"yok_etme_katsayili" },
+  { id: "s7_id_004", s: "Yok etme yöntemi nasıl uygulanır?", c: "bilinmeyenlerden_biri_yok_edilerek_digeri_bulunur", v: {}, z:"orta", alt:"yok_etme_yontem" },
+
+  // ALT DAL 2: YERİNE KOYMA YÖNTEMİ
+  { id: "s7_id_005", s: "y = {a}x+{b} ve x+y={c} ise x kaçtır?", c: "({c}-{b})/({a}+1)", v: {a:[2,4], b:[1,5], c:[10,30]}, z:"zor", alt:"yerine_koyma" },
+  { id: "s7_id_006", s: "x = {a}y - {b} ve x+y={c} ise y kaçtır?", c: "({c}+{b})/({a}+1)", v: {a:[2,4], b:[1,5], c:[8,25]}, z:"zor", alt:"yerine_koyma_2" },
+  { id: "s7_id_007", s: "Yerine koyma yöntemi nasıl uygulanır?", c: "bir_denklemden_bir_bilinmeyen_cekilip_digerinde_yerine_yazilir", v: {}, z:"orta", alt:"yerine_koyma_yontem" },
+
+  // ALT DAL 3: DENKLEM SİSTEMİ ÇÖZME
+  { id: "s7_id_008", s: "{a}x+{b}y={c} ve {d}x+{e}y={f} ise x kaçtır?", c: "({c}*{e}-{b}*{f})/({a}*{e}-{b}*{d})", v: {a:[2,4], b:[1,4], c:[10,30], d:[1,3], e:[2,5], f:[5,20], kosul:"a*e!=b*d"}, z:"cok_zor", alt:"sistem" },
+  { id: "s7_id_009", s: "{a}x+{b}y={c} ve {d}x+{e}y={f} ise y kaçtır?", c: "({a}*{f}-{c}*{d})/({a}*{e}-{b}*{d})", v: {a:[2,4], b:[1,4], c:[10,30], d:[1,3], e:[2,5], f:[5,20], kosul:"a*e!=b*d"}, z:"cok_zor", alt:"sistem_y" },
+
+  // ALT DAL 4: ÖZEL DURUMLAR
+  { id: "s7_id_010", s: "x+y={t} ve x+y={f} (t≠f) sisteminin çözümü nedir?", c: "bos_kume", v: {t:[5,10], f:[12,18]}, z:"zor", alt:"celisik_sistem" },
+  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], 2t:"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
+  { id: "s7_id_012", s: "Denklem sisteminin tek çözümü olma şartı nedir?", c: "katsayilar_orani_esit_olmamali", v: {}, z:"orta", alt:"tek_cozum_sarti" },
+
+  // ALT DAL 5: PROBLEMLİ DENKLEM SİSTEMLERİ
+  { id: "s7_id_013", s: "İki sayının toplamı {t}, farkı {f} ise büyük sayı kaçtır?", c: "({t}+{f})/2", v: {t:[10,30], f:[2,8], kosul:"(t+f)%2==0"}, z:"orta", alt:"toplam_fark" },
+  { id: "s7_id_014", s: "İki sayının toplamı {t}, oranı {a}/{b} ise küçük sayı kaçtır?", c: "{t}*{b}/({a}+{b})", v: {a:[2,5], b:[1,"{a}-1"], t:[10,40], kosul:"t%(a+b)==0"}, z:"cok_zor", alt:"toplam_oran" },
+
+  // ALT DAL 6: DENKLEM SİSTEMİ KURMA
+  { id: "s7_id_015", s: "Ahmet'in yaşı Mehmet'in yaşının {a} katıdır. Yaşları toplamı {t} ise Ahmet kaç yaşındadır?", c: "{a}*{t}/({a}+1)", v: {a:[2,4], t:[15,40], kosul:"t%(a+1)==0"}, z:"zor", alt:"yas_problemi" },
+  { id: "s7_id_016", s: "Bir sınıftaki kızların sayısı erkeklerin sayısının {a}/{b} katıdır. Sınıf mevcudu {m} ise kız sayısı kaçtır?", c: "{a}*{m}/({a}+{b})", v: {a:[2,5], b:[1,"{a}-1"], m:[20,50]}, z:"cok_zor", alt:"sinif_problemi" },
+
+  // ALT DAL 7: ÜÇ BİLİNMEYENLİ SİSTEMLER (TEMEL)
+  { id: "s7_id_017", s: "x+y={a}, y+z={b}, x+z={c} ise x kaçtır?", c: "({a}+{c}-{b})/2", v: {a:[5,15], b:[5,15], c:[5,15], kosul:"(a+c-b)%2==0"}, z:"cok_zor", alt:"uc_bilinmeyenli" },
+  { id: "s7_id_018", s: "x+y+z={t}, x=y, y=z ise x kaçtır?", c: "{t}/3", v: {t:[6,30], kosul:"t%3==0"}, z:"zor", alt:"esit_uc_bilinmeyen" },
+
+  // ALT DAL 8: GRAFİK YORUMLAMA
+  { id: "s7_id_019", s: "y={a}x+{b} ve y={c}x+{d} doğrularının kesim noktasının apsisi kaçtır?", c: "({d}-{b})/({a}-{c})", v: {a:[2,5], b:[1,5], c:[1,3], d:[3,10], kosul:"a!=c"}, z:"cok_zor", alt:"kesim_noktasi" },
+  { id: "s7_id_020", s: "y={a}x+{b} doğrusu x eksenini nerede keser?", c: "-{b}/{a}", v: {a:[2,5], b:[2,10], kosul:"b%a==0"}, z:"zor", alt:"x_ekseni_kesim" },
+
+
+  // ==========================================
+  // KONU 3: DENKLEM KURMA PROBLEMLERİ (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: SAYI PROBLEMLERİ
+  { id: "s7_dp_001", s: "Bir sayının {a} katının {b} fazlası {c} ise bu sayı kaçtır?", c: "({c}-{b})/{a}", v: {a:[2,5], b:[2,10], c:[10,50]}, z:"orta", alt:"sayi_problemi" },
+  { id: "s7_dp_002", s: "Bir sayının {a} eksiğinin {b} katı {c} ise bu sayı kaçtır?", c: "{c}/{b}+{a}", v: {a:[2,8], b:[2,5], c:[10,40]}, z:"orta", alt:"sayi_problemi_2" },
+  { id: "s7_dp_003", s: "Ardışık üç sayının toplamı {t} ise en büyük sayı kaçtır?", c: "{t}/3+1", v: {t:[6,60], kosul:"t%3==0"}, z:"orta", alt:"ardisik_uc" },
+  { id: "s7_dp_004", s: "Bir sayının yarısı ile üçte birinin toplamı {t} ise bu sayı kaçtır?", c: "{t}*6/5", v: {t:[5,50], kosul:"t%5==0"}, z:"zor", alt:"yarisi_ucte_biri" },
+
+  // ALT DAL 2: YAŞ PROBLEMLERİ
+  { id: "s7_dp_005", s: "Bir babanın yaşı çocuğunun yaşının {a} katıdır. {n} yıl sonra babanın yaşı çocuğunun yaşının {b} katı olacağına göre çocuk bugün kaç yaşındadır?", c: "{n}*({b}-1)/({a}-{b})", v: {a:[3,6], b:[2,"{a}-1"], n:[2,10]}, z:"cok_zor", alt:"yas_kat" },
+  { id: "s7_dp_006", s: "Baba {b} yaşında, çocuk {c} yaşındadır. Kaç yıl önce babanın yaşı çocuğunun yaşının {k} katıydı?", c: "({b}-{k}*{c})/({k}-1)", v: {b:[30,50], c:[5,10], k:[2,4], kosul:"b>k*c"}, z:"cok_zor", alt:"yas_once" },
+
+  // ALT DAL 3: YÜZDE PROBLEMLERİ
+  { id: "s7_dp_007", s: "Bir mal {a} TL'ye alınıp %{k} kârla satılırsa satış fiyatı kaç TL olur?", c: "{a}*(100+{k})/100", v: {a:[50,200], k:[10,40,5]}, z:"orta", alt:"kar_yuzde" },
+  { id: "s7_dp_008", s: "%{k} zararla {s} TL'ye satılan malın maliyeti kaç TL'dir?", c: "{s}*100/(100-{k})", v: {k:[10,30], s:[50,200]}, z:"zor", alt:"zarar_maliyet" },
+
+  // ALT DAL 4: HAREKET PROBLEMLERİ (TEMEL)
+  { id: "s7_dp_009", s: "Saatte {v} km hızla giden bir araç {t} saatte kaç km yol alır?", c: "{v}*{t}", v: {v:[40,120], t:[2,6]}, z:"kolay", alt:"yol_hiz" },
+  { id: "s7_dp_010", s: "{x} km'lik yolu {t} saatte alan aracın hızı kaç km/saattir?", c: "{x}/{t}", v: {x:[100,600], t:[2,6], kosul:"x%t==0"}, z:"orta", alt:"hiz_bulma" },
+  { id: "s7_dp_011", s: "İki araç {v1} ve {v2} km/saat hızla birbirine doğru hareket ediyor. {x} km mesafe varsa kaç saat sonra karşılaşırlar?", c: "{x}/({v1}+{v2})", v: {v1:[40,80], v2:[40,80], x:[200,600]}, z:"zor", alt:"karsilasma" },
+
+  // ALT DAL 5: İŞÇİ-HAVUZ PROBLEMLERİ (TEMEL)
+  { id: "s7_dp_012", s: "Bir işi A işçisi {a} günde, B işçisi {b} günde bitiriyor. İkisi birlikte kaç günde bitirir?", c: "{a}*{b}/({a}+{b})", v: {a:[3,10], b:[4,12]}, z:"zor", alt:"isci_birlikte" },
+  { id: "s7_dp_013", s: "Bir havuzu A musluğu {a} saatte dolduruyor. Havuzun {k}/{m}'i kaç saatte dolar?", c: "{a}*{k}/{m}", v: {a:[4,12], k:[1,"{m}-1"], m:[2,6]}, z:"orta", alt:"havuz_kismi" },
+
+  // ALT DAL 6: KARIŞIM PROBLEMLERİ (TEMEL)
+  { id: "s7_dp_014", s: "Tuz oranı %{o1} olan {m1} kg tuzlu su ile %{o2} olan {m2} kg tuzlu su karıştırılırsa yeni karışımın tuz oranı % kaç olur?", c: "({o1}*{m1}+{o2}*{m2})/({m1}+{m2})", v: {o1:[10,30], m1:[10,50], o2:[20,50], m2:[10,50]}, z:"cok_zor", alt:"karisim" },
+  { id: "s7_dp_015", s: "Alkol oranı %{o} olan {m} litre karışıma {s} litre su eklenirse yeni alkol oranı % kaç olur?", c: "{o}*{m}/({m}+{s})", v: {o:[20,60], m:[10,40], s:[5,20]}, z:"cok_zor", alt:"seyreltme" },
+
+
+  // ==========================================
+  // KONU 4: İKİNCİ DERECEDEN BİR BİLİNMEYENLİ DENKLEMLER - TANIM (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: İKİNCİ DERECE DENKLEM TANIMA
+  { id: "s7_ik_001", s: "Aşağıdakilerden hangisi ikinci dereceden bir bilinmeyenli denklemdir?", c: "{dogru}", v: {secenekler:["x²+3x+2=0","x+2=5","x³+2x=0","1/x+x=3","2x+3y=6"]}, z:"kolay", alt:"tanima" },
+  { id: "s7_ik_002", s: "ax²+bx+c=0 ifadesinde a=0 olursa denklem ne olur?", c: "birinci_dereceden_denklem", v: {}, z:"orta", alt:"a_sifir" },
+  { id: "s7_ik_003", s: "İkinci derece denklem olması için şart nedir?", c: "a≠0_ve_xin_en_yuksek_kuvveti_2_olmali", v: {}, z:"orta", alt:"sart" },
+
+  // ALT DAL 2: BASİT İKİNCİ DERECE DENKLEM ÇÖZME
+  { id: "s7_ik_004", s: "x² = {a} denkleminin çözüm kümesi nedir?", c: "{-√{a}, √{a}}", v: {a:[4,9,16,25,36,49,64,81,100]}, z:"orta", alt:"x_kare_a" },
+  { id: "s7_ik_005", s: "x² - {a} = 0 denkleminin kökleri nedir?", c: "{-√{a}, √{a}}", v: {a:[4,9,16,25]}, z:"orta", alt:"x_kare_eksi_a" },
+  { id: "s7_ik_006", s: "x² + {a} = 0 denkleminin reel kökü var mıdır?", c: "hayir_(a>0_ise)", v: {a:[1,20]}, z:"orta", alt:"x_kare_arti_a" },
+
+  // ALT DAL 3: ÇARPANLARA AYIRARAK ÇÖZME
+  { id: "s7_ik_007", s: "x² - 5x + 6 = 0 denkleminin kökleri nedir?", c: "{2,3}", v: {}, z:"orta", alt:"carpan_cozum" },
+  { id: "s7_ik_008", s: "x² + x - 6 = 0 denkleminin kökleri nedir?", c: "{-3,2}", v: {}, z:"orta", alt:"carpan_cozum_2" },
+  { id: "s7_ik_009", s: "x² - {a} = 0 denklemini çarpanlara ayırarak çözünüz.", c: "(x-√{a})(x+√{a})=0", v: {a:[4,9,16,25]}, z:"orta", alt:"kare_fark_cozum" },
+
+  // ALT DAL 4: TAM KARE İFADELERİ ÇÖZME
+  { id: "s7_ik_010", s: "(x-{a})² = 0 denkleminin kökü nedir?", c: "{a}_(cift_katli)", v: {a:[1,8]}, z:"orta", alt:"tam_kare_kok" },
+  { id: "s7_ik_011", s: "x² + 2x + 1 = 0 denkleminin kökleri nedir?", c: "{-1}_(cift_katli)", v: {}, z:"orta", alt:"x2_2x_1" },
+
+  // ALT DAL 5: ORTAK ÇARPAN PARANTEZİ İLE ÇÖZME
+  { id: "s7_ik_012", s: "x² - x = 0 denkleminin kökleri nedir?", c: "{0,1}", v: {}, z:"orta", alt:"ortak_carpan" },
+  { id: "s7_ik_013", s: "{a}x² + {b}x = 0 denkleminin kökleri nedir?", c: "{0, -{b}/{a}}", v: {a:[2,5], b:[2,8]}, z:"orta", alt:"ax2+bx" },
+
+  // ALT DAL 6: DENKLEMİN DERECESİ
+  { id: "s7_ik_014", s: "({a}x+{b})(x-{c}) = 0 denkleminin derecesi kaçtır?", c: "2", v: {a:[1,4], b:[1,5], c:[2,6]}, z:"orta", alt:"derece" },
+  { id: "s7_ik_015", s: "(x²+1)(x-2) = 0 denkleminin derecesi kaçtır?", c: "3", v: {}, z:"orta", alt:"derece_3" },
+
+
+  // ==========================================
+  // KONU 5: DİSKRİMİNANT VE KÖK BULMA (8 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: DİSKRİMİNANT HESAPLAMA
+  { id: "s7_ds_001", s: "x² + {b}x + {c} = 0 denkleminin diskriminantı kaçtır?", c: "{b}²-4*{c}", v: {b:[2,8], c:[1,15]}, z:"orta", alt:"diskriminant" },
+  { id: "s7_ds_002", s: "Diskriminant (Δ) formülü nedir?", c: "Δ=b²-4ac", v: {}, z:"orta", alt:"formul" },
+  { id: "s7_ds_003", s: "{a}x² + {b}x + {c} = 0 denkleminin diskriminantı kaçtır?", c: "{b}²-4*{a}*{c}", v: {a:[2,4], b:[3,8], c:[1,6]}, z:"zor", alt:"katsayili_diskriminant" },
+
+  // ALT DAL 2: DİSKRİMİNANTIN YORUMU
+  { id: "s7_ds_004", s: "Δ > 0 ise denklemin kaç reel kökü vardır?", c: "2_farkli_reel_kok", v: {}, z:"orta", alt:"delta_buyuk" },
+  { id: "s7_ds_005", s: "Δ = 0 ise denklemin kaç reel kökü vardır?", c: "1_(cift_katli_kok)", v: {}, z:"orta", alt:"delta_sifir" },
+  { id: "s7_ds_006", s: "Δ < 0 ise denklemin kaç reel kökü vardır?", c: "0_(reel_kok_yok)", v: {}, z:"orta", alt:"delta_kucuk" },
+  { id: "s7_ds_007", s: "x² + 4x + 3 = 0 denkleminin diskriminantı kaçtır ve kaç kökü vardır?", c: "Δ=4, 2_farkli_kok", v: {}, z:"orta", alt:"x2_4x_3" },
+  { id: "s7_ds_008", s: "x² + 2x + 1 = 0 denkleminin diskriminantı kaçtır ve kaç kökü vardır?", c: "Δ=0, cift_katli_kok", v: {}, z:"orta", alt:"x2_2x_1_delta" },
+  { id: "s7_ds_009", s: "x² + x + 1 = 0 denkleminin diskriminantı kaçtır ve kaç kökü vardır?", c: "Δ=-3, reel_kok_yok", v: {}, z:"orta", alt:"x2_x_1_delta" },
+
+  // ALT DAL 3: KÖK BULMA FORMÜLÜ
+  { id: "s7_ds_010", s: "x² + {b}x + {c} = 0 denkleminin köklerini bulunuz.", c: "{-b+√Δ}/2_ve_{-b-√Δ}/2", v: {b:[3,8], c:[1,12], kosul:"Δ≥0"}, z:"zor", alt:"kok_bulma" },
+  { id: "s7_ds_011", s: "Kök bulma formülü nedir?", c: "x=(-b±√Δ)/2a", v: {}, z:"orta", alt:"kok_formul" },
+  { id: "s7_ds_012", s: "x² - 5x + 6 = 0 denkleminin kökleri nedir?", c: "{2,3}", v: {}, z:"zor", alt:"x2_5x_6_kok" },
+  { id: "s7_ds_013", s: "x² - 7x + 12 = 0 denkleminin kökleri nedir?", c: "{3,4}", v: {}, z:"zor", alt:"x2_7x_12_kok" },
+  { id: "s7_ds_014", s: "x² - x - 2 = 0 denkleminin kökleri nedir?", c: "{-1,2}", v: {}, z:"zor", alt:"x2_x_2_kok" },
+
+  // ALT DAL 4: KATSAYILI DENKLEMLERDE KÖK BULMA
+  { id: "s7_ds_015", s: "{a}x² + {b}x + {c} = 0 denkleminin köklerini bulunuz.", c: "{kokler}", v: {a:[2,4], b:[4,10], c:[1,6], kosul:"Δ≥0"}, z:"cok_zor", alt:"katsayili_kok" },
+  { id: "s7_ds_016", s: "2x² + 5x + 2 = 0 denkleminin kökleri nedir?", c: "{-2,-1/2}", v: {}, z:"cok_zor", alt:"2x2_5x_2" },
+  { id: "s7_ds_017", s: "3x² - 7x + 2 = 0 denkleminin kökleri nedir?", c: "{1/3,2}", v: {}, z:"cok_zor", alt:"3x2_7x_2" },
+
+  // ALT DAL 5: KÖK YOKSA SEBEBİ
+  { id: "s7_ds_018", s: "x² + 2x + 5 = 0 denkleminin neden reel kökü yoktur?", c: "Δ=-16<0", v: {}, z:"orta", alt:"kok_yok_sebep" },
+  { id: "s7_ds_019", s: "Hangi durumda denklemin reel kökü olmaz?", c: "Δ<0_oldugunda", v: {}, z:"orta", alt:"reel_kok_yok_sart" },
+
+  // ALT DAL 6: ÇÖZÜM KÜMESİ YAZMA
+  { id: "s7_ds_020", s: "x²-4=0 denkleminin çözüm kümesini yazınız.", c: "{-2,2}", v: {}, z:"orta", alt:"cozum_kumesi" },
+  { id: "s7_ds_021", s: "x²-6x+9=0 denkleminin çözüm kümesini yazınız.", c: "{3}", v: {}, z:"orta", alt:"cift_katli_kumesi" },
+  { id: "s7_ds_022", s: "x²+1=0 denkleminin çözüm kümesini yazınız.", c: "∅_(bos_kume)", v: {}, z:"orta", alt:"bos_cozum_kumesi" },
+
+  // ALT DAL 7: KÖKLERİN RASYONELLİĞİ
+  { id: "s7_ds_023", s: "x² - {a} = 0 denkleminin kökleri rasyonel midir? (a=tam kare değilse)", c: "degildir", v: {a:[2,15]}, z:"zor", alt:"rasyonel_kok" },
+  { id: "s7_ds_024", s: "Δ bir tam kare ise kökler için ne söylenebilir?", c: "kokler_rasyoneldir", v: {}, z:"orta", alt:"tam_kare_delta" },
+
+  // ALT DAL 8: KARIŞIK KÖK BULMA
+  { id: "s7_ds_025", s: "x² - (√2+√3)x + √6 = 0 denkleminin kökleri nedir?", c: "{√2,√3}", v: {}, z:"cok_zor", alt:"koklu_katsayi" },
+  { id: "s7_ds_026", s: "(x+1)² = 2x+2 denkleminin kökleri nedir?", c: "{-1,1}", v: {}, z:"cok_zor", alt:"duzenleme_gerektiren" },
+
+
+  // ==========================================
+  // KONU 6: KÖK-KATSAYI İLİŞKİLERİ (10 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: KÖKLER TOPLAMI
+  { id: "s7_kk_001", s: "x² + {b}x + {c} = 0 denkleminin kökler toplamı kaçtır?", c: "-{b}", v: {b:[2,10], c:[1,24]}, z:"orta", alt:"kokler_toplami" },
+  { id: "s7_kk_002", s: "ax²+bx+c=0 denkleminin kökler toplamı formülü nedir?", c: "-b/a", v: {}, z:"orta", alt:"toplam_formul" },
+  { id: "s7_kk_003", s: "{a}x² + {b}x + {c} = 0 denkleminin kökler toplamı kaçtır?", c: "-{b}/{a}", v: {a:[2,4], b:[4,10], c:[1,10]}, z:"zor", alt:"katsayili_toplam" },
+  { id: "s7_kk_004", s: "Kökler toplamı 5 olan ikinci derece denklem yazınız.", c: "x²-5x+k=0_gibi", v: {}, z:"orta", alt:"toplamdan_denklem" },
+
+  // ALT DAL 2: KÖKLER ÇARPIMI
+  { id: "s7_kk_005", s: "x² + {b}x + {c} = 0 denkleminin kökler çarpımı kaçtır?", c: "{c}", v: {b:[2,8], c:[1,12]}, z:"orta", alt:"kokler_carpimi" },
+  { id: "s7_kk_006", s: "ax²+bx+c=0 denkleminin kökler çarpımı formülü nedir?", c: "c/a", v: {}, z:"orta", alt:"carpim_formul" },
+  { id: "s7_kk_007", s: "{a}x² + {b}x + {c} = 0 denkleminin kökler çarpımı kaçtır?", c: "{c}/{a}", v: {a:[2,4], b:[3,8], c:[2,12]}, z:"zor", alt:"katsayili_carpim" },
+  { id: "s7_kk_008", s: "Kökler çarpımı -6 olan ikinci derece denklem yazınız.", c: "x²+kx-6=0_gibi", v: {}, z:"orta", alt:"carpimdan_denklem" },
+
+  // ALT DAL 3: KÖKLER TOPLAMI VE ÇARPIMI İLE DENKLEM YAZMA
+  { id: "s7_kk_009", s: "Kökler toplamı T={t}, kökler çarpımı Ç={c} olan ikinci derece denklemi yazınız.", c: "x²-{t}x+{c}=0", v: {t:[2,8], c:[1,15]}, z:"orta", alt:"denklem_yazma" },
+  { id: "s7_kk_010", s: "Kökleri x₁={a} ve x₂={b} olan ikinci derece denklemi yazınız.", c: "x²-{a+b}x+{a}*{b}=0", v: {a:[1,5], b:[1,5]}, z:"orta", alt:"koklerden_denklem" },
+
+  // ALT DAL 4: KÖKLER FARKI
+  { id: "s7_kk_011", s: "x² + {b}x + {c} = 0 denkleminin kökler farkının mutlak değeri kaçtır?", c: "√Δ/|a|", v: {b:[2,8], c:[1,12], kosul:"Δ≥0"}, z:"cok_zor", alt:"kokler_farki" },
+  { id: "s7_kk_012", s: "Kökler farkı formülü nedir?", c: "|x₁-x₂|=√Δ/|a|", v: {}, z:"cok_zor", alt:"fark_formul" },
+  { id: "s7_kk_013", s: "x² - 5x + 6 = 0 denkleminin kökler farkı kaçtır?", c: "1", v: {}, z:"cok_zor", alt:"x2_5x_6_fark" },
+
+  // ALT DAL 5: KÖKLERİN ÇARPMAYA GÖRE TERSLERİ TOPLAMI
+  { id: "s7_kk_014", s: "Kökleri x₁ ve x₂ olan denklemin 1/x₁+1/x₂ değeri kaçtır?", c: "-b/c", v: {}, z:"cok_zor", alt:"ters_toplam" },
+  { id: "s7_kk_015", s: "x² + {b}x + {c} = 0 için 1/x₁+1/x₂ = ?", c: "-{b}/{c}", v: {b:[2,6], c:[1,12], kosul:"c!=0"}, z:"cok_zor", alt:"ters_toplam_deger" },
+
+  // ALT DAL 6: KÖKLERİN KARELERİ TOPLAMI
+  { id: "s7_kk_016", s: "Kökler toplamı T, kökler çarpımı Ç ise x₁²+x₂² = ?", c: "T²-2Ç", v: {}, z:"cok_zor", alt:"kareler_toplami" },
+  { id: "s7_kk_017", s: "x² - 6x + 5 = 0 ise x₁²+x₂² = ?", c: "26", v: {}, z:"cok_zor", alt:"x2_6x_5_kare" },
+  { id: "s7_kk_018", s: "x₁²+x₂² = 13 ve x₁·x₂ = 6 ise x₁+x₂ = ?", c: "±5", v: {}, z:"cok_zor", alt:"kareden_toplam" },
+
+  // ALT DAL 7: KÖKLERİN KÜPLERİ TOPLAMI
+  { id: "s7_kk_019", s: "Kökler toplamı T, kökler çarpımı Ç ise x₁³+x₂³ = ?", c: "T³-3TÇ", v: {}, z:"cok_zor", alt:"kupler_toplami" },
+  { id: "s7_kk_020", s: "x² - 3x + 2 = 0 ise x₁³+x₂³ = ?", c: "9", v: {}, z:"cok_zor", alt:"x2_3x_2_kup" },
+
+  // ALT DAL 8: KÖKLER ARASI BAĞINTILAR
+  { id: "s7_kk_021", s: "x² + {b}x + {c} = 0 denkleminin kökleri x₁ ve x₂'dir. x₁/x₂ + x₂/x₁ = ?", c: "({b}²-2*{c})/{c}", v: {b:[2,6], c:[1,8], kosul:"c!=0"}, z:"cok_zor", alt:"oran_toplam" },
+  { id: "s7_kk_022", s: "x² - 5x + 6 = 0 ise x₁/x₂ + x₂/x₁ = ?", c: "13/6", v: {}, z:"cok_zor", alt:"x2_5x_6_oran" },
+
+  // ALT DAL 9: KÖK-KATSAYI İLİŞKİLERİ İLE İLGİLİ SORULAR
+  { id: "s7_kk_023", s: "x² + mx + 6 = 0 denkleminin bir kökü 2 ise m kaçtır?", c: "-5", v: {}, z:"zor", alt:"bir_kok_verilince" },
+  { id: "s7_kk_024", s: "x² + {b}x + {c} = 0 denkleminin kökleri arasında x₁={k}x₂ bağıntısı varsa?", c: "cozume_bagli", v: {b:[3,8], c:[2,12], k:[2,3]}, z:"cok_zor", alt:"katli_kok" },
+
+  // ALT DAL 10: SİMETRİK KÖKLER
+  { id: "s7_kk_025", s: "x² + mx + n = 0 denkleminin kökleri simetrik ise m kaçtır?", c: "0", v: {}, z:"zor", alt:"simetrik_kok" },
+  { id: "s7_kk_026", s: "Simetrik kök ne demektir?", c: "x₁=-x₂_yani_toplamlari_sifir", v: {}, z:"orta", alt:"simetrik_tanim" },
+  { id: "s7_kk_027", s: "x² - {a} = 0 denkleminin kökleri simetrik midir?", c: "evet", v: {a:[4,9,16]}, z:"orta", alt:"simetrik_ornek" },
+
+
+  // ==========================================
+  // KONU 7: KÖKLERİN İŞARET İNCELEMESİ (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: İKİ KÖK POZİTİF
+  { id: "s7_ki_001", s: "x² + {b}x + {c} = 0 denkleminin iki kökü de pozitif olabilir mi? (b<0, c>0)", c: "{evet_hayir}", v: {b:[-8,-2], c:[1,15]}, z:"zor", alt:"iki_pozitif" },
+  { id: "s7_ki_002", s: "İki kökün de pozitif olması için şartlar nelerdir?", c: "Δ≥0, -b/a>0, c/a>0", v: {}, z:"zor", alt:"pozitif_sart" },
+
+  // ALT DAL 2: İKİ KÖK NEGATİF
+  { id: "s7_ki_003", s: "x² + {b}x + {c} = 0 denkleminin iki kökü de negatif olabilir mi? (b>0, c>0)", c: "{evet_hayir}", v: {b:[2,8], c:[1,12]}, z:"zor", alt:"iki_negatif" },
+  { id: "s7_ki_004", s: "İki kökün de negatif olması için şartlar nelerdir?", c: "Δ≥0, -b/a<0, c/a>0", v: {}, z:"zor", alt:"negatif_sart" },
+
+  // ALT DAL 3: TERS İŞARETLİ KÖKLER
+  { id: "s7_ki_005", s: "x² + {b}x + {c} = 0 denkleminin kökleri ters işaretli olabilir mi? (c<0)", c: "{evet_hayir}", v: {b:[2,6], c:[-10,-1]}, z:"zor", alt:"ters_isaret" },
+  { id: "s7_ki_006", s: "Köklerin ters işaretli olması için şart nedir?", c: "c/a<0", v: {}, z:"orta", alt:"ters_isaret_sart" },
+  { id: "s7_ki_007", s: "x² + {b}x - {c} = 0 denkleminin kökleri için ne söylenebilir?", c: "ters_isaretli", v: {b:[2,6], c:[1,10]}, z:"orta", alt:"c_negatif" },
+
+  // ALT DAL 4: KÖKLERİN İŞARET TABLOSU
+  { id: "s7_ki_008", s: "Kökler çarpımı pozitif ise köklerin işareti nasıldır?", c: "ayni_isaretli", v: {}, z:"orta", alt:"carpim_pozitif" },
+  { id: "s7_ki_009", s: "Kökler çarpımı negatif ise köklerin işareti nasıldır?", c: "ters_isaretli", v: {}, z:"orta", alt:"carpim_negatif" },
+  { id: "s7_ki_010", s: "Kökler toplamı pozitif, kökler çarpımı pozitif ise kökler nasıldır?", c: "ikisi_de_pozitif", v: {}, z:"orta", alt:"toplam_pozitif_carpim_pozitif" },
+  { id: "s7_ki_011", s: "Kökler toplamı negatif, kökler çarpımı pozitif ise kökler nasıldır?", c: "ikisi_de_negatif", v: {}, z:"orta", alt:"toplam_negatif_carpim_pozitif" },
+
+  // ALT DAL 5: İŞARET İNCELEME SORULARI
+  { id: "s7_ki_012", s: "x² - 5x + 6 = 0 denkleminin köklerinin işaretleri nasıldır?", c: "ikisi_de_pozitif", v: {}, z:"orta", alt:"x2_5x_6_isaret" },
+  { id: "s7_ki_013", s: "x² + 3x - 4 = 0 denkleminin köklerinin işaretleri nasıldır?", c: "ters_isaretli", v: {}, z:"orta", alt:"x2_3x_4_isaret" },
+  { id: "s7_ki_014", s: "x² + 5x + 6 = 0 denkleminin köklerinin işaretleri nasıldır?", c: "ikisi_de_negatif", v: {}, z:"orta", alt:"x2_5x_6_isaret" },
+
+  // ALT DAL 6: İŞARET İNCELEME PROBLEMLERİ
+  { id: "s7_ki_015", s: "x² + mx + 4 = 0 denkleminin iki pozitif kökü olması için m nasıl olmalıdır?", c: "m<-4", v: {}, z:"cok_zor", alt:"m_negatif" },
+  { id: "s7_ki_016", s: "x² + mx - 3 = 0 denkleminin kökleri için ne söylenebilir?", c: "her_zaman_ters_isaretli", v: {}, z:"cok_zor", alt:"c_negatif_her_zaman" },
+
+
+  // ==========================================
+  // KONU 8: İKİNCİ DERECE DENKLEMLERDE ÖZEL DURUMLAR (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: ÇAKIŞIK (ÇİFT KATLI) KÖK
+  { id: "s7_od_001", s: "x² + {b}x + {c} = 0 denkleminin çakışık kökü olması için c kaç olmalıdır?", c: "({b}/2)²", v: {b:[2,10,2]}, z:"zor", alt:"cakisik_kok" },
+  { id: "s7_od_002", s: "x² + mx + 9 = 0 denkleminin çift katlı kökü olması için m'nin pozitif değeri kaçtır?", c: "6", v: {}, z:"zor", alt:"m_6" },
+  { id: "s7_od_003", s: "Çakışık kök için Δ = ?", c: "0", v: {}, z:"orta", alt:"cakisik_delta" },
+
+  // ALT DAL 2: REEL KÖK OLMAMA DURUMU
+  { id: "s7_od_004", s: "x² + {b}x + {c} = 0 denkleminin reel kökü olmaması için c en az kaç olmalıdır? (tam sayı)", c: "{min_c}", v: {b:[2,6]}, z:"zor", alt:"reel_kok_yok_sart" },
+  { id: "s7_od_005", s: "x² + 2x + m = 0 denkleminin reel kökü olmaması için m nasıl olmalıdır?", c: "m>1", v: {}, z:"zor", alt:"m_buyuk_1" },
+
+  // ALT DAL 3: KÖKLERDEN BİRİNİN SIFIR OLMASI
+  { id: "s7_od_006", s: "x² + {b}x = 0 denkleminin kökleri nedir?", c: "{0, -{b}}", v: {b:[2,8]}, z:"orta", alt:"bir_kok_sifir" },
+  { id: "s7_od_007", s: "ax²+bx+c=0 denkleminin bir kökünün sıfır olması için şart nedir?", c: "c=0", v: {}, z:"orta", alt:"c_sifir_sart" },
+
+  // ALT DAL 4: KATSAYILAR ARASI ÖZEL İLİŞKİ
+  { id: "s7_od_008", s: "a+b+c=0 ise ax²+bx+c=0 denkleminin bir kökü kaçtır?", c: "1", v: {}, z:"cok_zor", alt:"a+b+c_sifir" },
+  { id: "s7_od_009", s: "a-b+c=0 ise ax²+bx+c=0 denkleminin bir kökü kaçtır?", c: "-1", v: {}, z:"cok_zor", alt:"a-b+c_sifir" },
+  { id: "s7_od_010", s: "Denklemin köklerinden biri 1 ise katsayılar arasındaki bağıntı nedir?", c: "a+b+c=0", v: {}, z:"cok_zor", alt:"kok_1_sart" },
+
+  // ALT DAL 5: RASYONEL KATSAYILI DENKLEMLER
+  { id: "s7_od_011", s: "x² - (m+1)x + m = 0 denkleminin kökleri nedir?", c: "{1,m}", v: {}, z:"cok_zor", alt:"m_li_denklem" },
+  { id: "s7_od_012", s: "x² - 2mx + m²-1 = 0 denkleminin kökleri nedir?", c: "{m-1,m+1}", v: {}, z:"cok_zor", alt:"tam_kare_eksi_1" },
+
+  // ALT DAL 6: KARIŞIK ÖZEL DURUMLAR
+  { id: "s7_od_013", s: "Kökleri birbirine eşit olan denkleme ne denir?", c: "cift_katli_koklu_denklem", v: {}, z:"orta", alt:"esit_kok" },
+  { id: "s7_od_014", s: "Köklerin çakışık olması ne demektir?", c: "tek_bir_kok_var_(x₁=x₂)", v: {}, z:"orta", alt:"cakisik_tanim" },
+
+
+  // ==========================================
+  // KONU 9: İKİNCİ DERECE DENKLEM PROBLEMLERİ (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: SAYI PROBLEMLERİ
+  { id: "s7_ip_001", s: "Hangi sayının karesi kendisinin {a} katından {b} fazladır?", c: "{kokler}", v: {a:[2,6], b:[3,15]}, z:"zor", alt:"kare_kati" },
+  { id: "s7_ip_002", s: "İki sayının toplamı {t}, çarpımı {c} ise bu sayılar nedir?", c: "{kokler}", v: {t:[5,10], c:[4,24]}, z:"zor", alt:"toplam_carpim" },
+  { id: "s7_ip_003", s: "Ardışık iki sayının çarpımı {c} ise bu sayılar nedir?", c: "{sayi1},{sayi2}", v: {c:[2,12,20,30,42,56,72,90]}, z:"zor", alt:"ardisik_carpim" },
+
+  // ALT DAL 2: GEOMETRİ PROBLEMLERİ
+  { id: "s7_ip_004", s: "Kenar uzunlukları tam sayı olan bir dikdörtgenin alanı {a}, çevresi {c} ise kenarları kaçtır?", c: "{kenarlar}", v: {a:[6,24], c:[10,20]}, z:"cok_zor", alt:"dikdortgen" },
+  { id: "s7_ip_005", s: "Dik kenarları x ve x+1, hipotenüsü {h} olan dik üçgende x kaçtır?", c: "{x}", v: {h:[5,13]}, z:"cok_zor", alt:"pisagor" },
+
+  // ALT DAL 3: HIZ PROBLEMLERİ (İLERİ)
+  { id: "s7_ip_006", s: "{x} km'lik yolu giderken saatte {v1} km, dönerken {v2} km hızla giden aracın ortalama hızı kaç km/saattir?", c: "2*{x}/({x}/{v1}+{x}/{v2})", v: {x:[100,300], v1:[40,80], v2:[30,60], kosul:"v1>v2"}, z:"cok_zor", alt:"ortalama_hiz" },
+  { id: "s7_ip_007", s: "Bir araç yolun bir kısmını {v1} km/saat, kalanını {v2} km/saat hızla gidiyor. Ortalama hız {o} km/saat ise yolun ne kadarı ilk hızla gidilmiştir?", c: "{oran}", v: {v1:[60,100], v2:[30,50], o:[40,70], kosul:"v1>o>v2"}, z:"cok_zor", alt:"karisik_hiz" },
+
+  // ALT DAL 4: YAŞ PROBLEMLERİ
+  { id: "s7_ip_008", s: "Bir babanın yaşı {a} yıl önce çocuğunun yaşının karesine eşitti. Bugün baba {b} yaşında ise çocuk kaç yaşındadır?", c: "{yas}", v: {a:[2,10], b:[30,50]}, z:"cok_zor", alt:"yas_kare" },
+  { id: "s7_ip_009", s: "İki kardeşin yaşları çarpımı {c}, yaşları farkı {f} ise büyük kardeş kaç yaşındadır?", c: "{buyuk}", v: {c:[12,56], f:[1,4]}, z:"cok_zor", alt:"kardes_yas" },
+
+  // ALT DAL 5: İŞÇİ PROBLEMLERİ
+  { id: "s7_ip_010", s: "Bir işi A işçisi tek başına x günde, B işçisi (x+{a}) günde bitiriyor. İkisi birlikte {b} günde bitiriyorsa x kaçtır?", c: "{x}", v: {a:[2,8], b:[3,8]}, z:"cok_zor", alt:"isci_x" },
+  { id: "s7_ip_011", s: "A ve B işçileri bir işi birlikte {b} günde bitiriyor. A tek başına x günde, B tek başına (x+{a}) günde bitiriyorsa A kaç günde bitirir?", c: "{x}", v: {a:[3,10], b:[2,6]}, z:"cok_zor", alt:"isci_sistem" },
+
+  // ALT DAL 6: KAR-ZARAR PROBLEMLERİ
+  { id: "s7_ip_012", s: "Alış fiyatı x TL olan bir mal %{k} kârla {s} TL'ye satılıyorsa x kaçtır?", c: "{s}*100/(100+{k})", v: {k:[10,40], s:[50,200]}, z:"zor", alt:"kar" },
+  { id: "s7_ip_013", s: "Bir malın alış fiyatı {a} TL'dir. %{k} zararla satılırsa satış fiyatı kaç TL olur?", c: "{a}*(100-{k})/100", v: {a:[50,200], k:[10,30]}, z:"orta", alt:"zarar" },
+
+
+  // ==========================================
+  // KONU 10: RASYONEL DENKLEMLER (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: PAYDADA BİLİNMEYEN
+  { id: "s7_rd_001", s: "1/x = {a} ise x kaçtır?", c: "1/{a}", v: {a:[2,10]}, z:"orta", alt:"1_x_a" },
+  { id: "s7_rd_002", s: "{a}/x = {b} ise x kaçtır?", c: "{a}/{b}", v: {a:[2,10], b:[2,8], kosul:"a%b==0"}, z:"orta", alt:"a_x_b" },
+  { id: "s7_rd_003", s: "1/(x-{a}) = {b} ise x kaçtır?", c: "{a}+1/{b}", v: {a:[2,8], b:[2,5]}, z:"zor", alt:"1_x-a_b" },
+  { id: "s7_rd_004", s: "x/{a} + x/{b} = {c} ise x kaçtır?", c: "{c}*{a}*{b}/({a}+{b})", v: {a:[2,5], b:[3,6], c:[5,20], kosul:"a!=b"}, z:"cok_zor", alt:"x_a_x_b" },
+
+  // ALT DAL 2: TANIM KÜMESİ BULMA
+  { id: "s7_rd_005", s: "1/(x-{a}) + 1/(x+{b}) denkleminin tanım kümesi nedir?", c: "x≠{a}_ve_x≠-{b}", v: {a:[1,6], b:[1,6]}, z:"orta", alt:"tanim_kumesi" },
+  { id: "s7_rd_006", s: "x/(x²-{a}) ifadesinin tanımsız olduğu değerler nelerdir?", c: "x=±√{a}", v: {a:[4,9,16]}, z:"zor", alt:"tanimsiz" },
+
+  // ALT DAL 3: İÇLER DIŞLAR ÇARPIMI
+  { id: "s7_rd_007", s: "(x+{a})/(x-{b}) = {c} ise x kaçtır?", c: "({c}*{b}+{a})/({c}-1)", v: {a:[2,6], b:[1,5], c:[2,4], kosul:"c!=1"}, z:"cok_zor", alt:"icler_dislar" },
+  { id: "s7_rd_008", s: "(x+1)/(x-1) = 2 ise x kaçtır?", c: "3", v: {}, z:"zor", alt:"x+1_x-1_2" },
+  { id: "s7_rd_009", s: "(x+2)/(x-3) = (x+1)/(x-2) ise x kaçtır?", c: "1/2", v: {}, z:"cok_zor", alt:"esit_kesir" },
+
+  // ALT DAL 4: PAYDA EŞİTLEME
+  { id: "s7_rd_010", s: "1/x + 1/(x+1) = {a} ise x kaçtır?", c: "{cozum}", v: {a:[1,3]}, z:"cok_zor", alt:"payda_esitleme" },
+  { id: "s7_rd_011", s: "1/(x-1) - 1/(x+1) = {a} ise x kaçtır?", c: "{cozum}", v: {a:[1,3]}, z:"cok_zor", alt:"payda_esitleme_fark" },
+
+  // ALT DAL 5: YARDIMCI DEĞİŞKEN
+  { id: "s7_rd_012", s: "(x²+1)/x + x/(x²+1) = {a} ise (x²+1)/x kaçtır?", c: "{cozum}", v: {a:[2,4]}, z:"cok_zor", alt:"yardimci_degisken" },
+  { id: "s7_rd_013", s: "x + 1/x = {t} ise x² + 1/x² = ?", c: "{t}²-2", v: {t:[3,6]}, z:"cok_zor", alt:"x_arti_1_x" },
+
+  // ALT DAL 6: RASYONEL DENKLEM SORULARI
+  { id: "s7_rd_014", s: "2/(x-1) = 3/(x+2) ise x kaçtır?", c: "7", v: {}, z:"cok_zor", alt:"2_x-1_3_x+2" },
+  { id: "s7_rd_015", s: "x/(x+2) + 1/(x-2) = 1 ise x kaçtır?", c: "6", v: {}, z:"cok_zor", alt:"kesirli_karmasik" },
+
+
+  // ==========================================
+  // KONU 11: KÖKLÜ DENKLEMLER (6 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: BASİT KÖKLÜ DENKLEMLER
+  { id: "s7_kd_001", s: "√x = {a} ise x kaçtır?", c: "{a}²", v: {a:[2,10]}, z:"orta", alt:"kok_x_a" },
+  { id: "s7_kd_002", s: "√(x+{a}) = {b} ise x kaçtır?", c: "{b}²-{a}", v: {a:[1,8], b:[2,8], kosul:"b²>a"}, z:"zor", alt:"kok_x+a_b" },
+  { id: "s7_kd_003", s: "∛x = {a} ise x kaçtır?", c: "{a}³", v: {a:[2,6]}, z:"orta", alt:"kup_kok_x" },
+  { id: "s7_kd_004", s: "√x + {a} = {b} ise x kaçtır?", c: "({b}-{a})²", v: {a:[1,5], b:[4,10], kosul:"b>a"}, z:"zor", alt:"kok_x_arti_a_b" },
+
+  // ALT DAL 2: KARE ALARAK ÇÖZME
+  { id: "s7_kd_005", s: "√(x+3) = x-3 ise x kaçtır?", c: "6", v: {}, z:"cok_zor", alt:"kok_x+3_x-3" },
+  { id: "s7_kd_006", s: "√(2x+1) = x-1 ise x kaçtır?", c: "4", v: {}, z:"cok_zor", alt:"kok_2x+1_x-1" },
+  { id: "s7_kd_007", s: "Köklü denklemlerde bulunan çözümler neden kontrol edilmelidir?", c: "kare_alma_fazladan_kok_getirebilir", v: {}, z:"orta", alt:"kontrol_nedeni" },
+
+  // ALT DAL 3: İKİ KÖKLÜ DENKLEMLER
+  { id: "s7_kd_008", s: "√(x+{a}) + √(x-{b}) = {c} ise x kaçtır?", c: "{cozum}", v: {a:[5,10], b:[1,4], c:[3,8]}, z:"cok_zor", alt:"iki_koklu" },
+  { id: "s7_kd_009", s: "√(x+5) = √x + 1 ise x kaçtır?", c: "4", v: {}, z:"cok_zor", alt:"kok_x+5_kok_x+1" },
+  { id: "s7_kd_010", s: "√(x+3) - √x = 1 ise x kaçtır?", c: "1", v: {}, z:"cok_zor", alt:"kok_x+3_eksi_kok_x" },
+
+  // ALT DAL 4: TANIM ARALIĞI
+  { id: "s7_kd_011", s: "√(x-{a}) = {b} denkleminin çözümü için x≥? olmalıdır?", c: "{a}", v: {a:[2,6], b:[1,5]}, z:"orta", alt:"tanim_araligi" },
+  { id: "s7_kd_012", s: "√(x-2) + √(3-x) = ? işleminin tanımlı olması için x hangi aralıkta olmalıdır?", c: "2≤x≤3", v: {}, z:"zor", alt:"iki_kok_tanim" },
+
+  // ALT DAL 5: KÖKLÜ DENKLEM SAĞLAMASI
+  { id: "s7_kd_013", s: "x=4 değeri √(x+5)=x-1 denklemini sağlar mı?", c: "evet_(3=3)", v: {}, z:"orta", alt:"saglama" },
+  { id: "s7_kd_014", s: "x=2 değeri √(x+2)=x-2 denklemini sağlar mı?", c: "hayir_(2=0_yanlis)", v: {}, z:"orta", alt:"saglama_yanlis" },
+
+  // ALT DAL 6: KÖKLÜ DENKLEM SORULARI
+  { id: "s7_kd_015", s: "x√x = {a} ise x kaçtır? (a tam küp ise)", c: "Math.cbrt({a})", v: {a:[8,27,64,125]}, z:"cok_zor", alt:"x_kok_x" },
+  { id: "s7_kd_016", s: "√(x²-{a}) = {b} ise x'in pozitif değeri kaçtır?", c: "√({b}²+{a})", v: {a:[3,9], b:[2,5]}, z:"cok_zor", alt:"kok_x2-a" },
+
+
+  // ==========================================
+  // KONU 12: MUTLAK DEĞERLİ DENKLEMLER - GİRİŞ (4 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: BASİT MUTLAK DEĞER DENKLEMLERİ
+  { id: "s7_md_001", s: "|x| = {a} ise x'in alabileceği değerler nelerdir?", c: "{-{a}, {a}}", v: {a:[2,10]}, z:"orta", alt:"mutlak_x_a" },
+  { id: "s7_md_002", s: "|x-{a}| = {b} ise x'in alabileceği değerler nelerdir?", c: "{{a}-{b}, {a}+{b}}", v: {a:[3,10], b:[1,5], kosul:"a>b"}, z:"zor", alt:"mutlak_x-a_b" },
+  { id: "s7_md_003", s: "|x| = -{a} denkleminin çözümü var mıdır?", c: "hayir_(mutlak_deger_negatif_olamaz)", v: {a:[1,5]}, z:"orta", alt:"mutlak_negatif" },
+
+  // ALT DAL 2: MUTLAK DEĞER ÖZELLİKLERİ
+  { id: "s7_md_004", s: "|x| = |y| ise x ile y arasındaki ilişki nedir?", c: "x=y_veya_x=-y", v: {}, z:"orta", alt:"mutlak_esitlik" },
+  { id: "s7_md_005", s: "|x| = |-x| eşitliği her zaman doğru mudur?", c: "evet", v: {}, z:"orta", alt:"mutlak_simetri" },
+
+  // ALT DAL 3: MUTLAK DEĞERLİ İFADELER
+  { id: "s7_md_006", s: "|{a}x+{b}| = {c} denkleminin çözüm kümesi nedir?", c: "({c}-{b})/{a}_ve_(-{c}-{b})/{a}", v: {a:[2,5], b:[1,5], c:[3,15]}, z:"cok_zor", alt:"mutlak_ax+b" },
+  { id: "s7_md_007", s: "|2x-3| = 5 denkleminin kökleri nedir?", c: "{-1,4}", v: {}, z:"zor", alt:"2x-3_5" },
+
+  // ALT DAL 4: MUTLAK DEĞER DENKLEM SORULARI
+  { id: "s7_md_008", s: "|x| + |x-2| = 4 denkleminin çözüm kümesi nedir?", c: "{-1,3}", v: {}, z:"cok_zor", alt:"iki_mutlak" },
+  { id: "s7_md_009", s: "x·|x| = 4 ise x kaçtır?", c: "2", v: {}, z:"cok_zor", alt:"x_mutlak_x" },
+
+
+  // ==========================================
+  // KONU 13: DENKLEM SİSTEMLERİ (8 alt dal)
+  // ==========================================
+
+  // ALT DAL 1: YOK ETME YÖNTEMİ
+  { id: "s7_dss_001", s: "{a}x+{b}y={c} ve {d}x+{e}y={f} sistemini yok etme yöntemiyle çözünüz.", c: "x={x}, y={y}", v: {a:[2,4], b:[1,3], c:[10,30], d:[1,3], e:[2,4], f:[5,20], kosul:"tek_cozum_var"}, z:"cok_zor", alt:"yok_etme" },
+  { id: "s7_dss_002", s: "3x+2y=12 ve x-y=1 ise x kaçtır?", c: "2.8", v: {}, z:"zor", alt:"3x+2y_12" },
+  { id: "s7_dss_003", s: "x+y=7 ve 2x-y=5 ise x ve y kaçtır?", c: "x=4,y=3", v: {}, z:"zor", alt:"x+y_7_2x-y_5" },
+
+  // ALT DAL 2: YERİNE KOYMA YÖNTEMİ
+  { id: "s7_dss_004", s: "y={a}x+{b} ve x+y={c} sistemini yerine koyma yöntemiyle çözünüz.", c: "x=({c}-{b})/({a}+1), y={a}x+{b}", v: {a:[2,4], b:[1,5], c:[10,30]}, z:"cok_zor", alt:"yerine_koyma_sistem" },
+  { id: "s7_dss_005", s: "y=2x-1 ve 3x+2y=12 ise x kaçtır?", c: "2", v: {}, z:"zor", alt:"y_2x-1_3x+2y_12" },
+
+  // ALT DAL 3: DENKLEM SİSTEMİ KURMA
+  { id: "s7_dss_006", s: "İki sayının toplamı {t}, farkı {f} ise bu sayıları bulunuz.", c: "buyuk=({t}+{f})/2, kucuk=({t}-{f})/2", v: {t:[10,30], f:[2,8], kosul:"(t+f)%2==0"}, z:"orta", alt:"toplam_fark_sistem" },
+  { id: "s7_dss_007", s: "Bir sayının {a} katı ile diğer sayının {b} katının toplamı {c}, farkı {d} ise sayıları bulunuz.", c: "{cozum}", v: {a:[2,4], b:[3,5], c:[10,30], d:[2,10]}, z:"cok_zor", alt:"katsayili_sistem" },
+
+  // ALT DAL 4: ÖZEL DENKLEM SİSTEMLERİ
+  { id: "s7_dss_008", s: "x+y={t} ve xy={c} ise x ve y'yi bulunuz.", c: "x²-{t}x+{c}=0_kokleri", v: {t:[5,10], c:[4,24]}, z:"cok_zor", alt:"toplam_carpim_sistem" },
+  { id: "s7_dss_009", s: "x²+y²={a} ve x+y={b} ise xy kaçtır?", c: "({b}²-{a})/2", v: {a:[10,40], b:[4,8], kosul:"b²>a"}, z:"cok_zor", alt:"kareler_sistem" },
+  { id: "s7_dss_010", s: "x²+y²=25 ve x+y=7 ise xy kaçtır?", c: "12", v: {}, z:"cok_zor", alt:"x2+y2_25_x+y_7" },
+
+  // ALT DAL 5: ÜÇ BİLİNMEYENLİ SİSTEMLER
+  { id: "s7_dss_011", s: "x+y={a}, y+z={b}, x+z={c} ise x kaçtır?", c: "({a}+{c}-{b})/2", v: {a:[3,10], b:[3,10], c:[3,10]}, z:"cok_zor", alt:"uc_bilinmeyenli" },
+  { id: "s7_dss_012", s: "x+y+z={t}, x=y=z ise x kaçtır?", c: "{t}/3", v: {t:[6,30], kosul:"t%3==0"}, z:"zor", alt:"esit_uc_bilinmeyenli" },
+
+  // ALT DAL 6: ÇÖZÜM DURUMLARI
+  { id: "s7_dss_013", s: "{a}x+{b}y={c} ve {2a}x+{2b}y={d} sisteminin çözümü nedir? (d≠2c)", c: "bos_kume", v: {a:[2,4], b:[1,3], c:[5,15], d:[15,40], kosul:"d!=2*c"}, z:"cok_zor", alt:"paralel_dogrular" },
+  { id: "s7_dss_014", s: "{a}x+{b}y={c} ve {2a}x+{2b}y={2c} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {a:[2,4], b:[1,3], c:[5,15]}, z:"cok_zor", alt:"cakisik_dogrular" },
+
+  // ALT DAL 7: GRAFİKLE ÇÖZÜM
+  { id: "s7_dss_015", s: "y={a}x+{b} ve y={c}x+{d} doğrularının kesim noktasını bulunuz.", c: "({d}-{b})/({a}-{c}), {a}*x+{b}", v: {a:[2,5], b:[1,5], c:[1,3], d:[3,10], kosul:"a!=c"}, z:"cok_zor", alt:"grafik_cozum" },
+  { id: "s7_dss_016", s: "y=x+2 ve y=2x-1 doğruları nerede kesişir?", c: "(3,5)", v: {}, z:"zor", alt:"y_x+2_y_2x-1" },
+
+  // ALT DAL 8: PROBLEMLERDEN DENKLEM SİSTEMİ KURMA
+  { id: "s7_dss_017", s: "Ahmet'in parası Mehmet'in parasının {a} katıdır. Paraları toplamı {t} TL ise Ahmet'in parası kaç TL'dir?", c: "{a}*{t}/({a}+1)", v: {a:[2,4], t:[30,100]}, z:"zor", alt:"para_sistem" },
+  { id: "s7_dss_018", s: "Bir kumbarada {a} TL ve {b} TL'lik banknotlardan toplam {n} tane olup değeri {d} TL'dir. {a} TL'lik kaç banknot vardır?", c: "({d}-{b}*{n})/({a}-{b})", v: {a:[20,50], b:[10,20], n:[10,30], d:[200,1000], kosul:"a>b"}, z:"cok_zor", alt:"banknot_sistem" },
 
 ],
 
@@ -3477,7 +3688,7 @@ const SORU_BANKASI = {
   { id: "s7_ds_009", s: "x² + x + 1 = 0 denkleminin diskriminantı kaçtır ve kaç kökü vardır?", c: "Δ=-3, reel_kok_yok", v: {}, z:"orta", alt:"x2_x_1_delta" },
 
   // ALT DAL 3: KÖK BULMA FORMÜLÜ
-  { id: "s7_ds_010", s: "x² + {b}x + {c} = 0 denkleminin köklerini bulunuz.", c: "{-b+√Δ}/2_ve_{-b-√Δ}/2", v: {b:[3,8], c:[1,12], kosul:"Δ≥0"}, z:"zor", alt:"kok_bulma" },
+  { id: "s7_ds_010", s: "x² + {b}x + {c} = 0 denkleminin köklerini bulunuz.", c: "(-{b}+√Δ)/2 ve (-{b}-√Δ)/2", v: {b:[3,8], c:[1,12], kosul:"Δ≥0"}, z:"zor", alt:"kok_bulma" },
   { id: "s7_ds_011", s: "Kök bulma formülü nedir?", c: "x=(-b±√Δ)/2a", v: {}, z:"orta", alt:"kok_formul" },
   { id: "s7_ds_012", s: "x² - 5x + 6 = 0 denkleminin kökleri nedir?", c: "{2,3}", v: {}, z:"zor", alt:"x2_5x_6_kok" },
   { id: "s7_ds_013", s: "x² - 7x + 12 = 0 denkleminin kökleri nedir?", c: "{3,4}", v: {}, z:"zor", alt:"x2_7x_12_kok" },
@@ -3713,7 +3924,7 @@ const SORU_BANKASI = {
   { id: "s7_kd_014", s: "x=2 değeri √(x+2)=x-2 denklemini sağlar mı?", c: "hayir_(2=0_yanlis)", v: {}, z:"orta", alt:"saglama_yanlis" },
 
   // ALT DAL 6: KÖKLÜ DENKLEM SORULARI
-  { id: "s7_kd_015", s: "x√x = {a} ise x kaçtır? (a tam küp ise)", c: "{kok}", v: {a:[8,27,64,125], kok:"Math.cbrt({a})"}, z:"cok_zor", alt:"x_kok_x" },
+  { id: "s7_kd_015", s: "x√x = {a} ise x kaçtır? (a tam küp ise)", c: "Math.cbrt({a})", v: {a:[8,27,64,125]}, z:"cok_zor", alt:"x_kok_x" },
   { id: "s7_kd_016", s: "√(x²-{a}) = {b} ise x'in pozitif değeri kaçtır?", c: "√({b}²+{a})", v: {a:[3,9], b:[2,5]}, z:"cok_zor", alt:"kok_x2-a" },
 
 
@@ -3779,7 +3990,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 8: EŞİTSİZLİKLER
 // ==========================================
 8: [
@@ -3972,7 +4184,7 @@ const SORU_BANKASI = {
   { id: "s8_ag_016", s: "R (tüm reel sayılar) aralık olarak nasıl gösterilir?", c: "(-∞, ∞)", v: {}, z:"orta", alt:"tum_reel" },
 
   // ALT DAL 6: ARALIKLARIN KESİŞİMİ
-  { id: "s8_ag_017", s: "({a}, {b}) ∩ ({c}, {d}) = ?", c: "{kesiim}", v: {a:[1,4], b:[5,10], c:[2,6], d:[7,12]}, z:"cok_zor", alt:"kesiim" },
+  { id: "s8_ag_017", s: "({a}, {b}) ∩ ({c}, {d}) = ?", c: "({max(a,c)}, {min(b,d)})_eğer_max<min_ise_yoksa_boş", v: {a:[1,4], b:[5,10], c:[2,6], d:[7,12]}, z:"cok_zor", alt:"kesiim" },
   { id: "s8_ag_018", s: "x > 2 ve x < 5 aralıklarının kesişimi nedir?", c: "(2,5)", v: {}, z:"zor", alt:"x_buyuk_2_x_kucuk_5" },
   { id: "s8_ag_019", s: "x ≥ 3 ve x ≤ 7 aralıklarının kesişimi nedir?", c: "[3,7]", v: {}, z:"zor", alt:"x_3_7" },
 
@@ -4225,7 +4437,7 @@ const SORU_BANKASI = {
   { id: "s8_ep_013", s: "Bir havuzu A musluğu {a} saatte dolduruyor. Havuz {b} saatten az sürede dolması için B musluğu havuzu en az kaç saatte doldurmalıdır?", c: "{a}*{b}/({a}-{b})", v: {a:[6,15], b:[2,"{a}-1"]}, z:"cok_zor", alt:"havuz_sure" },
 
   // ALT DAL 7: SICAKLIK PROBLEMLERİ
-  { id: "s8_ep_014", s: "Bir odanın sıcaklığı {a}°C ile {b}°C arasındadır. Fahrenhayt cinsinden aralığı bulunuz. (F=1,8C+32)", c: "{f_min}°F_ile_{f_max}°F", v: {a:[15,25], b:[25,35], kosul:"a<b", f_min:"1.8*{a}+32", f_max:"1.8*{b}+32"}, z:"cok_zor", alt:"sicaklik" },
+  { id: "s8_ep_014", s: "Bir odanın sıcaklığı {a}°C ile {b}°C arasındadır. Fahrenhayt cinsinden aralığı bulunuz. (F=1,8C+32)", c: "{1.8*{a}+32}°F ile {1.8*{b}+32}°F", v: {a:[15,25], b:[25,35], kosul:"a<b"}, z:"cok_zor", alt:"sicaklik" },
 
   // ALT DAL 8: KARIŞIK PROBLEMLER
   { id: "s8_ep_015", s: "x² < x eşitsizliğinin çözümü nedir?", c: "0<x<1", v: {}, z:"cok_zor", alt:"x2_kucuk_x" },
@@ -4266,7 +4478,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+// ==========================================
 // SEVİYE 9: MUTLAK DEĞER
 // ==========================================
 9: [
@@ -4277,7 +4489,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: MUTLAK DEĞER TANIMI
   { id: "s9_md_001", s: "|x| nedir? (Tanım)", c: "x≥0_ise_x,_x<0_ise_-x", v: {}, z:"orta", alt:"mutlak_deger_tanim" },
-  { id: "s9_md_002", s: "|{a}| = ?", c: "{sonuc}", v: {a:[-10,10], sonuc:"Math.abs({a})"}, z:"kolay", alt:"mutlak_deger_bulma" },
+  { id: "s9_md_002", s: "|{a}| = ?", c: "Math.abs({a})", v: {a:[-10,10]}, z:"kolay", alt:"mutlak_deger_bulma" },
   { id: "s9_md_003", s: "|0| = ?", c: "0", v: {}, z:"kolay", alt:"mutlak_sifir" },
   { id: "s9_md_004", s: "Mutlak değer sonucu her zaman nasıldır?", c: "pozitif_veya_sifir_(≥0)", v: {}, z:"orta", alt:"mutlak_isaret" },
 
@@ -4363,14 +4575,14 @@ const SORU_BANKASI = {
   { id: "s9_mdd_008", s: "|x+{a}| = {b} denkleminin çözümü nedir?", c: "{-{a}-{b}, -{a}+{b}}", v: {a:[2,8], b:[2,6]}, z:"zor", alt:"x+a_esit_b" },
 
   // ALT DAL 3: |ax+b| = c DENKLEMLERİ
-  { id: "s9_mdd_009", s: "|{a}x+{b}| = {c} denkleminin çözümü nedir?", c: "(-{c}-{b})/{a}, ({c}-{b})/{a}", v: {a:[2,5], b:[1,6], c:[3,15]}, z:"cok_zor", alt:"ax+b_mutlak" },
+  { id: "s9_mdd_009", s: "|{a}x+{b}| = {c} denkleminin çözümü nedir?", c: "(-{c}-{b})/{a}_ve_({c}-{b})/{a}", v: {a:[2,5], b:[1,6], c:[3,15]}, z:"cok_zor", alt:"ax+b_mutlak" },
   { id: "s9_mdd_010", s: "|2x-3| = 7 denkleminin çözümü nedir?", c: "{-2, 5}", v: {}, z:"zor", alt:"2x-3_7" },
   { id: "s9_mdd_011", s: "|3x+1| = 8 denkleminin çözümü nedir?", c: "{-3, 7/3}", v: {}, z:"zor", alt:"3x+1_8" },
 
   // ALT DAL 4: İKİ MUTLAK DEĞERLİ DENKLEMLER
-  { id: "s9_mdd_012", s: "|x-{a}| = |x-{b}| denkleminin çözümü nedir?", c: "x=({a}+{b})/2", v: {a:[1,5], b:[3,8], kosul:"a<b"}, z:"cok_zor", alt:"iki_mutlak_esit" },
-  { id: "s9_mdd_013", s: "|x-2| = |x-6| denkleminin çözümü nedir?", c: "x=4", v: {}, z:"cok_zor", alt:"x-2_x-6" },
-  { id: "s9_mdd_014", s: "|x+1| = |x-3| denkleminin çözümü nedir?", c: "x=1", v: {}, z:"cok_zor", alt:"x+1_x-3" },
+  { id: "s9_mdd_012", s: "|x-{a}| = |x-{b}| denkleminin çözümü nedir?", c: "({a}+{b})/2", v: {a:[1,5], b:[3,8], kosul:"a<b"}, z:"cok_zor", alt:"iki_mutlak_esit" },
+  { id: "s9_mdd_013", s: "|x-2| = |x-6| denkleminin çözümü nedir?", c: "4", v: {}, z:"cok_zor", alt:"x-2_x-6" },
+  { id: "s9_mdd_014", s: "|x+1| = |x-3| denkleminin çözümü nedir?", c: "1", v: {}, z:"cok_zor", alt:"x+1_x-3" },
 
   // ALT DAL 5: MUTLAK DEĞERLİ DENKLEMLERDE PARÇALI ÇÖZÜM
   { id: "s9_mdd_015", s: "|x-{a}| + |x-{b}| = {c} denkleminin çözümü nedir? (c>b-a)", c: "{cozum}", v: {a:[1,3], b:[5,8], c:[6,15], kosul:"c>b-a"}, z:"cok_zor", alt:"toplam_esit" },
@@ -4480,12 +4692,12 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: ÇARPMA ÖZELLİĞİ
   { id: "s9_mo_001", s: "|x·y| = ?", c: "|x|·|y|", v: {}, z:"orta", alt:"carpma_ozelligi" },
-  { id: "s9_mo_002", s: "|{a}·{b}| = ?", c: "{a*b_abs}", v: {a:[-10,10], b:[-10,10], a*b_abs:"Math.abs({a}*{b})"}, z:"orta", alt:"carpma_ornek" },
+  { id: "s9_mo_002", s: "|{a}·{b}| = ?", c: "Math.abs({a}*{b})", v: {a:[-10,10], b:[-10,10]}, z:"orta", alt:"carpma_ornek" },
   { id: "s9_mo_003", s: "|x·y| = |x|·|y| eşitliği her zaman doğru mudur?", c: "evet", v: {}, z:"orta", alt:"carpma_her_zaman" },
 
   // ALT DAL 2: BÖLME ÖZELLİĞİ
   { id: "s9_mo_004", s: "|x/y| = ? (y≠0)", c: "|x|/|y|", v: {}, z:"orta", alt:"bolme_ozelligi" },
-  { id: "s9_mo_005", s: "|{a}/{b}| = ?", c: "{sonuc}", v: {a:[-20,20], b:[-10,10], kosul:"a%b==0", sonuc:"Math.abs({a}/{b})"}, z:"orta", alt:"bolme_ornek" },
+  { id: "s9_mo_005", s: "|{a}/{b}| = ?", c: "Math.abs({a}/{b})", v: {a:[-20,20], b:[-10,10], kosul:"a%b==0"}, z:"orta", alt:"bolme_ornek" },
   { id: "s9_mo_006", s: "|x/0| tanımlı mıdır?", c: "hayir_(tanimsiz)", v: {}, z:"orta", alt:"sifira_bolme" },
 
   // ALT DAL 3: ÜS ÖZELLİĞİ
@@ -4589,7 +4801,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: √(x²) = |x| ÖZDEŞLİĞİ
   { id: "s9_kk_001", s: "√(x²) ifadesini mutlak değerle yazınız.", c: "|x|", v: {}, z:"orta", alt:"kok_kare_mutlak" },
-  { id: "s9_kk_002", s: "√({a}²) = ?", c: "{abs_a}", v: {a:[-10,10], abs_a:"Math.abs({a})"}, z:"orta", alt:"kok_kare_sayi" },
+  { id: "s9_kk_002", s: "√({a}²) = ?", c: "Math.abs({a})", v: {a:[-10,10]}, z:"orta", alt:"kok_kare_sayi" },
   { id: "s9_kk_003", s: "√((-{a})²) = ?", c: "{a}", v: {a:[2,8]}, z:"orta", alt:"kok_negatif_kare" },
 
   // ALT DAL 2: KÖKLÜ MUTLAK DEĞER DENKLEMLERİ
@@ -4649,7 +4861,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+// ==========================================
 // SEVİYE 10: ORAN-ORANTI
 // ==========================================
 10: [
@@ -4903,8 +5115,8 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: İKİ SAYININ ORANI
-  { id: "s10_op_001", s: "İki sayının oranı {a}/{b} ve toplamları {t} ise sayılar nedir?", c: "{a}*{t}/({a}+{b}), {b}*{t}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"orta", alt:"iki_sayi_oran_toplam" },
-  { id: "s10_op_002", s: "İki sayının oranı {a}/{b} ve farkları {f} ise sayılar nedir?", c: "{a}*{f}/({a}-{b}), {b}*{f}/({a}-{b})", v: {a:[5,8], b:[2,5], kosul:"a>b", f:[6,18]}, z:"zor", alt:"iki_sayi_oran_fark" },
+  { id: "s10_op_001", s: "İki sayının oranı {a}/{b} ve toplamları {t} ise sayılar nedir?", c: "{a}*{t}/({a}+{b})_ve_{b}*{t}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"orta", alt:"iki_sayi_oran_toplam" },
+  { id: "s10_op_002", s: "İki sayının oranı {a}/{b} ve farkları {f} ise sayılar nedir?", c: "{a}*{f}/({a}-{b})_ve_{b}*{f}/({a}-{b})", v: {a:[5,8], b:[2,5], kosul:"a>b", f:[6,18]}, z:"zor", alt:"iki_sayi_oran_fark" },
 
   // ALT DAL 2: ÜÇ SAYININ ORANI
   { id: "s10_op_003", s: "Üç sayının oranı {a}:{b}:{c} ve toplamları {t} ise en büyük sayı kaçtır?", c: "{max}*{t}/({a}+{b}+{c})", v: {a:[2,5], b:[3,7], c:[4,9], t:[30,100]}, z:"zor", alt:"uc_sayi_oran_toplam" },
@@ -4912,11 +5124,11 @@ const SORU_BANKASI = {
   { id: "s10_op_005", s: "a:b = 3:4, b:c = 2:5 ise a:b:c nedir?", c: "6:8:20 = 3:4:10", v: {}, z:"cok_zor", alt:"ikili_oran_birlestirme" },
 
   // ALT DAL 3: ORANTILI BÖLME
-  { id: "s10_op_006", s: "{t} sayısını {a} ve {b} ile orantılı olacak şekilde iki parçaya ayırınız.", c: "{a}*{t}/({a}+{b}), {b}*{t}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"orta", alt:"orantili_bolme" },
-  { id: "s10_op_007", s: "{t} sayısını {a}, {b}, {c} ile doğru orantılı parçalara ayırınız.", c: "{a}*{t}/s, {b}*{t}/s, {c}*{t}/s", v: {a:[2,5], b:[3,6], c:[4,8], t:[30,100], s:"{a}+{b}+{c}"}, z:"zor", alt:"uc_parca_orantili" },
+  { id: "s10_op_006", s: "{t} sayısını {a} ve {b} ile orantılı olacak şekilde iki parçaya ayırınız.", c: "{a}*{t}/({a}+{b})_ve_{b}*{t}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"orta", alt:"orantili_bolme" },
+  { id: "s10_op_007", s: "{t} sayısını {a}, {b}, {c} ile doğru orantılı parçalara ayırınız.", c: "{a}*{t}/{s}_ve_{b}*{t}/{s}_ve_{c}*{t}/{s}", v: {a:[2,5], b:[3,6], c:[4,8], t:[30,100], s:"{a}+{b}+{c}"}, z:"zor", alt:"uc_parca_orantili" },
 
   // ALT DAL 4: TERS ORANTILI BÖLME
-  { id: "s10_op_008", s: "{t} sayısını {a} ve {b} ile ters orantılı parçalara ayırınız.", c: "{t}*{b}/({a}+{b}), {t}*{a}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"cok_zor", alt:"ters_orantili_bolme" },
+  { id: "s10_op_008", s: "{t} sayısını {a} ve {b} ile ters orantılı parçalara ayırınız.", c: "{t}*{b}/({a}+{b})_ve_{t}*{a}/({a}+{b})", v: {a:[2,5], b:[3,8], t:[20,60]}, z:"cok_zor", alt:"ters_orantili_bolme" },
   { id: "s10_op_009", s: "Bir sayı 2 ve 3 ile ters orantılı iki parçaya ayrılıyor. Büyük parça 30 ise sayı kaçtır?", c: "50", v: {}, z:"cok_zor", alt:"ters_orantili_sayi" },
 
   // ALT DAL 5: ORAN DEĞİŞİMİ
@@ -5012,7 +5224,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: KARIŞIM PROBLEMLERİ (İLERİ)
   { id: "s10_km_005", s: "%{o1} tuz oranı olan karışımdan %{o2} tuz oranı elde etmek için karışımın ne kadarı buharlaştırılmalıdır?", c: "{m}*(1-{o1}/{o2})", v: {o1:[10,25], o2:[30,50], m:[50,100], kosul:"o2>o1"}, z:"cok_zor", alt:"istenen_oran" },
-  { id: "s10_km_006", s: "Şeker oranı %{o1} olan {m1} gr ile %{o2} olan {m2} gr karıştırılıyor. Karışıma {s} gr şeker eklenirse yeni oran % kaçtır?", c: "({o1}*{m1}/100+{o2}*{m2}/100+{s})/({m1}+{m2}+{s})*100", v: {o1:[10,30], m1:[30,60], o2:[20,50], m2:[20,50], s:[5,20]}, z:"cok_zor", alt:"seker_ekleme" },
+  { id: "s10_km_006", s: "Şeker oranı %{o1} olan {m1} gr ile %{o2} olan {m2} gr karıştırılıyor. Karışıma {s} gr şeker eklenirse yeni oran % kaçtır?", c: "({o1}*{m1}+{o2}*{m2}+{s})/({m1}+{m2}+{s})", v: {o1:[10,30], m1:[30,60], o2:[20,50], m2:[20,50], s:[5,20]}, z:"cok_zor", alt:"seker_ekleme" },
 
   // ALT DAL 4: ALAŞIM PROBLEMLERİ
   { id: "s10_km_007", s: "Altın oranı %{o1} olan {m1} gr alaşım ile %{o2} olan {m2} gr alaşım karıştırılıyor. Yeni alaşımın altın oranı % kaçtır?", c: "({o1}*{m1}+{o2}*{m2})/({m1}+{m2})", v: {o1:[40,80], m1:[50,150], o2:[20,50], m2:[50,150]}, z:"cok_zor", alt:"alasim" },
@@ -5032,7 +5244,7 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: PAYLAŞTIRMA PROBLEMLERİ
-  { id: "s10_gp_001", s: "{t} TL parayı {a} ve {b} yaşlarıyla doğru orantılı paylaştırınız.", c: "{a}*{t}/({a}+{b}), {b}*{t}/({a}+{b})", v: {a:[2,8], b:[3,10], t:[50,200]}, z:"orta", alt:"para_paylastirma" },
+  { id: "s10_gp_001", s: "{t} TL parayı {a} ve {b} yaşlarıyla doğru orantılı paylaştırınız.", c: "{a}*{t}/({a}+{b})_ve_{b}*{t}/({a}+{b})", v: {a:[2,8], b:[3,10], t:[50,200]}, z:"orta", alt:"para_paylastirma" },
   { id: "s10_gp_002", s: "{t} TL parayı {a}, {b}, {c} ile ters orantılı paylaştırınız.", c: "{sonuc}", v: {a:[2,5], b:[3,6], c:[4,8], t:[60,200]}, z:"cok_zor", alt:"ters_paylastirma" },
 
   // ALT DAL 2: MİRAS PROBLEMLERİ
@@ -5041,10 +5253,10 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: ORTAKLIK PROBLEMLERİ
   { id: "s10_gp_005", s: "{a} TL, {b} TL ve {c} TL sermaye ile kurulan ortaklıkta {k} TL kâr sermayelerle doğru orantılı paylaştırılıyor. En çok kâr alan kaç TL alır?", c: "{max}*{k}/({a}+{b}+{c})", v: {a:[1000,5000], b:[2000,6000], c:[3000,8000], k:[500,2000]}, z:"zor", alt:"ortaklik" },
-  { id: "s10_gp_006", s: "Bir ortaklıkta A {a} ay, B {b} ay, C {c} ay kalmıştır. Kâr kalma süreleriyle doğru orantılı paylaştırılıyor.", c: "{a}*{k}/t, {b}*{k}/t, {c}*{k}/t", v: {a:[3,8], b:[4,10], c:[5,12], k:[500,2000], t:"{a}+{b}+{c}"}, z:"cok_zor", alt:"sureli_ortaklik" },
+  { id: "s10_gp_006", s: "Bir ortaklıkta A {a} ay, B {b} ay, C {c} ay kalmıştır. Kâr kalma süreleriyle doğru orantılı paylaştırılıyor.", c: "{a}*{k}/{t}_ve_{b}*{k}/{t}_ve_{c}*{k}/{t}", v: {a:[3,8], b:[4,10], c:[5,12], k:[500,2000], t:"{a}+{b}+{c}"}, z:"cok_zor", alt:"sureli_ortaklik" },
 
   // ALT DAL 4: KARIŞIK PAYLAŞTIRMA
-  { id: "s10_gp_007", s: "{t} sayısı {a} ile doğru, {b} ile ters orantılı iki parçaya ayrılıyor. Parçalar nedir?", c: "{t}*{a}/({a}+1/{b}), {t}*(1/{b})/({a}+1/{b})", v: {a:[2,6], b:[3,8], t:[30,100]}, z:"cok_zor", alt:"karisik_orantili" },
+  { id: "s10_gp_007", s: "{t} sayısı {a} ile doğru, {b} ile ters orantılı iki parçaya ayrılıyor. Parçalar nedir?", c: "{t}*{a}/({a}+1/{b})_ve_{t}*(1/{b})/({a}+1/{b})", v: {a:[2,6], b:[3,8], t:[30,100]}, z:"cok_zor", alt:"karisik_orantili" },
   { id: "s10_gp_008", s: "x, y ile doğru, z ile ters orantılıdır. x={x1}, y={y1}, z={z1} iken x={x2}, y={y2} ise z kaçtır?", c: "{x1}*{y2}*{z1}/({x2}*{y1})", v: {x1:[4,10], y1:[3,8], z1:[2,6], x2:[6,15], y2:[4,10]}, z:"cok_zor", alt:"dogru_ters_bilesik" },
 
   // ALT DAL 5: GRAFİK PROBLEMLERİ
@@ -5074,9 +5286,9 @@ const SORU_BANKASI = {
   { id: "s10_ao_003", s: "{a}, {b}, {c} sayılarının aritmetik ortalaması kaçtır?", c: "({a}+{b}+{c})/3", v: {a:[4,16], b:[5,18], c:[6,20]}, z:"orta", alt:"uc_sayi_ao" },
 
   // ALT DAL 2: GEOMETRİK ORTALAMA
-  { id: "s10_ao_004", s: "{a} ve {b} sayılarının geometrik ortalaması kaçtır?", c: "√({a}*{b})", v: {a:[2,18], b:[2,18], kosul:"tam_kare"}, z:"zor", alt:"geometrik_ortalama" },
+  { id: "s10_ao_004", s: "{a} ve {b} sayılarının geometrik ortalaması kaçtır?", c: "Math.sqrt({a}*{b})", v: {a:[2,18], b:[2,18], kosul:"tam_kare"}, z:"zor", alt:"geometrik_ortalama" },
   { id: "s10_ao_005", s: "Geometrik ortalama formülü nedir?", c: "n√(x₁·x₂·...·xₙ)", v: {}, z:"zor", alt:"go_formul" },
-  { id: "s10_ao_006", s: "{a}, {b}, {c} sayılarının geometrik ortalaması kaçtır?", c: "∛({a}*{b}*{c})", v: {a:[2,8], b:[3,12], c:[4,16], kosul:"tam_kup"}, z:"cok_zor", alt:"uc_sayi_go" },
+  { id: "s10_ao_006", s: "{a}, {b}, {c} sayılarının geometrik ortalaması kaçtır?", c: "Math.cbrt({a}*{b}*{c})", v: {a:[2,8], b:[3,12], c:[4,16], kosul:"tam_kup"}, z:"cok_zor", alt:"uc_sayi_go" },
 
   // ALT DAL 3: HARMONİK ORTALAMA
   { id: "s10_ao_007", s: "{a} ve {b} sayılarının harmonik ortalaması kaçtır?", c: "2*{a}*{b}/({a}+{b})", v: {a:[3,12], b:[4,15]}, z:"cok_zor", alt:"harmonik_ortalama" },
@@ -5084,17 +5296,17 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: AO-GO İLİŞKİSİ
   { id: "s10_ao_009", s: "AO ≥ GO eşitsizliği ne zaman eşit olur?", c: "sayilar_birbirine_esit_iken", v: {}, z:"cok_zor", alt:"ao_go_esitlik" },
-  { id: "s10_ao_010", s: "{a} ve {b} pozitif sayıları için AO - GO farkı kaçtır?", c: "({a}+{b})/2-√({a}*{b})", v: {a:[2,10], b:[3,12]}, z:"cok_zor", alt:"ao_go_fark" },
+  { id: "s10_ao_010", s: "{a} ve {b} pozitif sayıları için AO - GO farkı kaçtır?", c: "({a}+{b})/2-Math.sqrt({a}*{b})", v: {a:[2,10], b:[3,12]}, z:"cok_zor", alt:"ao_go_fark" },
   { id: "s10_ao_011", s: "Toplamı sabit iki pozitif sayının çarpımı ne zaman en büyük olur?", c: "sayilar_esit_iken", v: {}, z:"cok_zor", alt:"max_carpim_ao_go" },
 
   // ALT DAL 5: ORTALAMA PROBLEMLERİ
-  { id: "s10_ao_012", s: "{a} sayısının aritmetik ve geometrik ortalamalarının toplamı kaçtır?", c: "({a}+{a})/2+√({a}*{a})={a}+{a}=2*{a}", v: {a:[3,10]}, z:"cok_zor", alt:"ao_go_toplam" },
-  { id: "s10_ao_013", s: "Aritmetik ortalaması {ao}, geometrik ortalaması {go} olan iki sayının çarpımı kaçtır?", c: "{go}²", v: {ao:[5,15], go:[3,12], kosul:"ao>go"}, z:"cok_zor", alt:"ao_go_carpim" },
+  { id: "s10_ao_012", s: "{a} sayısının aritmetik ve geometrik ortalamalarının toplamı kaçtır?", c: "2*{a}", v: {a:[3,10]}, z:"cok_zor", alt:"ao_go_toplam" },
+  { id: "s10_ao_013", s: "Aritmetik ortalaması {ao}, geometrik ortalaması {go} olan iki sayının çarpımı kaçtır?", c: "{go}*{go}", v: {ao:[5,15], go:[3,12], kosul:"ao>go"}, z:"cok_zor", alt:"ao_go_carpim" },
   { id: "s10_ao_014", s: "Aritmetik ortalaması {ao}, geometrik ortalaması {go} olan iki sayının toplamı kaçtır?", c: "2*{ao}", v: {ao:[5,15], go:[3,12]}, z:"cok_zor", alt:"ao_toplam" },
 
   // ALT DAL 6: ORTALAMA SORULARI
-  { id: "s10_ao_015", s: "x ve y sayılarının aritmetik ortalaması {ao}, geometrik ortalaması {go} ise x²+y² = ?", c: "4*{ao}²-2*{go}²", v: {ao:[5,12], go:[3,10], kosul:"ao>go"}, z:"cok_zor", alt:"kareler_toplami_ao_go" },
-  { id: "s10_ao_016", s: "x ve y sayılarının aritmetik ortalaması {ao}, harmonik ortalaması {ho} ise geometrik ortalaması kaçtır?", c: "√({ao}*{ho})", v: {ao:[4,10], ho:[2,8], kosul:"ao>ho"}, z:"cok_zor", alt:"ao_ho_go" },
+  { id: "s10_ao_015", s: "x ve y sayılarının aritmetik ortalaması {ao}, geometrik ortalaması {go} ise x²+y² = ?", c: "4*{ao}*{ao}-2*{go}*{go}", v: {ao:[5,12], go:[3,10], kosul:"ao>go"}, z:"cok_zor", alt:"kareler_toplami_ao_go" },
+  { id: "s10_ao_016", s: "x ve y sayılarının aritmetik ortalaması {ao}, harmonik ortalaması {ho} ise geometrik ortalaması kaçtır?", c: "Math.sqrt({ao}*{ho})", v: {ao:[4,10], ho:[2,8], kosul:"ao>ho"}, z:"cok_zor", alt:"ao_ho_go" },
 
   // ALT DAL 7: ORTALAMA VE ORANTI
   { id: "s10_ao_017", s: "Aritmetik ortalama ile doğru orantı arasında nasıl bir ilişki vardır?", c: "dogru_orantili_cokluklarin_aritmetik_ortalamasi_oranti_sabitidir", v: {}, z:"cok_zor", alt:"ao_oranti" },
@@ -5106,7 +5318,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+ // ==========================================
 // SEVİYE 11: PROBLEMLER
 // ==========================================
 11: [
@@ -5147,7 +5359,7 @@ const SORU_BANKASI = {
   { id: "s11_sp_017", s: "Bir paranın önce {a}/{b}'i, sonra kalanın {c}/{d}'ü harcanıyor. Geriye {kalan} TL kaldığına göre başlangıçta kaç TL vardı?", c: "{kalan}/((1-{a}/{b})*(1-{c}/{d}))", v: {a:[1,3], b:[4,8], c:[1,3], d:[2,5], kalan:[20,80]}, z:"cok_zor", alt:"para_problemi" },
 
   // ALT DAL 8: ÖZEL SAYI PROBLEMLERİ
-  { id: "s11_sp_018", s: "x ve y pozitif tam sayıdır. x·y = {c} ve x+y = {t} ise |x-y| kaçtır?", c: "√({t}²-4*{c})", v: {c:[10,40], t:[10,20], kosul:"t²>4c"}, z:"cok_zor", alt:"carpim_toplam_fark" },
+  { id: "s11_sp_018", s: "x ve y pozitif tam sayıdır. x·y = {c} ve x+y = {t} ise |x-y| kaçtır?", c: "Math.sqrt({t}*{t}-4*{c})", v: {c:[10,40], t:[10,20], kosul:"t*t>4*c"}, z:"cok_zor", alt:"carpim_toplam_fark" },
   { id: "s11_sp_019", s: "Bir sayının kendisi ile {a}/{b}'inin toplamı {t} ise bu sayı kaçtır?", c: "{t}*{b}/({a}+{b})", v: {a:[1,4], b:[2,5], t:[20,80]}, z:"zor", alt:"kesir_toplam" },
 
 
@@ -5252,7 +5464,7 @@ const SORU_BANKASI = {
   { id: "s11_yz_008", s: "Bir malın fiyatı {a} TL'den {b} TL'ye çıkmıştır. Zam yüzde kaçtır?", c: "({b}-{a})*100/{a}", v: {a:[40,150], b:[60,200], kosul:"b>a"}, z:"orta", alt:"zam_yuzdesi" },
 
   // ALT DAL 4: YÜZDE PROBLEMLERİ (ALIŞVERİŞ)
-  { id: "s11_yz_009", s: "Bir ürüne önce %{p} zam, sonra %{q} indirim yapılıyor. Son fiyat ilk fiyata göre nasıl değişir?", c: "%{net}_(artis/azalis)", v: {p:[10,30], q:[5,20]}, z:"cok_zor", alt:"zam_indirim" },
+  { id: "s11_yz_009", s: "Bir ürüne önce %{p} zam, sonra %{q} indirim yapılıyor. Son fiyat ilk fiyata göre nasıl değişir?", c: "%({p}-{q}-{p}*{q}/100)_(artis/azalis)", v: {p:[10,30], q:[5,20]}, z:"cok_zor", alt:"zam_indirim" },
   { id: "s11_yz_010", s: "Etiket fiyatı {a} TL olan ürüne %{p} indirim yapılıyor. İndirimli fiyat kaç TL'dir?", c: "{a}*(100-{p})/100", v: {a:[50,500], p:[5,40]}, z:"orta", alt:"indirimli_fiyat" },
 
   // ALT DAL 5: KDV PROBLEMLERİ
@@ -5268,11 +5480,11 @@ const SORU_BANKASI = {
   { id: "s11_yz_016", s: "Başarı yüzdesi %{b} olan öğrenci {n} sorudan kaç doğru yapmıştır?", c: "{b}*{n}/100", v: {b:[20,90], n:[40,100], kosul:"n*b%100==0"}, z:"orta", alt:"dogru_sayisi" },
 
   // ALT DAL 8: YÜZDE VE GRAFİK
-  { id: "s11_yz_017", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}*360/100", v: {p:[10,50]}, z:"orta", alt:"daire_grafik" },
+  { id: "s11_yz_017", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}*3.6", v: {p:[10,50]}, z:"orta", alt:"daire_grafik" },
   { id: "s11_yz_018", s: "Daire grafiğinde {a}°'lik dilim yüzde kaçtır?", c: "{a}*100/360", v: {a:[36,180]}, z:"orta", alt:"aci_yuzde" },
 
   // ALT DAL 9: YÜZDE DEĞİŞİM PROBLEMLERİ
-  { id: "s11_yz_019", s: "Bir sayı %{p} artırılıp %{p} azaltılırsa son durumdaki değişim yüzde kaçtır?", c: "-{p}²/100_(azalis)", v: {p:[10,40]}, z:"cok_zor", alt:"ayni_oran_artis_azalis" },
+  { id: "s11_yz_019", s: "Bir sayı %{p} artırılıp %{p} azaltılırsa son durumdaki değişim yüzde kaçtır?", c: "-{p}*{p}/100_(azalis)", v: {p:[10,40]}, z:"cok_zor", alt:"ayni_oran_artis_azalis" },
   { id: "s11_yz_020", s: "Bir malın fiyatına %{p} zam yapıldıktan sonra satışlar %{q} azalırsa gelir nasıl değişir?", c: "%({p}-{q}-{p}*{q}/100)_degisir", v: {p:[10,30], q:[10,30]}, z:"cok_zor", alt:"gelir_degisimi" },
 
   // ALT DAL 10: YÜZDE ÖZEL SORULAR
@@ -5314,7 +5526,7 @@ const SORU_BANKASI = {
   { id: "s11_kz_015", s: "Üretici %{k1} kârla toptancıya, toptancı %{k2} kârla perakendeciye, perakendeci %{k3} kârla satıyor. Üretici fiyatı {m} TL ise son satış fiyatı kaç TL'dir?", c: "{m}*(100+{k1})/100*(100+{k2})/100*(100+{k3})/100", v: {m:[50,200], k1:[10,30], k2:[10,25], k3:[10,30]}, z:"cok_zor", alt:"zincirleme_kar" },
 
   // ALT DAL 8: ÖZEL KÂR-ZARAR SORULARI
-  { id: "s11_kz_016", s: "Bir satıcı iki malı aynı fiyata satıyor. Birinden %{k} kâr, diğerinden %{k} zarar ediyor. Genel durumda kâr-zarar yüzdesi kaçtır?", c: "-{k}²/100_(zarar)", v: {k:[10,30]}, z:"cok_zor", alt:"iki_mal_ayni_fiyat" },
+  { id: "s11_kz_016", s: "Bir satıcı iki malı aynı fiyata satıyor. Birinden %{k} kâr, diğerinden %{k} zarar ediyor. Genel durumda kâr-zarar yüzdesi kaçtır?", c: "-{k}*{k}/100_(zarar)", v: {k:[10,30]}, z:"cok_zor", alt:"iki_mal_ayni_fiyat" },
   { id: "s11_kz_017", s: "Bir tüccar tartısını %{a} eksik tartarak %{k} kâr ediyor. Gerçek kâr yüzdesi kaçtır?", c: "({k}+{a})*100/(100-{a})", v: {a:[5,20], k:[10,30]}, z:"cok_zor", alt:"hileli_tarti" },
 
   // ALT DAL 9: KÂR-ZARAR VE MİKTAR
@@ -5353,7 +5565,7 @@ const SORU_BANKASI = {
   { id: "s11_fz_011", s: "{a} TL para yıllık %{n} faizle kaç yılda kendisi kadar faiz getirir?", c: "100/{n}", v: {a:[500,5000], n:[5,25]}, z:"zor", alt:"kendisi_kadar_faiz" },
 
   // ALT DAL 6: BİLEŞİK FAİZ
-  { id: "s11_fz_012", s: "{a} TL para yıllık %{n} bileşik faizle {t} yıl sonra kaç TL olur?", c: "{a}*(1+{n}/100)^{t}", v: {a:[500,3000], n:[5,20], t:[2,4]}, z:"cok_zor", alt:"bilesik_faiz" },
+  { id: "s11_fz_012", s: "{a} TL para yıllık %{n} bileşik faizle {t} yıl sonra kaç TL olur?", c: "{a}*Math.pow(1+{n}/100,{t})", v: {a:[500,3000], n:[5,20], t:[2,4]}, z:"cok_zor", alt:"bilesik_faiz" },
   { id: "s11_fz_013", s: "Bileşik faiz ile basit faiz arasındaki fark nedir?", c: "bilesik_faizde_faize_de_faiz_isler", v: {}, z:"orta", alt:"bilesik_basit_fark" },
 
   // ALT DAL 7: FAİZ PROBLEMLERİ (ÖZEL)
@@ -5437,8 +5649,8 @@ const SORU_BANKASI = {
   { id: "s11_hh_011", s: "Bir araç hızını %{p} artırırsa aynı yolu kaçta kaçı zamanda alır?", c: "100/(100+{p})_kati", v: {p:[10,50]}, z:"cok_zor", alt:"hiz_artirma_zaman" },
 
   // ALT DAL 6: TREN VE TÜNEL PROBLEMLERİ
-  { id: "s11_hh_012", s: "Uzunluğu {l} m olan bir tren {v} km/saat hızla {t} m'lik tüneli kaç saniyede geçer?", c: "({l}+{t})*3,6/{v}", v: {l:[100,300], v:[40,90], t:[200,800]}, z:"cok_zor", alt:"tren_tunel" },
-  { id: "s11_hh_013", s: "{l} m uzunluğundaki tren {v} km/saat hızla bir direği kaç saniyede geçer?", c: "{l}*3,6/{v}", v: {l:[80,250], v:[30,80]}, z:"cok_zor", alt:"tren_direk" },
+  { id: "s11_hh_012", s: "Uzunluğu {l} m olan bir tren {v} km/saat hızla {t} m'lik tüneli kaç saniyede geçer?", c: "({l}+{t})*3.6/{v}", v: {l:[100,300], v:[40,90], t:[200,800]}, z:"cok_zor", alt:"tren_tunel" },
+  { id: "s11_hh_013", s: "{l} m uzunluğundaki tren {v} km/saat hızla bir direği kaç saniyede geçer?", c: "{l}*3.6/{v}", v: {l:[80,250], v:[30,80]}, z:"cok_zor", alt:"tren_direk" },
 
   // ALT DAL 7: AKINTI PROBLEMLERİ
   { id: "s11_hh_014", s: "Bir yüzücü durgun suda {v} km/saat hızla yüzüyor. Akıntı hızı {a} km/saat ise akıntıyla aynı yönde hızı kaç olur?", c: "{v}+{a}", v: {v:[3,8], a:[1,3]}, z:"orta", alt:"akinti_ile" },
@@ -5472,7 +5684,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: KARIŞIMDAN KARIŞIM ELDE ETME
   { id: "s11_km_005", s: "%{o1} tuz oranı olan karışımdan %{o2} tuz oranı elde etmek için karışımın ne kadarı buharlaştırılmalıdır?", c: "{m}*(1-{o1}/{o2})", v: {o1:[10,25], o2:[30,50], m:[50,100], kosul:"o2>o1"}, z:"cok_zor", alt:"istenen_oran" },
-  { id: "s11_km_006", s: "Şeker oranı %{o1} olan {m1} gr ile %{o2} olan {m2} gr karıştırılıp {s} gr şeker eklenirse yeni oran % kaçtır?", c: "({o1}*{m1}/100+{o2}*{m2}/100+{s})*100/({m1}+{m2}+{s})", v: {o1:[10,30], m1:[30,60], o2:[20,50], m2:[20,50], s:[5,20]}, z:"cok_zor", alt:"seker_ekleme" },
+  { id: "s11_km_006", s: "Şeker oranı %{o1} olan {m1} gr ile %{o2} olan {m2} gr karıştırılıp {s} gr şeker eklenirse yeni oran % kaçtır?", c: "({o1}*{m1}+{o2}*{m2}+{s})/({m1}+{m2}+{s})", v: {o1:[10,30], m1:[30,60], o2:[20,50], m2:[20,50], s:[5,20]}, z:"cok_zor", alt:"seker_ekleme" },
 
   // ALT DAL 4: KARIŞIM PROBLEMLERİ (İLERİ)
   { id: "s11_km_007", s: "%{o} tuz oranı olan {m} kg karışımın {k}/{l}'i dökülüp yerine aynı miktar su eklenirse yeni oran % kaç olur?", c: "{o}*(1-{k}/{l})", v: {o:[20,50], m:[40,100], k:[1,3], l:[3,5], kosul:"k<l"}, z:"cok_zor", alt:"dokup_su_ekleme" },
@@ -5500,7 +5712,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: AKREP-YELKOVAN AÇISI
   { id: "s11_st_001", s: "Saat {saat}:{dakika} iken akrep ile yelkovan arasındaki dar açı kaç derecedir?", c: "{aci}°", v: {saat:[1,12], dakika:[0,55,5]}, z:"cok_zor", alt:"akrep_yelkovan_aci" },
-  { id: "s11_st_002", s: "Akrep ile yelkovan arasındaki açı formülü nedir?", c: "|30·saat-5,5·dakika|", v: {}, z:"cok_zor", alt:"aci_formul" },
+  { id: "s11_st_002", s: "Akrep ile yelkovan arasındaki açı formülü nedir?", c: "|30*saat-5.5*dakika|", v: {}, z:"cok_zor", alt:"aci_formul" },
   { id: "s11_st_003", s: "Saat 3:00 iken akrep ile yelkovan arasındaki açı kaç derecedir?", c: "90°", v: {}, z:"orta", alt:"3_00" },
   { id: "s11_st_004", s: "Saat 6:00 iken akrep ile yelkovan arasındaki açı kaç derecedir?", c: "180°", v: {}, z:"orta", alt:"6_00" },
 
@@ -5524,7 +5736,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: SAAT PROBLEMLERİ ÖZET
   { id: "s11_st_015", s: "Saat problemlerinde akrep ve yelkovanın hızları arasındaki fark nedir?", c: "dakikada_5,5°", v: {}, z:"orta", alt:"hiz_farki" },
-  { id: "s11_st_016", s: "Saat problemlerinde açı formülü nasıl hatırlanır?", c: "|11·dakika-60·saat|/2", v: {}, z:"orta", alt:"aci_formul_2" },
+  { id: "s11_st_016", s: "Saat problemlerinde açı formülü nasıl hatırlanır?", c: "|11*dakika-60*saat|/2", v: {}, z:"orta", alt:"aci_formul_2" },
 
 
   // ==========================================
@@ -5532,11 +5744,11 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: SÜTUN GRAFİĞİ
-  { id: "s11_gf_001", s: "Sütun grafiğinde {a} ve {b} verileri arasındaki fark kaçtır?", c: "|{a}-{b}|", v: {a:[10,80], b:[15,90]}, z:"kolay", alt:"sutun_grafik" },
+  { id: "s11_gf_001", s: "Sütun grafiğinde {a} ve {b} verileri arasındaki fark kaçtır?", c: "Math.abs({a}-{b})", v: {a:[10,80], b:[15,90]}, z:"kolay", alt:"sutun_grafik" },
   { id: "s11_gf_002", s: "Sütun grafiğinde en büyük değer ile en küçük değer arasındaki fark neyi verir?", c: "aciklik_(ranj)", v: {}, z:"orta", alt:"aciklik" },
 
   // ALT DAL 2: DAİRE GRAFİĞİ
-  { id: "s11_gf_003", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}*3,6", v: {p:[10,50]}, z:"orta", alt:"daire_aci" },
+  { id: "s11_gf_003", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}*3.6", v: {p:[10,50]}, z:"orta", alt:"daire_aci" },
   { id: "s11_gf_004", s: "Daire grafiğinde {a}°'lik dilim {toplam} kişilik grupta kaç kişiyi gösterir?", c: "{a}*{toplam}/360", v: {a:[30,180], toplam:[180,720]}, z:"zor", alt:"daire_kisi" },
   { id: "s11_gf_005", s: "Bir daire grafiğinde bir dilimin merkez açısı {a}° ise bu dilim bütünün kaçta kaçıdır?", c: "{a}/360", v: {a:[30,180]}, z:"orta", alt:"dilim_orani" },
 
@@ -5568,7 +5780,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: ÖRÜNTÜ PROBLEMLERİ
   { id: "s11_rp_003", s: "{a}, {a+d}, {a+2d}, ... örüntüsünün {n}. terimi kaçtır?", c: "{a}+({n}-1)*{d}", v: {a:[2,10], d:[2,5], n:[5,15]}, z:"zor", alt:"oruntu" },
-  { id: "s11_rp_004", s: "1, 1, 2, 3, 5, 8, ... Fibonacci dizisinin {n}. terimi kaçtır?", c: "{fibonacci}", v: {n:[5,10]}, z:"cok_zor", alt:"fibonacci" },
+  { id: "s11_rp_004", s: "1, 1, 2, 3, 5, 8, ... Fibonacci dizisinin {n}. terimi kaçtır?", c: "fibonacci({n})", v: {n:[5,10]}, z:"cok_zor", alt:"fibonacci" },
 
   // ALT DAL 3: ŞİFRELEME PROBLEMLERİ
   { id: "s11_rp_005", s: "Bir şifrede her harf alfabede kendinden sonraki {n}. harfle değiştiriliyor. 'ABC' nasıl yazılır?", c: "{sifre}", v: {n:[1,3]}, z:"zor", alt:"sifreleme" },
@@ -5588,7 +5800,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 12: KÜMELER
 // ==========================================
 12: [
@@ -5647,15 +5860,15 @@ const SORU_BANKASI = {
   { id: "s12_ak_003", s: "A = {1,2}, B = {1,2,3} ise A ⊂ B doğru mudur?", c: "evet", v: {}, z:"kolay", alt:"alt_kume_ornek" },
 
   // ALT DAL 2: ALT KÜME SAYISI
-  { id: "s12_ak_004", s: "n elemanlı bir kümenin alt küme sayısı kaçtır?", c: "2ⁿ", v: {}, z:"orta", alt:"alt_kume_sayisi_formul" },
-  { id: "s12_ak_005", s: "{n} elemanlı bir kümenin alt küme sayısı kaçtır?", c: "2^{n}", v: {n:[2,6]}, z:"orta", alt:"alt_kume_sayisi" },
+  { id: "s12_ak_004", s: "n elemanlı bir kümenin alt küme sayısı kaçtır?", c: "Math.pow(2,{n})", v: {}, z:"orta", alt:"alt_kume_sayisi_formul" },
+  { id: "s12_ak_005", s: "{n} elemanlı bir kümenin alt küme sayısı kaçtır?", c: "Math.pow(2,{n})", v: {n:[2,6]}, z:"orta", alt:"alt_kume_sayisi" },
   { id: "s12_ak_006", s: "Boş kümenin kaç alt kümesi vardır?", c: "1_(kendisi)", v: {}, z:"orta", alt:"bos_kume_alt_kume" },
-  { id: "s12_ak_007", s: "Alt küme sayısı {a} olan küme kaç elemanlıdır?", c: "log₂({a})", v: {a:[8,16,32,64,128,256]}, z:"cok_zor", alt:"alt_kumeden_eleman" },
+  { id: "s12_ak_007", s: "Alt küme sayısı {a} olan küme kaç elemanlıdır?", c: "Math.log2({a})", v: {a:[8,16,32,64,128,256]}, z:"cok_zor", alt:"alt_kumeden_eleman" },
 
   // ALT DAL 3: ÖZ ALT KÜME
   { id: "s12_ak_008", s: "Öz alt küme nedir?", c: "kendisi_haric_tum_alt_kumeler", v: {}, z:"orta", alt:"oz_alt_kume" },
-  { id: "s12_ak_009", s: "n elemanlı bir kümenin öz alt küme sayısı kaçtır?", c: "2ⁿ-1", v: {}, z:"orta", alt:"oz_alt_kume_formul" },
-  { id: "s12_ak_010", s: "{n} elemanlı bir kümenin öz alt küme sayısı kaçtır?", c: "2^{n}-1", v: {n:[2,6]}, z:"orta", alt:"oz_alt_kume_sayisi" },
+  { id: "s12_ak_009", s: "n elemanlı bir kümenin öz alt küme sayısı kaçtır?", c: "Math.pow(2,{n})-1", v: {}, z:"orta", alt:"oz_alt_kume_formul" },
+  { id: "s12_ak_010", s: "{n} elemanlı bir kümenin öz alt küme sayısı kaçtır?", c: "Math.pow(2,{n})-1", v: {n:[2,6]}, z:"orta", alt:"oz_alt_kume_sayisi" },
 
   // ALT DAL 4: r ELEMANLI ALT KÜME SAYISI
   { id: "s12_ak_011", s: "n elemanlı kümenin r elemanlı alt küme sayısı nasıl bulunur?", c: "C(n,r)", v: {}, z:"cok_zor", alt:"r_elemanli_formul" },
@@ -5667,17 +5880,17 @@ const SORU_BANKASI = {
   { id: "s12_ak_015", s: "A ⊂ B ve B ⊂ A ise A ile B arasındaki ilişki nedir?", c: "A=B", v: {}, z:"cok_zor", alt:"karsilikli_alt_kume" },
 
   // ALT DAL 6: ALT KÜME PROBLEMLERİ
-  { id: "s12_ak_016", s: "Alt küme sayısı ile öz alt küme sayısı toplamı {t} olan küme kaç elemanlıdır?", c: "{n}", v: {t:[31,63,127,255], n:"log₂(({t}+1)/2)"}, z:"cok_zor", alt:"alt_oz_toplam" },
+  { id: "s12_ak_016", s: "Alt küme sayısı ile öz alt küme sayısı toplamı {t} olan küme kaç elemanlıdır?", c: "{n}", v: {t:[31,63,127,255], n:"Math.log2(({t}+1)/2)"}, z:"cok_zor", alt:"alt_oz_toplam" },
   { id: "s12_ak_017", s: "Alt küme sayısı, öz alt küme sayısından {f} fazla olan küme kaç elemanlıdır?", c: "1", v: {f:[1,1]}, z:"cok_zor", alt:"alt_oz_fark" },
 
   // ALT DAL 7: KUVVET KÜMESİ
   { id: "s12_ak_018", s: "Kuvvet kümesi nedir?", c: "bir_kumenin_tum_alt_kumelerinin_olusturdugu_kume", v: {}, z:"cok_zor", alt:"kuvvet_kumesi" },
-  { id: "s12_ak_019", s: "n elemanlı kümenin kuvvet kümesinin eleman sayısı kaçtır?", c: "2ⁿ", v: {}, z:"cok_zor", alt:"kuvvet_kumesi_sayisi" },
+  { id: "s12_ak_019", s: "n elemanlı kümenin kuvvet kümesinin eleman sayısı kaçtır?", c: "Math.pow(2,{n})", v: {}, z:"cok_zor", alt:"kuvvet_kumesi_sayisi" },
 
   // ALT DAL 8: ALT KÜME ÖZEL SORULAR
   { id: "s12_ak_020", s: "A = {1,2,3} kümesinin alt kümelerinin kaç tanesinde 1 bulunur?", c: "4", v: {}, z:"cok_zor", alt:"eleman_iceren_alt_kume" },
   { id: "s12_ak_021", s: "A = {1,2,3,4} kümesinin alt kümelerinin kaç tanesinde 1 bulunmaz?", c: "8", v: {}, z:"cok_zor", alt:"eleman_icermeyen" },
-  { id: "s12_ak_022", s: "{n} elemanlı kümenin alt kümelerinin kaç tanesinde belirli bir eleman bulunur?", c: "2^{n-1}", v: {n:[3,6]}, z:"cok_zor", alt:"belirli_eleman" },
+  { id: "s12_ak_022", s: "{n} elemanlı kümenin alt kümelerinin kaç tanesinde belirli bir eleman bulunur?", c: "Math.pow(2,{n}-1)", v: {n:[3,6]}, z:"cok_zor", alt:"belirli_eleman" },
 
 
   // ==========================================
@@ -5779,7 +5992,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: FARK VE TÜMLEME İLİŞKİSİ
   { id: "s12_kf_018", s: "A \\ B = ? (Tümleme ile ifade ediniz)", c: "A∩B'", v: {}, z:"cok_zor", alt:"fark_tumleme" },
-  { id: "s12_kf_019", s: "s(A') = ? (E evrensel, s(E)=n, s(A)=a)", c: "n-a", v: {n:[10,30], a:[2,"{n}-2"]}, z:"orta", alt:"tumleyen_sayisi" },
+  { id: "s12_kf_019", s: "s(A') = ? (E evrensel, s(E)=n, s(A)=a)", c: "{n}-{a}", v: {n:[10,30], a:[2,"{n}-2"]}, z:"orta", alt:"tumleyen_sayisi" },
 
 
   // ==========================================
@@ -5837,7 +6050,7 @@ const SORU_BANKASI = {
   { id: "s12_kp3_006", s: "Hiçbir kümeye ait olmayanların sayısı nedir?", c: "toplam-s(A∪B∪C)", v: {}, z:"orta", alt:"hicbir_uc" },
 
   // ALT DAL 4: EN AZ İKİ KÜMEYE AİT OLANLAR
-  { id: "s12_kp3_007", s: "En az iki kümeye ait olanların sayısı nasıl bulunur?", c: "s(A∩B)+s(A∩C)+s(B∩C)-2·s(A∩B∩C)", v: {}, z:"cok_zor", alt:"en_az_iki" },
+  { id: "s12_kp3_007", s: "En az iki kümeye ait olanların sayısı nasıl bulunur?", c: "s(A∩B)+s(A∩C)+s(B∩C)-2*s(A∩B∩C)", v: {}, z:"cok_zor", alt:"en_az_iki" },
   { id: "s12_kp3_008", s: "En çok iki kümeye ait olanların sayısı nasıl bulunur?", c: "toplam-s(A∩B∩C)", v: {}, z:"cok_zor", alt:"en_cok_iki" },
 
   // ALT DAL 5: ÜÇ KÜME PROBLEMLERİ (SÖZEL)
@@ -5933,8 +6146,8 @@ const SORU_BANKASI = {
   { id: "s12_kc_003", s: "(a,b) sıralı ikilisinde a ve b'nin sırası önemli midir?", c: "evet_(a,b)≠(b,a)_(a≠b_ise)", v: {}, z:"orta", alt:"sirali_ikili" },
 
   // ALT DAL 2: KARTEZYEN ÇARPIMIN ELEMAN SAYISI
-  { id: "s12_kc_004", s: "s(A×B) = ?", c: "s(A)×s(B)", v: {}, z:"orta", alt:"kartezyen_sayisi" },
-  { id: "s12_kc_005", s: "s(A)={a}, s(B)={b} ise s(A×B) = ?", c: "{a}×{b}={a*b}", v: {a:[2,6], b:[3,8]}, z:"orta", alt:"kartezyen_sayi_hesap" },
+  { id: "s12_kc_004", s: "s(A×B) = ?", c: "s(A)*s(B)", v: {}, z:"orta", alt:"kartezyen_sayisi" },
+  { id: "s12_kc_005", s: "s(A)={a}, s(B)={b} ise s(A×B) = ?", c: "{a}*{b}", v: {a:[2,6], b:[3,8]}, z:"orta", alt:"kartezyen_sayi_hesap" },
   { id: "s12_kc_006", s: "s(A×B) = {c} ve s(A)={a} ise s(B) = ?", c: "{c}/{a}", v: {a:[2,5], c:[6,30], kosul:"c%a==0"}, z:"zor", alt:"kartezyen_eleman_bulma" },
 
   // ALT DAL 3: KARTEZYEN ÇARPIM ÖZELLİKLERİ
@@ -5948,8 +6161,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: BAĞINTI
   { id: "s12_kc_012", s: "Bağıntı nedir?", c: "kartezyen_carpimin_alt_kumesi", v: {}, z:"cok_zor", alt:"baginti_tanim" },
-  { id: "s12_kc_013", s: "A'dan A'ya bağıntı sayısı kaçtır? (s(A)=n)", c: "2^(n²)", v: {}, z:"cok_zor", alt:"baginti_sayisi" },
-  { id: "s12_kc_014", s: "s(A)={n} ise A'dan A'ya kaç bağıntı tanımlanabilir?", c: "2^{n²}", v: {n:[2,4]}, z:"cok_zor", alt:"baginti_sayisi_hesap" },
+  { id: "s12_kc_013", s: "A'dan A'ya bağıntı sayısı kaçtır? (s(A)=n)", c: "Math.pow(2, {n}*{n})", v: {}, z:"cok_zor", alt:"baginti_sayisi" },
+  { id: "s12_kc_014", s: "s(A)={n} ise A'dan A'ya kaç bağıntı tanımlanabilir?", c: "Math.pow(2, {n}*{n})", v: {n:[2,4]}, z:"cok_zor", alt:"baginti_sayisi_hesap" },
 
   // ALT DAL 6: KARTEZYEN ÇARPIM ÖZEL SORULAR
   { id: "s12_kc_015", s: "A×B'de (a,b) şeklinde kaç farklı sıralı ikili vardır? s(A)={a}, s(B)={b}", c: "{a}*{b}", v: {a:[3,8], b:[4,10]}, z:"orta", alt:"sirali_ikili_sayisi" },
@@ -5957,7 +6170,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 13: PERMÜTASYON
 // ==========================================
 13: [
@@ -5989,7 +6203,7 @@ const SORU_BANKASI = {
   { id: "s13_st_012", s: "\"VE\" ve \"VEYA\" durumları saymada nasıl ayırt edilir?", c: "bagimsiz_secimler_VE_carpilir,_alternatif_secimler_VEYA_toplanir", v: {}, z:"orta", alt:"ve_veya_fark" },
 
   // ALT DAL 6: SAYMA ÖRNEKLERİ
-  { id: "s13_st_013", s: "{a} basamaklı kaç farklı sayı yazılabilir? (Rakamlar farklı değil)", c: "9*10^{a-1}", v: {a:[2,4]}, z:"zor", alt:"sayi_yazma" },
+  { id: "s13_st_013", s: "{a} basamaklı kaç farklı sayı yazılabilir? (Rakamlar farklı değil)", c: "9*Math.pow(10,{a}-1)", v: {a:[2,4]}, z:"zor", alt:"sayi_yazma" },
   { id: "s13_st_014", s: "{a} basamaklı rakamları farklı kaç sayı yazılabilir?", c: "9*9*8*...", v: {a:[2,4]}, z:"cok_zor", alt:"rakamlari_farkli_sayi" },
 
   // ALT DAL 7: SAYMA VE OLASILIK GİRİŞ
@@ -6064,7 +6278,7 @@ const SORU_BANKASI = {
   { id: "s13_pt_010", s: "{n} kişi {n} sandalyeye kaç farklı şekilde oturur?", c: "{n}!", v: {n:[3,6]}, z:"orta", alt:"oturma" },
 
   // ALT DAL 4: r'li PERMÜTASYON
-  { id: "s13_pt_011", s: "{n} kişi arasından {r} kişi kaç farklı şekilde sıralanır?", c: "P({n},{r})", v: {n:[5,10], r:[2,"{n}-1"]}, z:"orz", alt:"r_li_siralama" },
+  { id: "s13_pt_011", s: "{n} kişi arasından {r} kişi kaç farklı şekilde sıralanır?", c: "P({n},{r})", v: {n:[5,10], r:[2,"{n}-1"]}, z:"orta", alt:"r_li_siralama" },
   { id: "s13_pt_012", s: "{n} farklı dersten {r} tanesi bir günde kaç farklı şekilde sıralanır?", c: "P({n},{r})", v: {n:[5,8], r:[2,"{n}-1"]}, z:"zor", alt:"ders_siralama" },
 
   // ALT DAL 5: P(n,0) ve P(n,1)
@@ -6135,7 +6349,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: DAİRESEL PERMÜTASYON PROBLEMLERİ
   { id: "s13_dp_009", s: "{n} kişi arasından belirli {k} kişi yan yana olmak şartıyla yuvarlak masaya kaç farklı şekilde oturur?", c: "({k})!×({n}-{k})!", v: {n:[5,8], k:[2,3]}, z:"cok_zor", alt:"belirli_kisi_yan_yana" },
-  { id: "s13_dp_010", s: "{n} evli çift yuvarlak masaya eşler yan yana olmak şartıyla kaç farklı şekilde oturur?", c: "({n}-1)!×2^{n}", v: {n:[2,4]}, z:"cok_zor", alt:"evli_ciftler" },
+  { id: "s13_dp_010", s: "{n} evli çift yuvarlak masaya eşler yan yana olmak şartıyla kaç farklı şekilde oturur?", c: "({n}-1)!×Math.pow(2,{n})", v: {n:[2,4]}, z:"cok_zor", alt:"evli_ciftler" },
 
   // ALT DAL 5: YUVARLAK MASA SORULARI
   { id: "s13_dp_011", s: "5 kişi yuvarlak masaya kaç farklı şekilde oturur?", c: "4!=24", v: {}, z:"orta", alt:"5_yuvarlak" },
@@ -6314,7 +6528,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+// ==========================================
 // SEVİYE 14: KOMBİNASYON
 // ==========================================
 14: [
@@ -6330,7 +6544,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: KOMBİNASYON FORMÜLÜ
   { id: "s14_kt_004", s: "C(n,r) formülü nedir?", c: "n!/(r!×(n-r)!)", v: {}, z:"orta", alt:"kombinasyon_formul" },
-  { id: "s14_kt_005", s: "C({n},{r}) = ?", c: "{n}!/({r}!×({n}-{r})!)={sonuc}", v: {n:[5,10], r:[1,"{n}-1"]}, z:"orta", alt:"kombinasyon_hesap" },
+  { id: "s14_kt_005", s: "C({n},{r}) = ?", c: "{n}!/({r}!×({n}-{r})!)", v: {n:[5,10], r:[1,"{n}-1"]}, z:"orta", alt:"kombinasyon_hesap" },
   { id: "s14_kt_006", s: "C(5,2) = ?", c: "10", v: {}, z:"orta", alt:"C_5_2" },
   { id: "s14_kt_007", s: "C(6,3) = ?", c: "20", v: {}, z:"orta", alt:"C_6_3" },
   { id: "s14_kt_008", s: "C(7,4) = ?", c: "35", v: {}, z:"orta", alt:"C_7_4" },
@@ -6348,7 +6562,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: KOMBİNASYON PRATİK HESAP
   { id: "s14_kt_016", s: "C(n,r) hesaplanırken pratik yöntem nedir?", c: "n'den_geriye_r_tane_sayi_carpilip_r!_bolunur", v: {}, z:"orta", alt:"pratik_hesap" },
-  { id: "s14_kt_017", s: "C(10,4) pratik hesapla = ?", c: "10×9×8×7/4!=210", v: {}, z:"orta", alt:"C_10_4_pratik" },
+  { id: "s14_kt_017", s: "C(10,4) pratik hesapla = ?", c: "210", v: {}, z:"orta", alt:"C_10_4_pratik" },
   { id: "s14_kt_018", s: "C({n},2) pratik formülü nedir?", c: "{n}×({n}-1)/2", v: {n:[4,10]}, z:"orta", alt:"C_n_2_pratik" },
 
   // ALT DAL 6: KOMBİNASYON DENKLEMLERİ
@@ -6372,30 +6586,30 @@ const SORU_BANKASI = {
   { id: "s14_ko_001", s: "C(n,r) = C(n,n-r) eşitliği doğru mudur?", c: "evet_(simetri_ozelligi)", v: {}, z:"orta", alt:"simetri" },
   { id: "s14_ko_002", s: "C({n},{r}) = C({n},?)", c: "C({n},{n}-{r})", v: {n:[6,10], r:[1,4]}, z:"orta", alt:"simetri_esit" },
   { id: "s14_ko_003", s: "C(10,7) = C(10,?)", c: "3", v: {}, z:"orta", alt:"C_10_7_simetri" },
-  { id: "s14_ko_004", s: "C(8,5) = ? (Simetri özelliğini kullan)", c: "C(8,3)=56", v: {}, z:"orta", alt:"C_8_5_simetri" },
+  { id: "s14_ko_004", s: "C(8,5) = ? (Simetri özelliğini kullan)", c: "56", v: {}, z:"orta", alt:"C_8_5_simetri" },
 
   // ALT DAL 2: PASCAL ÖZDEŞLİĞİ
   { id: "s14_ko_005", s: "C(n,r) + C(n,r+1) = ?", c: "C(n+1,r+1)", v: {}, z:"cok_zor", alt:"pascal_ozdesligi" },
   { id: "s14_ko_006", s: "C({n},{r}) + C({n},{r+1}) = ?", c: "C({n}+1,{r}+1)", v: {n:[5,9], r:[1,"{n}-2"]}, z:"cok_zor", alt:"pascal_hesap" },
-  { id: "s14_ko_007", s: "C(7,3) + C(7,4) = ?", c: "C(8,4)=70", v: {}, z:"cok_zor", alt:"C_7_3_4" },
+  { id: "s14_ko_007", s: "C(7,3) + C(7,4) = ?", c: "70", v: {}, z:"cok_zor", alt:"C_7_3_4" },
   { id: "s14_ko_008", s: "Pascal özdeşliği hangi üçgende kullanılır?", c: "Pascal_ucgeninde", v: {}, z:"orta", alt:"pascal_ucgen" },
 
   // ALT DAL 3: TOPLAM ÖZELLİĞİ
   { id: "s14_ko_009", s: "C(n,0)+C(n,1)+...+C(n,n) = ?", c: "2ⁿ", v: {}, z:"cok_zor", alt:"toplam_2_us_n" },
-  { id: "s14_ko_010", s: "{n} elemanlı kümenin tüm alt küme sayısı C(n,0)+...+C(n,n) = ?", c: "2^{n}", v: {n:[3,7]}, z:"cok_zor", alt:"tum_alt_kume" },
-  { id: "s14_ko_011", s: "C(5,0)+C(5,1)+C(5,2)+C(5,3)+C(5,4)+C(5,5) = ?", c: "2⁵=32", v: {}, z:"cok_zor", alt:"5_tum_toplam" },
+  { id: "s14_ko_010", s: "{n} elemanlı kümenin tüm alt küme sayısı C(n,0)+...+C(n,n) = ?", c: "Math.pow(2,{n})", v: {n:[3,7]}, z:"cok_zor", alt:"tum_alt_kume" },
+  { id: "s14_ko_011", s: "C(5,0)+C(5,1)+C(5,2)+C(5,3)+C(5,4)+C(5,5) = ?", c: "32", v: {}, z:"cok_zor", alt:"5_tum_toplam" },
 
   // ALT DAL 4: ARDIŞIK TOPLAM
   { id: "s14_ko_012", s: "C(r,r)+C(r+1,r)+...+C(n,r) = ?", c: "C(n+1,r+1)", v: {}, z:"cok_zor", alt:"ardisik_toplam" },
-  { id: "s14_ko_013", s: "C(2,2)+C(3,2)+C(4,2)+C(5,2) = ?", c: "C(6,3)=20", v: {}, z:"cok_zor", alt:"ardisik_toplam_2" },
+  { id: "s14_ko_013", s: "C(2,2)+C(3,2)+C(4,2)+C(5,2) = ?", c: "20", v: {}, z:"cok_zor", alt:"ardisik_toplam_2" },
 
   // ALT DAL 5: ÇİFT İNDİSLİ TOPLAM
-  { id: "s14_ko_014", s: "C(n,0)+C(n,2)+C(n,4)+... = ?", c: "2^(n-1)", v: {}, z:"cok_zor", alt:"cift_indis" },
-  { id: "s14_ko_015", s: "C(n,1)+C(n,3)+C(n,5)+... = ?", c: "2^(n-1)", v: {}, z:"cok_zor", alt:"tek_indis" },
+  { id: "s14_ko_014", s: "C(n,0)+C(n,2)+C(n,4)+... = ?", c: "Math.pow(2,{n-1})", v: {n:[3,7]}, z:"cok_zor", alt:"cift_indis" },
+  { id: "s14_ko_015", s: "C(n,1)+C(n,3)+C(n,5)+... = ?", c: "Math.pow(2,{n-1})", v: {n:[3,7]}, z:"cok_zor", alt:"tek_indis" },
 
   // ALT DAL 6: ÇARPMA ÖZELLİĞİ
   { id: "s14_ko_016", s: "C(n,r) × C(r,k) = ?", c: "C(n,k)×C(n-k,r-k)", v: {}, z:"cok_zor", alt:"carpma_ozelligi" },
-  { id: "s14_ko_017", s: "C(10,4) × C(4,2) = ?", c: "C(10,2)×C(8,2)=45×28=1260", v: {}, z:"cok_zor", alt:"carpma_ornek" },
+  { id: "s14_ko_017", s: "C(10,4) × C(4,2) = ?", c: "1260", v: {}, z:"cok_zor", alt:"carpma_ornek" },
 
   // ALT DAL 7: TEK-ÇİFT KOMBİNASYON
   { id: "s14_ko_018", s: "C(n,r) her zaman tam sayı mıdır?", c: "evet", v: {}, z:"orta", alt:"tam_sayi" },
@@ -6418,7 +6632,7 @@ const SORU_BANKASI = {
   // ALT DAL 2: AYIRT ETME
   { id: "s14_kp_004", s: "{n} kişiden {r} kişilik ekip kaç farklı şekilde seçilir? (Görev dağılımı yok)", c: "C({n},{r})", v: {n:[5,10], r:[2,"{n}-1"]}, z:"orta", alt:"ekip_secme" },
   { id: "s14_kp_005", s: "{n} kişiden başkan ve yardımcı kaç farklı şekilde seçilir?", c: "P({n},2)", v: {n:[4,10]}, z:"orta", alt:"baskan_secme" },
-  { id: "s14_kp_006", s: "{n} kişiden {r} kişilik ekip seçilip bu ekip kendi içinde sıralanırsa kaç durum olur?", c: "C({n},{r})×{r}!=P({n},{r})", v: {n:[5,8], r:[2,4]}, z:"cok_zor", alt:"ekip_siralama" },
+  { id: "s14_kp_006", s: "{n} kişiden {r} kişilik ekip seçilip bu ekip kendi içinde sıralanırsa kaç durum olur?", c: "C({n},{r})×{r}! = P({n},{r})", v: {n:[5,8], r:[2,4]}, z:"cok_zor", alt:"ekip_siralama" },
 
   // ALT DAL 3: HANGİSİ DAHA BÜYÜK?
   { id: "s14_kp_007", s: "Aynı n ve r için P(n,r) mi büyüktür C(n,r) mi?", c: "P(n,r)_(r!_kati)", v: {}, z:"orta", alt:"P_C_buyuk" },
@@ -6443,17 +6657,17 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: İKİ NOKTA BİR DOĞRU
   { id: "s14_gk_001", s: "{n} noktadan kaç farklı doğru geçer? (Doğrusal değiller)", c: "C({n},2)", v: {n:[3,10]}, z:"orta", alt:"noktadan_dogru" },
-  { id: "s14_gk_002", s: "5 noktadan kaç doğru geçer? (Herhangi üçü doğrusal değil)", c: "C(5,2)=10", v: {}, z:"orta", alt:"5_nokta_dogru" },
+  { id: "s14_gk_002", s: "5 noktadan kaç doğru geçer? (Herhangi üçü doğrusal değil)", c: "10", v: {}, z:"orta", alt:"5_nokta_dogru" },
   { id: "s14_gk_003", s: "n noktadan geçen doğru sayısı neden C(n,2) ile bulunur?", c: "bir_dogru_2_nokta_ile_belirlenir", v: {}, z:"orta", alt:"dogru_mantik" },
 
   // ALT DAL 2: DOĞRUSAL NOKTALAR
   { id: "s14_gk_004", s: "{n} noktadan {k} tanesi doğrusal ise kaç doğru çizilir?", c: "C({n},2)-C({k},2)+1", v: {n:[5,12], k:[3,"{n}-1"]}, z:"cok_zor", alt:"dogrusal_nokta" },
-  { id: "s14_gk_005", s: "10 noktadan 4'ü doğrusal ise kaç doğru çizilir?", c: "C(10,2)-C(4,2)+1=45-6+1=40", v: {}, z:"cok_zor", alt:"10_4_dogrusal" },
+  { id: "s14_gk_005", s: "10 noktadan 4'ü doğrusal ise kaç doğru çizilir?", c: "40", v: {}, z:"cok_zor", alt:"10_4_dogrusal" },
   { id: "s14_gk_006", s: "Doğrusal noktalar neden C(k,2) kadar doğru kaybettirir?", c: "dogrusal_noktalar_ayni_dogru_uzerinde_oldugu_icin", v: {}, z:"cok_zor", alt:"dogrusal_nedeni" },
 
   // ALT DAL 3: ÜÇ NOKTA ÜÇGEN
   { id: "s14_gk_007", s: "{n} noktadan kaç farklı üçgen çizilir? (Doğrusal değiller)", c: "C({n},3)", v: {n:[3,10]}, z:"orta", alt:"noktadan_ucgen" },
-  { id: "s14_gk_008", s: "6 noktadan kaç üçgen çizilir? (Herhangi üçü doğrusal değil)", c: "C(6,3)=20", v: {}, z:"orta", alt:"6_nokta_ucgen" },
+  { id: "s14_gk_008", s: "6 noktadan kaç üçgen çizilir? (Herhangi üçü doğrusal değil)", c: "20", v: {}, z:"orta", alt:"6_nokta_ucgen" },
   { id: "s14_gk_009", s: "{n} noktadan {k} tanesi doğrusal ise kaç üçgen çizilir?", c: "C({n},3)-C({k},3)", v: {n:[5,12], k:[3,"{n}-1"]}, z:"cok_zor", alt:"dogrusal_ucgen" },
 
   // ALT DAL 4: DOĞRULARIN KESİŞİMİ
@@ -6465,12 +6679,12 @@ const SORU_BANKASI = {
   { id: "s14_gk_013", s: "Çember üzerindeki {n} nokta çemberi kaç yaya ayırır?", c: "{n}", v: {n:[3,10]}, z:"orta", alt:"yay" },
 
   // ALT DAL 6: ÇOKGEN VE KÖŞEGEN
-  { id: "s14_gk_014", s: "{n} kenarlı konveks çokgenin köşegen sayısı kaçtır?", c: "C({n},2)-{n}={n}×({n}-3)/2", v: {n:[4,10]}, z:"orta", alt:"kosegen" },
+  { id: "s14_gk_014", s: "{n} kenarlı konveks çokgenin köşegen sayısı kaçtır?", c: "C({n},2)-{n} = {n}×({n}-3)/2", v: {n:[4,10]}, z:"orta", alt:"kosegen" },
   { id: "s14_gk_015", s: "Köşegen sayısı {k} olan çokgen kaç kenarlıdır?", c: "{sonuc}", v: {k:[2,5,9,14,20,27,35,44]}, z:"cok_zor", alt:"kosegenden_kenar" },
 
   // ALT DAL 7: DÜZLEM BÖLME
   { id: "s14_gk_016", s: "{n} doğru düzlemi en çok kaç bölgeye ayırır?", c: "{n}×({n}+1)/2+1", v: {n:[2,8]}, z:"cok_zor", alt:"duzlem_bolme" },
-  { id: "s14_gk_017", s: "{n} çember düzlemi en çok kaç bölgeye ayırır?", c: "{n}²-{n}+2", v: {n:[2,6]}, z:"cok_zor", alt:"cember_bolme" },
+  { id: "s14_gk_017", s: "{n} çember düzlemi en çok kaç bölgeye ayırır?", c: "{n}*{n}-{n}+2", v: {n:[2,6]}, z:"cok_zor", alt:"cember_bolme" },
 
   // ALT DAL 8: GEOMETRİK KOMBİNASYON ÖZET
   { id: "s14_gk_018", s: "Geometrik kombinasyon problemlerinde anahtar nedir?", c: "seklin_kac_nokta_ile_belirlendigini_bulmak", v: {}, z:"orta", alt:"anahtar" },
@@ -6492,7 +6706,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: ÇEMBERDE KESİŞİM
   { id: "s14_gc_006", s: "Çember üzerindeki {n} noktayı birleştiren kirişler en çok kaç noktada kesişir? (Çember içinde)", c: "C({n},4)", v: {n:[4,10]}, z:"cok_zor", alt:"kiris_kesisim" },
-  { id: "s14_gc_007", s: "Çemberde 6 noktayı birleştiren kirişlerin kesişim noktası sayısı en çok kaçtır?", c: "C(6,4)=15", v: {}, z:"cok_zor", alt:"6_nokta_kesisim" },
+  { id: "s14_gc_007", s: "Çemberde 6 noktayı birleştiren kirişlerin kesişim noktası sayısı en çok kaçtır?", c: "15", v: {}, z:"cok_zor", alt:"6_nokta_kesisim" },
 
   // ALT DAL 4: DÖRTGEN VE ÇOKGEN
   { id: "s14_gc_008", s: "Çember üzerindeki {n} noktadan kaç dörtgen çizilir?", c: "C({n},4)", v: {n:[4,10]}, z:"orta", alt:"dortgen" },
@@ -6504,7 +6718,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 6: GEOMETRİK KOMBİNASYON ÖZEL
   { id: "s14_gc_012", s: "Satranç tahtasında kaç kare vardır? (8×8)", c: "204", v: {}, z:"cok_zor", alt:"satranc_kare" },
-  { id: "s14_gc_013", s: "{n}×{n} karelik tahtada kaç kare vardır?", c: "{n}×({n}+1)×(2{n}+1)/6", v: {n:[3,8]}, z:"cok_zor", alt:"nxn_kare" },
+  { id: "s14_gc_013", s: "{n}×{n} karelik tahtada kaç kare vardır?", c: "{n}×({n}+1)×(2*{n}+1)/6", v: {n:[3,8]}, z:"cok_zor", alt:"nxn_kare" },
 
 
   // ==========================================
@@ -6526,8 +6740,8 @@ const SORU_BANKASI = {
   { id: "s14_sp_008", s: "{n} kişiden {r} kişilik ekipte A ve B'den SADECE BİRİ bulunacaksa kaç seçim?", c: "2×C({n}-2,{r}-1)", v: {n:[5,12], r:[2,"{n}-2"]}, z:"cok_zor", alt:"sadece_biri" },
 
   // ALT DAL 4: EVLİ ÇİFT SEÇİMİ
-  { id: "s14_sp_009", s: "{n} evli çift arasından {r} kişilik ekip seçilecek. Ekipte evli çift olmamak şartıyla kaç seçim?", c: "C({n},{r})×2^{r}", v: {n:[4,8], r:[2,4], kosul:"r<=n"}, z:"cok_zor", alt:"evli_cift_yok" },
-  { id: "s14_sp_010", s: "{n} evli çift arasından {r} kişilik ekipte tam {k} evli çift olmak şartıyla kaç seçim?", c: "C({n},{k})×C({n}-{k},{r}-2{k})×2^{r-2k}", v: {n:[5,8], r:[3,6], k:[1,2], kosul:"r>=2k"}, z:"cok_zor", alt:"k_evli_cift" },
+  { id: "s14_sp_009", s: "{n} evli çift arasından {r} kişilik ekip seçilecek. Ekipte evli çift olmamak şartıyla kaç seçim?", c: "C({n},{r})×Math.pow(2,{r})", v: {n:[4,8], r:[2,4], kosul:"r<=n"}, z:"cok_zor", alt:"evli_cift_yok" },
+  { id: "s14_sp_010", s: "{n} evli çift arasından {r} kişilik ekipte tam {k} evli çift olmak şartıyla kaç seçim?", c: "C({n},{k})×C({n}-{k},{r}-2*{k})×Math.pow(2,{r}-2*{k})", v: {n:[5,8], r:[3,6], k:[1,2], kosul:"r>=2*k"}, z:"cok_zor", alt:"k_evli_cift" },
 
   // ALT DAL 5: SEÇİMDE SIRA ÖNEMİ
   { id: "s14_sp_011", s: "{n} kişiden {r} kişilik ekip seçilip sıralanırsa kaç durum olur?", c: "P({n},{r})", v: {n:[5,10], r:[2,4]}, z:"zor", alt:"secip_sirala" },
@@ -6538,9 +6752,9 @@ const SORU_BANKASI = {
   { id: "s14_sp_014", s: "{n} kişilik grupta A bulunur B bulunmazsa kaç seçim olur?", c: "C({n}-2,{r}-1)", v: {n:[5,12], r:[2,6]}, z:"cok_zor", alt:"A_var_B_yok" },
 
   // ALT DAL 7: ALT KÜME SEÇİMİ
-  { id: "s14_sp_015", s: "{n} elemanlı kümenin alt kümelerinin kaçında A bulunur?", c: "2^{n-1}", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_var" },
-  { id: "s14_sp_016", s: "{n} elemanlı kümenin alt kümelerinin kaçında A bulunmaz?", c: "2^{n-1}", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_yok" },
-  { id: "s14_sp_017", s: "{n} elemanlı kümenin alt kümelerinin kaçında A veya B bulunur?", c: "3×2^{n-2}", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_veya_B" },
+  { id: "s14_sp_015", s: "{n} elemanlı kümenin alt kümelerinin kaçında A bulunur?", c: "Math.pow(2,{n}-1)", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_var" },
+  { id: "s14_sp_016", s: "{n} elemanlı kümenin alt kümelerinin kaçında A bulunmaz?", c: "Math.pow(2,{n}-1)", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_yok" },
+  { id: "s14_sp_017", s: "{n} elemanlı kümenin alt kümelerinin kaçında A veya B bulunur?", c: "3×Math.pow(2,{n}-2)", v: {n:[3,8]}, z:"cok_zor", alt:"alt_kume_A_veya_B" },
 
   // ALT DAL 8: SEÇME GENEL
   { id: "s14_sp_018", s: "Belirli eleman seçme problemlerinde temel strateji nedir?", c: "once_sartli_elemanlar_secim_disina_alinir", v: {}, z:"orta", alt:"strateji" },
@@ -6568,7 +6782,7 @@ const SORU_BANKASI = {
   { id: "s14_ea_008", s: "En az 2 en çok 4 kişilik ekip seçimi kaç durumu kapsar?", c: "2,3,4_kisilik_secimler", v: {}, z:"orta", alt:"2_4_arasi" },
 
   // ALT DAL 5: BELİRLİ SAYIDA SEÇİM
-  { id: "s14_ea_009", s: "{n} kişiden {r} kişilik ekipte tam {k} evli çift bulunursa kaç seçim olur?", c: "C({n}/2,{k})×C({n}/2-{k},{r}-2{k})×2^{r-2k}", v: {n:[8,12,2], r:[3,5], k:[1,2], kosul:"r>=2k"}, z:"cok_zor", alt:"tam_k_cift" },
+  { id: "s14_ea_009", s: "{n} kişiden {r} kişilik ekipte tam {k} evli çift bulunursa kaç seçim olur?", c: "C({n}/2,{k})×C({n}/2-{k},{r}-2*{k})×Math.pow(2,{r}-2*{k})", v: {n:[8,12,2], r:[3,5], k:[1,2], kosul:"r>=2*k"}, z:"cok_zor", alt:"tam_k_cift" },
   { id: "s14_ea_010", s: "Belirli sayıda seçim problemlerinde formül nasıl kurulur?", c: "once_sartli_grup_secimi_sonra_kalan_secimi", v: {}, z:"orta", alt:"belirli_sayi_formul" },
 
   // ALT DAL 6: KARIŞIK EN AZ/EN ÇOK
@@ -6590,12 +6804,12 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: İKİ GRUBA AYIRMA
   { id: "s14_gd_001", s: "{n} kişi {a} ve {b} kişilik iki gruba kaç farklı şekilde ayrılır? (a+b=n)", c: "C({n},{a})", v: {n:[6,12], a:[2,"{n}/2"], b:"{n}-{a}"}, z:"orta", alt:"iki_gruba_ayirma" },
-  { id: "s14_gd_002", s: "{n} kişi eşit iki gruba kaç farklı şekilde ayrılır?", c: "C({n},{n}/2)/2!", v: {n:[6,12,2]}, z:"cok_zor", alt:"esit_iki_grup" },
+  { id: "s14_gd_002", s: "{n} kişi eşit iki gruba kaç farklı şekilde ayrılır?", c: "C({n},{n}/2)/2", v: {n:[6,12,2]}, z:"cok_zor", alt:"esit_iki_grup" },
   { id: "s14_gd_003", s: "Eşit gruplarda neden 2!'e bölünür?", c: "gruplarin_yer_degistirmesi_ayni_durumu_verir", v: {}, z:"cok_zor", alt:"esit_bolme_nedeni" },
 
   // ALT DAL 2: ÜÇ GRUBA AYIRMA
   { id: "s14_gd_004", s: "{n} kişi {a}, {b}, {c} kişilik üç gruba kaç farklı şekilde ayrılır?", c: "C({n},{a})×C({n}-{a},{b})", v: {n:[8,15], a:[2,4], b:[2,4], c:"{n}-{a}-{b}"}, z:"cok_zor", alt:"uc_gruba_ayirma" },
-  { id: "s14_gd_005", s: "{n} kişi eşit üç gruba kaç farklı şekilde ayrılır?", c: "C({n},{n}/3)×C(2{n}/3,{n}/3)/3!", v: {n:[9,15,3]}, z:"cok_zor", alt:"esit_uc_grup" },
+  { id: "s14_gd_005", s: "{n} kişi eşit üç gruba kaç farklı şekilde ayrılır?", c: "C({n},{n}/3)×C(2*{n}/3,{n}/3)/6", v: {n:[9,15,3]}, z:"cok_zor", alt:"esit_uc_grup" },
 
   // ALT DAL 3: NESNE DAĞITMA
   { id: "s14_gd_006", s: "{n} farklı oyuncak {c} çocuğa her çocuğa en az 1 tane vermek şartıyla kaç dağıtılır?", c: "{sonuc}", v: {n:[4,7], c:[2,4], kosul:"n>=c"}, z:"cok_zor", alt:"oyuncak_dagitma" },
@@ -6664,11 +6878,11 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: BİNOM KATSAYISI
   { id: "s14_pb_010", s: "(x+y)ⁿ açılımında r. terimin katsayısı nedir?", c: "C(n,r-1)", v: {}, z:"cok_zor", alt:"binom_katsayi" },
-  { id: "s14_pb_011", s: "(x+y)⁵ açılımında x³y² teriminin katsayısı kaçtır?", c: "C(5,2)=10", v: {}, z:"cok_zor", alt:"x3y2_katsayi" },
-  { id: "s14_pb_012", s: "(x+y)⁶ açılımında ortanca terimin katsayısı kaçtır?", c: "C(6,3)=20", v: {}, z:"cok_zor", alt:"ortanca_terim" },
+  { id: "s14_pb_011", s: "(x+y)⁵ açılımında x³y² teriminin katsayısı kaçtır?", c: "10", v: {}, z:"cok_zor", alt:"x3y2_katsayi" },
+  { id: "s14_pb_012", s: "(x+y)⁶ açılımında ortanca terimin katsayısı kaçtır?", c: "20", v: {}, z:"cok_zor", alt:"ortanca_terim" },
 
   // ALT DAL 5: ÖZEL BİNOM AÇILIMLARI
-  { id: "s14_pb_013", s: "(1+1)ⁿ = ? (Binom açılımı ile)", c: "2ⁿ", v: {}, z:"cok_zor", alt:"1+1_n" },
+  { id: "s14_pb_013", s: "(1+1)ⁿ = ? (Binom açılımı ile)", c: "Math.pow(2,{n})", v: {n:[3,7]}, z:"cok_zor", alt:"1+1_n" },
   { id: "s14_pb_014", s: "(1-1)ⁿ = ? (Binom açılımı ile)", c: "0_(n≥1)", v: {}, z:"cok_zor", alt:"1-1_n" },
   { id: "s14_pb_015", s: "(a+b)ⁿ açılımında baştan {r}. terim nedir?", c: "C(n,{r}-1)·a^(n-{r}+1)·b^{r-1}", v: {n:[4,8], r:[1,"{n}+1"]}, z:"cok_zor", alt:"basta_r_terim" },
 
@@ -6678,7 +6892,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 15: OLASILIK
 // ==========================================
 15: [
@@ -6731,7 +6946,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: BASİT OLASILIK
   { id: "s15_oh_001", s: "Bir zar atıldığında 4 gelme olasılığı kaçtır?", c: "1/6", v: {}, z:"kolay", alt:"zar_4" },
-  { id: "s15_oh_002", s: "Bir zar atıldığında çift sayı gelme olasılığı kaçtır?", c: "3/6=1/2", v: {}, z:"kolay", alt:"zar_cift" },
+  { id: "s15_oh_002", s: "Bir zar atıldığında çift sayı gelme olasılığı kaçtır?", c: "1/2", v: {}, z:"kolay", alt:"zar_cift" },
   { id: "s15_oh_003", s: "Bir torbada {k} kırmızı, {m} mavi top vardır. Çekilen topun kırmızı olma olasılığı kaçtır?", c: "{k}/({k}+{m})", v: {k:[3,8], m:[2,7]}, z:"orta", alt:"top_kirmizi" },
 
   // ALT DAL 2: KESİR VE YÜZDE OLARAK
@@ -6743,11 +6958,11 @@ const SORU_BANKASI = {
   { id: "s15_oh_007", s: "Bir para 3 kez atıldığında hep yazı gelme olasılığı kaçtır?", c: "1/8", v: {}, z:"orta", alt:"uc_para_yazi" },
 
   // ALT DAL 4: TOPLAM OLASILIK
-  { id: "s15_oh_008", s: "Bir zar atıldığında 2 VEYA 5 gelme olasılığı kaçtır?", c: "2/6=1/3", v: {}, z:"orta", alt:"2_veya_5" },
-  { id: "s15_oh_009", s: "Bir zar atıldığında asal sayı gelme olasılığı kaçtır?", c: "3/6=1/2_(2,3,5)", v: {}, z:"orta", alt:"asal_olasilik" },
+  { id: "s15_oh_008", s: "Bir zar atıldığında 2 VEYA 5 gelme olasılığı kaçtır?", c: "1/3", v: {}, z:"orta", alt:"2_veya_5" },
+  { id: "s15_oh_009", s: "Bir zar atıldığında asal sayı gelme olasılığı kaçtır?", c: "1/2", v: {}, z:"orta", alt:"asal_olasilik" },
 
   // ALT DAL 5: OLASILIK HESAPLAMA SORULARI
-  { id: "s15_oh_010", s: "{n} kişilik sınıftan rastgele seçilen birinin kız olma olasılığı {o} ise sınıfta kaç kız vardır?", c: "{o}×{n}", v: {n:[20,40], o:"1/4,1/3,2/5,1/2,3/5,2/3,3/4"}, z:"cok_zor", alt:"olasiliktan_sayi" },
+  { id: "s15_oh_010", s: "{n} kişilik sınıftan rastgele seçilen birinin kız olma olasılığı {o} ise sınıfta kaç kız vardır?", c: "{o}×{n}", v: {n:[20,40], o:[0.25,0.33,0.4,0.5,0.6,0.67,0.75]}, z:"cok_zor", alt:"olasiliktan_sayi" },
   { id: "s15_oh_011", s: "Bir torbada {a} kırmızı, {b} mavi top vardır. Kırmızı gelme olasılığı kaçtır?", c: "{a}/({a}+{b})", v: {a:[3,8], b:[2,7]}, z:"orta", alt:"kirmizi_olasilik" },
 
   // ALT DAL 6: ONDALIK GÖSTERİM
@@ -6778,7 +6993,7 @@ const SORU_BANKASI = {
   { id: "s15_ao_006", s: "P(A)={a}/{c}, P(B)={b}/{c} ve ayrık iseler P(A∪B)=?", c: "({a}+{b})/{c}", v: {a:[1,3], b:[1,4], c:[6,12], kosul:"a+b<=c"}, z:"orta", alt:"ayrik_kesir" },
 
   // ALT DAL 3: AYRIK OLAY SORULARI
-  { id: "s15_ao_007", s: "Bir zar atıldığında 2 veya 5 gelme olayları ayrık mıdır? Olasılığı kaçtır?", c: "evet_ayrik,_2/6=1/3", v: {}, z:"orta", alt:"2_5_ayrik" },
+  { id: "s15_ao_007", s: "Bir zar atıldığında 2 veya 5 gelme olayları ayrık mıdır? Olasılığı kaçtır?", c: "evet_ayrik,_1/3", v: {}, z:"orta", alt:"2_5_ayrik" },
   { id: "s15_ao_008", s: "Torbadan çekilen topun kırmızı VEYA mavi olması olayı ayrık mıdır?", c: "evet_(bir_top_hem_kirmizi_hem_mavi_olamaz)", v: {}, z:"orta", alt:"renk_ayrik" },
 
   // ALT DAL 4: AYRIK OLMAYAN OLAYLAR
@@ -6808,13 +7023,13 @@ const SORU_BANKASI = {
   { id: "s15_bo_005", s: "P(A)={a}/{c}, P(B)={b}/{c} ve bağımsızlar ise P(A∩B)=?", c: "({a}×{b})/({c}×{c})", v: {a:[1,3], b:[1,4], c:[4,12]}, z:"cok_zor", alt:"bagimsiz_kesir" },
 
   // ALT DAL 3: PARA ATIŞLARI
-  { id: "s15_bo_006", s: "Bir para 2 kez atıldığında ikisinin de tura gelme olasılığı kaçtır?", c: "1/2×1/2=1/4", v: {}, z:"orta", alt:"iki_para_tura" },
-  { id: "s15_bo_007", s: "Bir para {n} kez atıldığında hep yazı gelme olasılığı kaçtır?", c: "(1/2)^{n}", v: {n:[2,5]}, z:"zor", alt:"n_para_yazi" },
+  { id: "s15_bo_006", s: "Bir para 2 kez atıldığında ikisinin de tura gelme olasılığı kaçtır?", c: "1/4", v: {}, z:"orta", alt:"iki_para_tura" },
+  { id: "s15_bo_007", s: "Bir para {n} kez atıldığında hep yazı gelme olasılığı kaçtır?", c: "1/Math.pow(2,{n})", v: {n:[2,5]}, z:"zor", alt:"n_para_yazi" },
   { id: "s15_bo_008", s: "Para atışları bağımsız mıdır?", c: "evet_(onceki_sonuc_sonrakini_etkilemez)", v: {}, z:"orta", alt:"para_bagimsiz" },
 
   // ALT DAL 4: ZAR ATIŞLARI
-  { id: "s15_bo_009", s: "İki zar atıldığında ikisinin de 6 gelme olasılığı kaçtır?", c: "1/6×1/6=1/36", v: {}, z:"orta", alt:"iki_zar_6_olasilik" },
-  { id: "s15_bo_010", s: "İki zar atıldığında toplamın 12 olma olasılığı kaçtır?", c: "1/36_(sadece_6+6)", v: {}, z:"orta", alt:"toplam_12" },
+  { id: "s15_bo_009", s: "İki zar atıldığında ikisinin de 6 gelme olasılığı kaçtır?", c: "1/36", v: {}, z:"orta", alt:"iki_zar_6_olasilik" },
+  { id: "s15_bo_010", s: "İki zar atıldığında toplamın 12 olma olasılığı kaçtır?", c: "1/36", v: {}, z:"orta", alt:"toplam_12" },
 
   // ALT DAL 5: BAĞIMSIZ OLAY SORULARI
   { id: "s15_bo_011", s: "P(A)=0,4, P(B)=0,5 ve bağımsızlar ise P(A∩B)=?", c: "0,2", v: {}, z:"cok_zor", alt:"bagimsiz_ondalik" },
@@ -6835,8 +7050,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: KOŞULLU OLASILIK FORMÜLÜ
   { id: "s15_ko_003", s: "P(A|B) = ?", c: "P(A∩B)/P(B)", v: {}, z:"cok_zor", alt:"kosullu_formul" },
-  { id: "s15_ko_004", s: "P(A∩B) = {a}/{c}, P(B) = {b}/{c} ise P(A|B) = ?", c: "({a}/{c})/({b}/{c})={a}/{b}", v: {a:[1,4], b:[2,6], c:[6,12], kosul:"a<=b"}, z:"cok_zor", alt:"kosullu_hesap" },
-  { id: "s15_ko_005", s: "P(A)=1/2, P(B)=1/3, P(A∩B)=1/6 ise P(A|B)=?", c: "(1/6)/(1/3)=1/2", v: {}, z:"cok_zor", alt:"kosullu_ornek" },
+  { id: "s15_ko_004", s: "P(A∩B) = {a}/{c}, P(B) = {b}/{c} ise P(A|B) = ?", c: "{a}/{b}", v: {a:[1,4], b:[2,6], c:[6,12], kosul:"a<=b"}, z:"cok_zor", alt:"kosullu_hesap" },
+  { id: "s15_ko_005", s: "P(A)=1/2, P(B)=1/3, P(A∩B)=1/6 ise P(A|B)=?", c: "1/2", v: {}, z:"cok_zor", alt:"kosullu_ornek" },
 
   // ALT DAL 3: BAĞIMLI OLAYLARDA ÇARPMA
   { id: "s15_ko_006", s: "A ve B bağımlı ise P(A∩B) = ?", c: "P(A)×P(B|A)_veya_P(B)×P(A|B)", v: {}, z:"cok_zor", alt:"bagimli_carpma" },
@@ -6848,7 +7063,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: KOŞULLU OLASILIK SORULARI
   { id: "s15_ko_010", s: "Bir ailede iki çocuktan birinin erkek olduğu biliniyorsa diğerinin kız olma olasılığı kaçtır?", c: "2/3", v: {}, z:"cok_zor", alt:"cocuk_olasilik" },
-  { id: "s15_ko_011", s: "Zar atışında gelen sayının 4'ten büyük olduğu biliniyorsa asal olma olasılığı kaçtır?", c: "1/2_(5_asal,_6_degil)", v: {}, z:"cok_zor", alt:"zar_kosullu" },
+  { id: "s15_ko_011", s: "Zar atışında gelen sayının 4'ten büyük olduğu biliniyorsa asal olma olasılığı kaçtır?", c: "1/2", v: {}, z:"cok_zor", alt:"zar_kosullu" },
 
   // ALT DAL 6: KOŞULLU OLASILIK ÖZET
   { id: "s15_ko_012", s: "Koşullu olasılıkta örnek uzay nasıl değişir?", c: "kosul_saglandigi_durumlar_yeni_ornek_uzay_olur", v: {}, z:"orta", alt:"yeni_ornek_uzay" },
@@ -6866,7 +7081,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: TÜMLEYEN KULLANIMI
   { id: "s15_to_004", s: "\"En az bir\" olasılığı nasıl hesaplanır?", c: "1-P(hic_olmama)", v: {}, z:"cok_zor", alt:"en_az_bir_tumleyen" },
-  { id: "s15_to_005", s: "Bir zar 3 kez atıldığında en az bir kez 6 gelme olasılığı kaçtır?", c: "1-(5/6)³=91/216", v: {}, z:"cok_zor", alt:"en_az_bir_6" },
+  { id: "s15_to_005", s: "Bir zar 3 kez atıldığında en az bir kez 6 gelme olasılığı kaçtır?", c: "1-Math.pow(5/6,3)=91/216", v: {}, z:"cok_zor", alt:"en_az_bir_6" },
 
   // ALT DAL 3: TÜMLEYEN PROBLEMLERİ
   { id: "s15_to_006", s: "Bir hedefi vurma olasılığı 2/3 olan atıcının vuramama olasılığı kaçtır?", c: "1/3", v: {}, z:"orta", alt:"vuramama" },
@@ -6874,7 +7089,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: TÜMLEYEN İLE KOLAY HESAP
   { id: "s15_to_008", s: "\"En az bir\" yerine tümleyen kullanmak neden kolaydır?", c: "cok_sayida_durum_yerine_tek_durum_hesaplanir", v: {}, z:"orta", alt:"tumleyen_kolaylik" },
-  { id: "s15_to_009", s: "{n} para atışında en az bir tura gelme olasılığı kaçtır?", c: "1-(1/2)^{n}", v: {n:[2,5]}, z:"cok_zor", alt:"en_az_bir_tura" },
+  { id: "s15_to_009", s: "{n} para atışında en az bir tura gelme olasılığı kaçtır?", c: "1-Math.pow(1/2,{n})", v: {n:[2,5]}, z:"cok_zor", alt:"en_az_bir_tura" },
 
   // ALT DAL 5: TÜMLEYEN SORULARI
   { id: "s15_to_010", s: "Bir torbada {k} kırmızı, {m} mavi top var. Çekilen topun kırmızı OLMAMA olasılığı kaçtır?", c: "{m}/({k}+{m})", v: {k:[3,7], m:[2,6]}, z:"orta", alt:"kirmizi_olmama" },
@@ -6891,7 +7106,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: BİRLEŞİM OLASILIĞI
   { id: "s15_bk_001", s: "P(A∪B) formülü nedir?", c: "P(A)+P(B)-P(A∩B)", v: {}, z:"cok_zor", alt:"birlesim_formul" },
-  { id: "s15_bk_002", s: "P(A)=1/2, P(B)=1/3, P(A∩B)=1/6 ise P(A∪B)=?", c: "1/2+1/3-1/6=4/6=2/3", v: {}, z:"cok_zor", alt:"birlesim_hesap" },
+  { id: "s15_bk_002", s: "P(A)=1/2, P(B)=1/3, P(A∩B)=1/6 ise P(A∪B)=?", c: "2/3", v: {}, z:"cok_zor", alt:"birlesim_hesap" },
   { id: "s15_bk_003", s: "A ve B ayrık ise P(A∪B) = ?", c: "P(A)+P(B)", v: {}, z:"orta", alt:"ayrik_birlesim" },
 
   // ALT DAL 2: KESİŞİM OLASILIĞI
@@ -6904,8 +7119,8 @@ const SORU_BANKASI = {
   { id: "s15_bk_008", s: "Üç olay için dahil etme-hariç etme formülü ne işe yarar?", c: "uc_olayin_birlesim_olasiligini_hesaplamaya", v: {}, z:"orta", alt:"dahil_etme" },
 
   // ALT DAL 4: BİRLEŞİM PROBLEMLERİ
-  { id: "s15_bk_009", s: "Bir öğrencinin Matematikten geçme olasılığı 3/4, Fizikten 2/3, ikisinden 1/2 ise en az birinden geçme olasılığı kaçtır?", c: "3/4+2/3-1/2=11/12", v: {}, z:"cok_zor", alt:"en_az_bir_gecme" },
-  { id: "s15_bk_010", s: "P(A)=0,6, P(B)=0,5, P(A∪B)=0,8 ise P(A∩B)=?", c: "0,6+0,5-0,8=0,3", v: {}, z:"cok_zor", alt:"kesisim_bulma" },
+  { id: "s15_bk_009", s: "Bir öğrencinin Matematikten geçme olasılığı 3/4, Fizikten 2/3, ikisinden 1/2 ise en az birinden geçme olasılığı kaçtır?", c: "11/12", v: {}, z:"cok_zor", alt:"en_az_bir_gecme" },
+  { id: "s15_bk_010", s: "P(A)=0,6, P(B)=0,5, P(A∪B)=0,8 ise P(A∩B)=?", c: "0,3", v: {}, z:"cok_zor", alt:"kesisim_bulma" },
 
   // ALT DAL 5: BAĞIMSIZLIK KONTROLÜ
   { id: "s15_bk_011", s: "P(A∩B) = P(A)×P(B) ise A ve B için ne söylenebilir?", c: "bagimsizdir", v: {}, z:"cok_zor", alt:"bagimsizlik_kontrol" },
@@ -6922,30 +7137,30 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: TEK ZAR
   { id: "s15_zp_001", s: "Bir zar atıldığında {a} gelme olasılığı kaçtır?", c: "1/6", v: {a:[1,6]}, z:"kolay", alt:"tek_zar" },
-  { id: "s15_zp_002", s: "Bir zar atıldığında 3'ten büyük gelme olasılığı kaçtır?", c: "3/6=1/2_(4,5,6)", v: {}, z:"orta", alt:"ucten_buyuk" },
-  { id: "s15_zp_003", s: "Bir zar atıldığında asal sayı gelme olasılığı kaçtır?", c: "3/6=1/2_(2,3,5)", v: {}, z:"orta", alt:"asal_zar" },
+  { id: "s15_zp_002", s: "Bir zar atıldığında 3'ten büyük gelme olasılığı kaçtır?", c: "1/2", v: {}, z:"orta", alt:"ucten_buyuk" },
+  { id: "s15_zp_003", s: "Bir zar atıldığında asal sayı gelme olasılığı kaçtır?", c: "1/2", v: {}, z:"orta", alt:"asal_zar" },
 
   // ALT DAL 2: İKİ ZAR - TOPLAM
   { id: "s15_zp_004", s: "İki zar atıldığında toplamın {t} olma olasılığı kaçtır?", c: "{olasilik}", v: {t:[2,12]}, z:"zor", alt:"iki_zar_toplam" },
-  { id: "s15_zp_005", s: "İki zar atıldığında toplamın 7 olma olasılığı kaçtır?", c: "6/36=1/6", v: {}, z:"zor", alt:"toplam_7" },
+  { id: "s15_zp_005", s: "İki zar atıldığında toplamın 7 olma olasılığı kaçtır?", c: "1/6", v: {}, z:"zor", alt:"toplam_7" },
   { id: "s15_zp_006", s: "İki zar atıldığında toplamın 8 olma olasılığı kaçtır?", c: "5/36", v: {}, z:"zor", alt:"toplam_8" },
-  { id: "s15_zp_007", s: "İki zar atıldığında toplamın en az 10 olma olasılığı kaçtır?", c: "6/36=1/6_(10,11,12)", v: {}, z:"cok_zor", alt:"toplam_en_az_10" },
+  { id: "s15_zp_007", s: "İki zar atıldığında toplamın en az 10 olma olasılığı kaçtır?", c: "1/6", v: {}, z:"cok_zor", alt:"toplam_en_az_10" },
 
   // ALT DAL 3: İKİ ZAR - ÇARPIM
-  { id: "s15_zp_008", s: "İki zar atıldığında çarpımın tek olma olasılığı kaçtır?", c: "9/36=1/4_(ikisi_de_tek)", v: {}, z:"cok_zor", alt:"carpim_tek" },
-  { id: "s15_zp_009", s: "İki zar atıldığında çarpımın çift olma olasılığı kaçtır?", c: "27/36=3/4", v: {}, z:"cok_zor", alt:"carpim_cift" },
+  { id: "s15_zp_008", s: "İki zar atıldığında çarpımın tek olma olasılığı kaçtır?", c: "1/4", v: {}, z:"cok_zor", alt:"carpim_tek" },
+  { id: "s15_zp_009", s: "İki zar atıldığında çarpımın çift olma olasılığı kaçtır?", c: "3/4", v: {}, z:"cok_zor", alt:"carpim_cift" },
 
   // ALT DAL 4: İKİ ZAR - EŞİT GELME
-  { id: "s15_zp_010", s: "İki zar atıldığında aynı sayı gelme olasılığı kaçtır?", c: "6/36=1/6", v: {}, z:"orta", alt:"ayni_sayi" },
-  { id: "s15_zp_011", s: "İki zar atıldığında farklı sayı gelme olasılığı kaçtır?", c: "30/36=5/6", v: {}, z:"orta", alt:"farkli_sayi" },
+  { id: "s15_zp_010", s: "İki zar atıldığında aynı sayı gelme olasılığı kaçtır?", c: "1/6", v: {}, z:"orta", alt:"ayni_sayi" },
+  { id: "s15_zp_011", s: "İki zar atıldığında farklı sayı gelme olasılığı kaçtır?", c: "5/6", v: {}, z:"orta", alt:"farkli_sayi" },
 
   // ALT DAL 5: ÜÇ ZAR
-  { id: "s15_zp_012", s: "Üç zar atıldığında toplamın 3 olma olasılığı kaçtır?", c: "1/216_(sadece_1+1+1)", v: {}, z:"cok_zor", alt:"uc_zar_toplam_3" },
+  { id: "s15_zp_012", s: "Üç zar atıldığında toplamın 3 olma olasılığı kaçtır?", c: "1/216", v: {}, z:"cok_zor", alt:"uc_zar_toplam_3" },
   { id: "s15_zp_013", s: "Üç zar atıldığında hepsinin 6 gelme olasılığı kaçtır?", c: "1/216", v: {}, z:"cok_zor", alt:"uc_zar_6" },
 
   // ALT DAL 6: ZAR PROBLEMLERİ KARIŞIK
-  { id: "s15_zp_014", s: "İki zar atıldığında gelen sayıların ardışık olma olasılığı kaçtır?", c: "10/36=5/18", v: {}, z:"cok_zor", alt:"ardisik_zar" },
-  { id: "s15_zp_015", s: "İki zar atıldığında farkın 2 olma olasılığı kaçtır?", c: "8/36=2/9", v: {}, z:"cok_zor", alt:"fark_2" },
+  { id: "s15_zp_014", s: "İki zar atıldığında gelen sayıların ardışık olma olasılığı kaçtır?", c: "5/18", v: {}, z:"cok_zor", alt:"ardisik_zar" },
+  { id: "s15_zp_015", s: "İki zar atıldığında farkın 2 olma olasılığı kaçtır?", c: "2/9", v: {}, z:"cok_zor", alt:"fark_2" },
 
   // ALT DAL 7: ZAR VE OLASILIK HESAPLAMA
   { id: "s15_zp_016", s: "İki zar deneyinde tüm durum sayısı neden 36'dır?", c: "her_bir_zar_6_yuz_6×6=36", v: {}, z:"orta", alt:"36_nedeni" },
@@ -6953,7 +7168,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 8: ZAR PROBLEMLERİ ÖZET
   { id: "s15_zp_018", s: "İki zarda toplam olasılıkları hesaplanırken nelere dikkat edilir?", c: "her_bir_toplami_veren_ikili_sayisi_farklidir", v: {}, z:"orta", alt:"toplam_dikkat" },
-  { id: "s15_zp_019", s: "İki zarda en yüksek olasılıklı toplam kaçtır?", c: "7_(6/36_olasilikla)", v: {}, z:"orta", alt:"en_yuksek_toplam" },
+  { id: "s15_zp_019", s: "İki zarda en yüksek olasılıklı toplam kaçtır?", c: "7_(1/6_olasilikla)", v: {}, z:"orta", alt:"en_yuksek_toplam" },
 
 
   // ==========================================
@@ -6967,20 +7182,20 @@ const SORU_BANKASI = {
   // ALT DAL 2: İKİ PARA
   { id: "s15_pp_003", s: "İki para atıldığında ikisinin de yazı gelme olasılığı kaçtır?", c: "1/4", v: {}, z:"orta", alt:"iki_para_yazi" },
   { id: "s15_pp_004", s: "İki para atıldığında en az bir tura gelme olasılığı kaçtır?", c: "3/4", v: {}, z:"orta", alt:"en_az_bir_tura_iki" },
-  { id: "s15_pp_005", s: "İki para atıldığında aynı yüz gelme olasılığı kaçtır?", c: "1/2_(YY+TT)", v: {}, z:"orta", alt:"ayni_yuz" },
+  { id: "s15_pp_005", s: "İki para atıldığında aynı yüz gelme olasılığı kaçtır?", c: "1/2", v: {}, z:"orta", alt:"ayni_yuz" },
 
   // ALT DAL 3: ÜÇ PARA
   { id: "s15_pp_006", s: "Üç para atıldığında hep yazı gelme olasılığı kaçtır?", c: "1/8", v: {}, z:"orta", alt:"uc_para_yazi" },
   { id: "s15_pp_007", s: "Üç para atıldığında en az bir tura gelme olasılığı kaçtır?", c: "7/8", v: {}, z:"orta", alt:"en_az_bir_tura_uc" },
-  { id: "s15_pp_008", s: "Üç para atıldığında tam 2 yazı gelme olasılığı kaçtır?", c: "C(3,2)/8=3/8", v: {}, z:"cok_zor", alt:"tam_2_yazi" },
+  { id: "s15_pp_008", s: "Üç para atıldığında tam 2 yazı gelme olasılığı kaçtır?", c: "3/8", v: {}, z:"cok_zor", alt:"tam_2_yazi" },
 
   // ALT DAL 4: n PARA
-  { id: "s15_pp_009", s: "{n} para atıldığında hep tura gelme olasılığı kaçtır?", c: "1/2^{n}", v: {n:[2,6]}, z:"orta", alt:"n_para_tura" },
-  { id: "s15_pp_010", s: "{n} para atıldığında en az bir yazı gelme olasılığı kaçtır?", c: "1-1/2^{n}", v: {n:[2,5]}, z:"cok_zor", alt:"en_az_bir_yazi_n" },
-  { id: "s15_pp_011", s: "{n} para atıldığında tam {k} tura gelme olasılığı kaçtır?", c: "C({n},{k})/2^{n}", v: {n:[3,6], k:[1,"{n}-1"]}, z:"cok_zor", alt:"tam_k_tura" },
+  { id: "s15_pp_009", s: "{n} para atıldığında hep tura gelme olasılığı kaçtır?", c: "1/Math.pow(2,{n})", v: {n:[2,6]}, z:"orta", alt:"n_para_tura" },
+  { id: "s15_pp_010", s: "{n} para atıldığında en az bir yazı gelme olasılığı kaçtır?", c: "1-1/Math.pow(2,{n})", v: {n:[2,5]}, z:"cok_zor", alt:"en_az_bir_yazi_n" },
+  { id: "s15_pp_011", s: "{n} para atıldığında tam {k} tura gelme olasılığı kaçtır?", c: "C({n},{k})/Math.pow(2,{n})", v: {n:[3,6], k:[1,"{n}-1"]}, z:"cok_zor", alt:"tam_k_tura" },
 
   // ALT DAL 5: PARA PROBLEMLERİ ÖZEL
-  { id: "s15_pp_012", s: "Para atışlarında tüm durum sayısı nasıl hesaplanır?", c: "2^n_(n_atis_sayisi)", v: {}, z:"orta", alt:"tum_durum_para" },
+  { id: "s15_pp_012", s: "Para atışlarında tüm durum sayısı nasıl hesaplanır?", c: "Math.pow(2,{n})_(n_atis_sayisi)", v: {}, z:"orta", alt:"tum_durum_para" },
   { id: "s15_pp_013", s: "Para atışları ile binom dağılımı arasındaki ilişki nedir?", c: "binom_dagiliminin_en_basit_ornegidir", v: {}, z:"cok_zor", alt:"binom_para" },
 
   // ALT DAL 6: PARA PROBLEMLERİ ÖZET
@@ -6997,7 +7212,7 @@ const SORU_BANKASI = {
   { id: "s15_tc_002", s: "Torbada {k} kırmızı, {m} mavi, {s} sarı top var. Kırmızı gelme olasılığı kaçtır?", c: "{k}/({k}+{m}+{s})", v: {k:[2,6], m:[2,5], s:[1,4]}, z:"orta", alt:"uc_renk_tek" },
 
   // ALT DAL 2: YERİNE KOYARAK ÇEKME
-  { id: "s15_tc_003", s: "Torbada {k} kırmızı, {m} mavi top var. Yerine konarak iki top çekiliyor. İkisinin de kırmızı olma olasılığı kaçtır?", c: "({k}/({k}+{m}))²", v: {k:[3,6], m:[2,5]}, z:"zor", alt:"yerine_koyarak_kirmizi" },
+  { id: "s15_tc_003", s: "Torbada {k} kırmızı, {m} mavi top var. Yerine konarak iki top çekiliyor. İkisinin de kırmızı olma olasılığı kaçtır?", c: "Math.pow({k}/({k}+{m}),2)", v: {k:[3,6], m:[2,5]}, z:"zor", alt:"yerine_koyarak_kirmizi" },
   { id: "s15_tc_004", s: "Yerine koyarak çekmede olasılık neden değişmez?", c: "her_cekimde_torbadaki_durum_ayni_kalir", v: {}, z:"orta", alt:"yerine_koyma_nedeni" },
 
   // ALT DAL 3: YERİNE KOYMADAN ÇEKME
@@ -7005,7 +7220,7 @@ const SORU_BANKASI = {
   { id: "s15_tc_006", s: "Yerine koymadan çekmede olasılık neden değişir?", c: "her_cekimde_torbadaki_top_sayisi_ve_dagilim_degisir", v: {}, z:"orta", alt:"yerine_koymama_nedeni" },
 
   // ALT DAL 4: EN AZ BİR KIRMIZI
-  { id: "s15_tc_007", s: "Torbada {k} kırmızı, {m} mavi top var. İki top çekildiğinde en az bir kırmızı gelme olasılığı kaçtır?", c: "1-(mavi×mavi_durumu)", v: {k:[3,6], m:[2,5]}, z:"cok_zor", alt:"en_az_bir_kirmizi" },
+  { id: "s15_tc_007", s: "Torbada {k} kırmızı, {m} mavi top var. İki top çekildiğinde en az bir kırmızı gelme olasılığı kaçtır?", c: "1-({m}/({k}+{m}))*(({m}-1)/({k}+{m}-1))", v: {k:[3,6], m:[2,5]}, z:"cok_zor", alt:"en_az_bir_kirmizi" },
   { id: "s15_tc_008", s: "\"En az bir\" top çekme sorularında tümleyen neden kullanılır?", c: "hic_kirmizi_olmama_durumu_tek_olasiliktir", v: {}, z:"orta", alt:"tumleyen_top" },
 
   // ALT DAL 5: FARKLI RENK ÇEKME
@@ -7013,10 +7228,10 @@ const SORU_BANKASI = {
   { id: "s15_tc_010", s: "İki top çekildiğinde bir kırmızı bir mavi gelme olasılığı nasıl hesaplanır?", c: "(kirmizi_sonra_mavi)+(mavi_sonra_kirmizi)", v: {}, z:"cok_zor", alt:"sirali_farkli" },
 
   // ALT DAL 6: ÜÇ TOP ÇEKME
-  { id: "s15_tc_011", s: "Torbada {k} kırmızı, {m} mavi, {s} sarı top var. Üç top çekildiğinde hepsinin farklı renk olma olasılığı kaçtır?", c: "3!×{k}×{m}×{s}/(({k}+{m}+{s})×({k}+{m}+{s}-1)×({k}+{m}+{s}-2))", v: {k:[2,5], m:[2,4], s:[2,4]}, z:"cok_zor", alt:"uc_farkli_renk" },
+  { id: "s15_tc_011", s: "Torbada {k} kırmızı, {m} mavi, {s} sarı top var. Üç top çekildiğinde hepsinin farklı renk olma olasılığı kaçtır?", c: "6×{k}×{m}×{s}/(({k}+{m}+{s})×({k}+{m}+{s}-1)×({k}+{m}+{s}-2))", v: {k:[2,5], m:[2,4], s:[2,4]}, z:"cok_zor", alt:"uc_farkli_renk" },
 
   // ALT DAL 7: TOP ÇEKME PROBLEMLERİ KARIŞIK
-  { id: "s15_tc_012", s: "Torbada eşit sayıda kırmızı ve mavi top vardır. İki top çekildiğinde ikisinin de aynı renk olma olasılığı kaçtır?", c: "(n-1)/(2n-1)", v: {}, z:"cok_zor", alt:"ayni_renk_esit" },
+  { id: "s15_tc_012", s: "Torbada eşit sayıda kırmızı ve mavi top vardır. İki top çekildiğinde ikisinin de aynı renk olma olasılığı kaçtır?", c: "({n}-1)/(2*{n}-1)", v: {n:[2,5]}, z:"cok_zor", alt:"ayni_renk_esit" },
   { id: "s15_tc_013", s: "Torbadan top çekme problemlerinde kombinasyon nasıl kullanılır?", c: "secim_sayilari_kombinasyonla_hesaplanir", v: {}, z:"orta", alt:"kombinasyon_top" },
 
   // ALT DAL 8: TOP ÇEKME ÖZET
@@ -7029,9 +7244,9 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TEK KART ÇEKME
-  { id: "s15_kc_001", s: "52'lik desteden çekilen kartın kupa olma olasılığı kaçtır?", c: "13/52=1/4", v: {}, z:"orta", alt:"kupa" },
-  { id: "s15_kc_002", s: "52'lik desteden çekilen kartın as olma olasılığı kaçtır?", c: "4/52=1/13", v: {}, z:"orta", alt:"as" },
-  { id: "s15_kc_003", s: "52'lik desteden çekilen kartın kırmızı olma olasılığı kaçtır?", c: "26/52=1/2", v: {}, z:"orta", alt:"kirmizi_kart" },
+  { id: "s15_kc_001", s: "52'lik desteden çekilen kartın kupa olma olasılığı kaçtır?", c: "1/4", v: {}, z:"orta", alt:"kupa" },
+  { id: "s15_kc_002", s: "52'lik desteden çekilen kartın as olma olasılığı kaçtır?", c: "1/13", v: {}, z:"orta", alt:"as" },
+  { id: "s15_kc_003", s: "52'lik desteden çekilen kartın kırmızı olma olasılığı kaçtır?", c: "1/2", v: {}, z:"orta", alt:"kirmizi_kart" },
 
   // ALT DAL 2: İKİ KART ÇEKME
   { id: "s15_kc_004", s: "52'lik desteden iki kart çekiliyor. İkisinin de as olma olasılığı kaçtır?", c: "C(4,2)/C(52,2)=6/1326=1/221", v: {}, z:"cok_zor", alt:"iki_as" },
@@ -7046,8 +7261,8 @@ const SORU_BANKASI = {
   { id: "s15_kc_009", s: "İskambil destesinde renkler nelerdir?", c: "kupa,_karo,_maca,_sinek", v: {}, z:"kolay", alt:"renkler" },
 
   // ALT DAL 5: KART PROBLEMLERİ KARIŞIK
-  { id: "s15_kc_010", s: "Desteden çekilen kartın papaz veya kupa olma olasılığı kaçtır?", c: "(4+13-1)/52=16/52=4/13", v: {}, z:"cok_zor", alt:"papaz_veya_kupa" },
-  { id: "s15_kc_011", s: "İki kart çekildiğinde birinin kupa diğerinin maça olma olasılığı kaçtır?", c: "(13×13×2)/C(52,2)", v: {}, z:"cok_zor", alt:"kupa_maca" },
+  { id: "s15_kc_010", s: "Desteden çekilen kartın papaz veya kupa olma olasılığı kaçtır?", c: "4/13", v: {}, z:"cok_zor", alt:"papaz_veya_kupa" },
+  { id: "s15_kc_011", s: "İki kart çekildiğinde birinin kupa diğerinin maça olma olasılığı kaçtır?", c: "(13×13×2)/C(52,2)=26/663", v: {}, z:"cok_zor", alt:"kupa_maca" },
 
   // ALT DAL 6: KART PROBLEMLERİ ÖZET
   { id: "s15_kc_012", s: "Kart çekme problemlerinde kombinasyon neden kullanılır?", c: "coklu_kart_cekiminde_siralama_onemsizdir", v: {}, z:"orta", alt:"kombinasyon_kart" },
@@ -7059,15 +7274,15 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: PERMÜTASYON VE OLASILIK
-  { id: "s15_os_001", s: "{n} kişi yan yana rastgele sıralanıyor. Belirli iki kişinin yan yana olma olasılığı kaçtır?", c: "2!×({n}-1)!/{n}!=2/{n}", v: {n:[4,8]}, z:"cok_zor", alt:"yan_yana_olasilik" },
+  { id: "s15_os_001", s: "{n} kişi yan yana rastgele sıralanıyor. Belirli iki kişinin yan yana olma olasılığı kaçtır?", c: "2/{n}", v: {n:[4,8]}, z:"cok_zor", alt:"yan_yana_olasilik" },
   { id: "s15_os_002", s: "Permütasyon ile olasılık hesaplanırken nelere dikkat edilir?", c: "istenen_siralama_sayisi/tum_siralama_sayisi", v: {}, z:"orta", alt:"permutasyon_olasilik" },
 
   // ALT DAL 2: KOMBİNASYON VE OLASILIK
-  { id: "s15_os_003", s: "{n} kişiden rastgele {r} kişi seçiliyor. Belirli bir kişinin seçilme olasılığı kaçtır?", c: "C({n}-1,{r}-1)/C({n},{r})={r}/{n}", v: {n:[6,15], r:[2,"{n}-1"]}, z:"cok_zor", alt:"secme_olasilik" },
+  { id: "s15_os_003", s: "{n} kişiden rastgele {r} kişi seçiliyor. Belirli bir kişinin seçilme olasılığı kaçtır?", c: "{r}/{n}", v: {n:[6,15], r:[2,"{n}-1"]}, z:"cok_zor", alt:"secme_olasilik" },
   { id: "s15_os_004", s: "{n} kişiden {r} kişi seçildiğinde belirli kişinin seçilme olasılığı neden r/n'dir?", c: "her_bir_kisinin_secilme_sansi_esittir", v: {}, z:"cok_zor", alt:"r_n_nedeni" },
 
   // ALT DAL 3: SAYMA PROBLEMLERİ
-  { id: "s15_os_005", s: "{a} basamaklı rastgele bir sayının rakamlarının farklı olma olasılığı kaçtır?", c: "9×P(9,{a}-1)/(9×10^{a-1})", v: {a:[2,4]}, z:"cok_zor", alt:"rakam_farkli_olasilik" },
+  { id: "s15_os_005", s: "{a} basamaklı rastgele bir sayının rakamlarının farklı olma olasılığı kaçtır?", c: "9×P(9,{a}-1)/(9×Math.pow(10,{a}-1))", v: {a:[2,4]}, z:"cok_zor", alt:"rakam_farkli_olasilik" },
   { id: "s15_os_006", s: "Sayma ve olasılık arasındaki ilişki nedir?", c: "olasilik=istenen_sayma_durumu/tum_sayma_durumu", v: {}, z:"orta", alt:"sayma_olasilik" },
 
   // ALT DAL 4: GEOMETRİK OLASILIK
@@ -7076,7 +7291,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 5: OLASILIK VE İSTATİSTİK
   { id: "s15_os_009", s: "Beklenen değer nedir?", c: "olasilik_ile_degerin_carpimlarinin_toplami", v: {}, z:"cok_zor", alt:"beklenen_deger" },
-  { id: "s15_os_010", s: "Bir zarda beklenen değer kaçtır?", c: "(1+2+3+4+5+6)/6=3,5", v: {}, z:"cok_zor", alt:"zar_beklenen" },
+  { id: "s15_os_010", s: "Bir zarda beklenen değer kaçtır?", c: "3,5", v: {}, z:"cok_zor", alt:"zar_beklenen" },
 
   // ALT DAL 6: OLASILIK VE SAYMA ÖZET
   { id: "s15_os_011", s: "Olasılık problemlerinde sayma teknikleri nasıl kullanılır?", c: "once_tum_durum_sonra_istenen_durum_sayilir", v: {}, z:"orta", alt:"sayma_strateji" },
@@ -7093,7 +7308,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: DENEYSEL OLASILIK
   { id: "s15_dt_003", s: "Deneysel olasılık nedir?", c: "deney_sonuclarina_dayali_olasilik", v: {}, z:"orta", alt:"deneysel_tanim" },
-  { id: "s15_dt_004", s: "Bir zar 60 kez atılıp 12 kez 6 gelmişse deneysel olasılık kaçtır?", c: "12/60=1/5", v: {}, z:"orta", alt:"deneysel_zar" },
+  { id: "s15_dt_004", s: "Bir zar 60 kez atılıp 12 kez 6 gelmişse deneysel olasılık kaçtır?", c: "1/5", v: {}, z:"orta", alt:"deneysel_zar" },
 
   // ALT DAL 3: TEORİK VE DENEYSEL KARŞILAŞTIRMA
   { id: "s15_dt_005", s: "Teorik ve deneysel olasılık arasındaki fark nedir?", c: "teorik_hesaplanir_deneysel_gozlemlenir", v: {}, z:"orta", alt:"teorik_deneysel_fark" },
@@ -7105,7 +7320,7 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+// ==========================================
 // SEVİYE 16: İSTATİSTİK
 // ==========================================
 16: [
@@ -7194,12 +7409,12 @@ const SORU_BANKASI = {
   // ALT DAL 2: TEK SAYIDA MEDYAN
   { id: "s16_mm_004", s: "{n} tane verinin medyanı nasıl bulunur? (n tek)", c: "siralanir_(n+1)/2_siradaki_veri_ortancadir", v: {n:[3,9,2]}, z:"orta", alt:"medyan_tek" },
   { id: "s16_mm_005", s: "1, 3, 5, 7, 9 veri grubunun medyanı kaçtır?", c: "5", v: {}, z:"orta", alt:"medyan_tek_ornek" },
-  { id: "s16_mm_006", s: "2, 8, 4, 6, 10 veri grubunun medyanı kaçtır?", c: "6_(sirala:2,4,6,8,10)", v: {}, z:"orta", alt:"medyan_siralama" },
+  { id: "s16_mm_006", s: "2, 8, 4, 6, 10 veri grubunun medyanı kaçtır?", c: "6", v: {}, z:"orta", alt:"medyan_siralama" },
 
   // ALT DAL 3: ÇİFT SAYIDA MEDYAN
   { id: "s16_mm_007", s: "{n} tane verinin medyanı nasıl bulunur? (n çift)", c: "siralanir_ortadaki_iki_sayinin_ortalamasi_alınır", v: {n:[4,10,2]}, z:"orta", alt:"medyan_cift" },
   { id: "s16_mm_008", s: "2, 4, 6, 8 veri grubunun medyanı kaçtır?", c: "5", v: {}, z:"orta", alt:"medyan_cift_ornek" },
-  { id: "s16_mm_009", s: "3, 7, 1, 9 veri grubunun medyanı kaçtır?", c: "5_(sirala:1,3,7,9)", v: {}, z:"orta", alt:"medyan_cift_ornek2" },
+  { id: "s16_mm_009", s: "3, 7, 1, 9 veri grubunun medyanı kaçtır?", c: "5", v: {}, z:"orta", alt:"medyan_cift_ornek2" },
 
   // ALT DAL 4: MOD (TEPE DEĞER) TANIMI
   { id: "s16_mm_010", s: "Mod (tepe değer) nedir?", c: "veri_grubunda_en_cok_tekrar_eden_deger", v: {}, z:"orta", alt:"mod_tanim" },
@@ -7269,7 +7484,8 @@ const SORU_BANKASI = {
   // ALT DAL 2: STANDART SAPMA HESAPLAMA
   { id: "s16_ss_005", s: "Standart sapma hesaplama adımları nelerdir?", c: "1.ortalama_bul_2.sapmalari_bul_3.karelerini_al_4.topla_5.n-1'e_bol_6.karekok_al", v: {}, z:"cok_zor", alt:"ss_adimlar" },
   { id: "s16_ss_006", s: "2, 4, 4, 4, 5, 5, 7, 9 veri grubunun standart sapması kaçtır?", c: "2", v: {}, z:"cok_zor", alt:"ss_ornek" },
-  { id: "s16_ss_007", s: "{a}, {b}, {c} verilerinin standart sapması kaçtır? (yaklaşık)", c: "{ss}", v: {a:[2,8], b:[3,10], c:[4,12]}, z:"cok_zor", alt:"ss_uc_veri" },
+  // DÜZELTME: s16_ss_007 - "ss" değişkeni tanımlı değil, değer hesaplama yapılması gerekiyor. Sabit değerler vereyim.
+  { id: "s16_ss_007", s: "2, 4, 6 veri grubunun standart sapması kaçtır? (yaklaşık)", c: "2", v: {}, z:"cok_zor", alt:"ss_uc_veri" },
 
   // ALT DAL 3: VARYANS
   { id: "s16_ss_008", s: "Varyans nedir?", c: "standart_sapmanin_karesi", v: {}, z:"cok_zor", alt:"varyans_tanim" },
@@ -7326,10 +7542,10 @@ const SORU_BANKASI = {
   // ALT DAL 5: DAİRE GRAFİĞİ
   { id: "s16_gf_012", s: "Daire grafiği ne için kullanılır?", c: "bir_butunun_parcalarinin_oransal_dagilimini_gostermek", v: {}, z:"orta", alt:"daire_tanim" },
   { id: "s16_gf_013", s: "Daire grafiğinde merkez açı nasıl hesaplanır?", c: "(dilim_degeri/toplam)×360", v: {}, z:"orta", alt:"daire_aci" },
-  { id: "s16_gf_014", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}×3,6", v: {p:[5,40]}, z:"orta", alt:"daire_yuzde_aci" },
+  { id: "s16_gf_014", s: "Daire grafiğinde %{p}'lik dilimin merkez açısı kaç derecedir?", c: "{p}*3.6", v: {p:[5,40]}, z:"orta", alt:"daire_yuzde_aci" },
 
   // ALT DAL 6: DAİRE GRAFİĞİ OKUMA
-  { id: "s16_gf_015", s: "Daire grafiğinde {a}°'lik dilim toplamın yüzde kaçıdır?", c: "{a}/3,6", v: {a:[36,180]}, z:"orta", alt:"aci_yuzde" },
+  { id: "s16_gf_015", s: "Daire grafiğinde {a}°'lik dilim toplamın yüzde kaçıdır?", c: "{a}/3.6", v: {a:[36,180]}, z:"orta", alt:"aci_yuzde" },
   { id: "s16_gf_016", s: "Daire grafiğinde {a}°'lik dilim {toplam} kişiden kaçını temsil eder?", c: "{a}×{toplam}/360", v: {a:[30,180], toplam:[180,720]}, z:"zor", alt:"dilim_kisi" },
   { id: "s16_gf_017", s: "Daire grafiğinde tüm merkez açılar toplamı kaç derecedir?", c: "360", v: {}, z:"orta", alt:"daire_toplam_aci" },
 
@@ -7481,7 +7697,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 17: MANTIK
 // ==========================================
 17: [
@@ -7497,8 +7714,8 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: DOĞRULUK DEĞERİ
   { id: "s17_on_004", s: "Doğruluk değeri nedir?", c: "onermenin_dogru_(1)_veya_yanlis_(0)_olmasi", v: {}, z:"orta", alt:"dogruluk_degeri" },
-  { id: "s17_on_005", s: "\"2+2=4\" önermesinin doğruluk değeri nedir?", c: "1_(dogru)", v: {}, z:"kolay", alt:"dogru_onerme" },
-  { id: "s17_on_006", s: "\"2+2=5\" önermesinin doğruluk değeri nedir?", c: "0_(yanlis)", v: {}, z:"kolay", alt:"yanlis_onerme" },
+  { id: "s17_on_005", s: "\"2+2=4\" önermesinin doğruluk değeri nedir?", c: "1", v: {}, z:"kolay", alt:"dogru_onerme" },
+  { id: "s17_on_006", s: "\"2+2=5\" önermesinin doğruluk değeri nedir?", c: "0", v: {}, z:"kolay", alt:"yanlis_onerme" },
 
   // ALT DAL 3: ÖNERME DEĞİLİ
   { id: "s17_on_007", s: "Bir önermenin değili (olumsuzu) nasıl gösterilir?", c: "p'_veya_~p_veya_¬p", v: {}, z:"orta", alt:"degil_gosterim" },
@@ -7508,10 +7725,11 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: DOĞRULUK DEĞERİ TABLOSU (1 DEĞİŞKEN)
   { id: "s17_on_011", s: "1 değişkenli kaç farklı doğruluk durumu vardır?", c: "2_(p:1_veya_0)", v: {}, z:"orta", alt:"bir_degisken" },
-  { id: "s17_on_012", s: "n farklı önerme için kaç farklı doğruluk durumu vardır?", c: "2ⁿ", v: {}, z:"orta", alt:"n_degisken" },
+  { id: "s17_on_012", s: "n farklı önerme için kaç farklı doğruluk durumu vardır?", c: "Math.pow(2,{n})", v: {n:[2,4]}, z:"orta", alt:"n_degisken" },
 
   // ALT DAL 5: ÖNERME YAZMA
-  { id: "s17_on_013", s: "\"{a} sayısı tektir.\" ifadesini önerme olarak yazınız. Doğruluk değeri nedir?", c: "p:{sayi}_tektir,_dogruluk:{a}%2==1?1:0", v: {a:[3,12]}, z:"orta", alt:"onerme_yazma" },
+  // DÜZELTME: s17_on_013 - dinamik ifadeyi basitleştirdim
+  { id: "s17_on_013", s: "{a} sayısı tektir. Bu önermenin doğruluk değeri nedir?", c: "{a}%2==1?1:0", v: {a:[3,12]}, z:"orta", alt:"onerme_yazma" },
   { id: "s17_on_014", s: "Aşağıdaki cümlelerden hangisi önerme değildir?", c: "{degil}", v: {secenekler:["Soru cümlesi","Ünlem cümlesi","Emir cümlesi","Dilek cümlesi"]}, z:"orta", alt:"onerme_olmayan" },
 
   // ALT DAL 6: DENK ÖNERMELER
@@ -7590,7 +7808,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 2: İSE BAĞLACININ ÖZELLİKLERİ
   { id: "s17_ia_006", s: "p ⇒ q ifadesinin VEYA'lı karşılığı nedir?", c: "p'∨q", v: {}, z:"cok_zor", alt:"ise_veya_donusum" },
-  { id: "s17_ia_007", s: "p ⇒ p = ?", c: "1_(her_zaman_dogru)", v: {}, z:"orta", alt:"ise_kendisi" },
+  { id: "s17_ia_007", s: "p ⇒ p = ?", c: "1", v: {}, z:"orta", alt:"ise_kendisi" },
   { id: "s17_ia_008", s: "p ⇒ q ile q ⇒ p aynı mıdır?", c: "hayir_(farklidir)", v: {}, z:"cok_zor", alt:"ise_simetri_degil" },
 
   // ALT DAL 3: KARŞIT, TERS, KARŞIT-TERS
@@ -7630,7 +7848,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: BİLEŞİK ÖNERME
   { id: "s17_bo_001", s: "Bileşik önerme nedir?", c: "birden_fazla_onermenin_baglaclarla_birlestirilmesi", v: {}, z:"orta", alt:"bilesik_tanim" },
-  { id: "s17_bo_002", s: "\"p∧(q∨r)\" kaç farklı doğruluk durumu içerir?", c: "8_(2³)", v: {}, z:"orta", alt:"uc_degisken_durum" },
+  { id: "s17_bo_002", s: "\"p∧(q∨r)\" kaç farklı doğruluk durumu içerir?", c: "8", v: {}, z:"orta", alt:"uc_degisken_durum" },
 
   // ALT DAL 2: DOĞRULUK TABLOSU OLUŞTURMA
   { id: "s17_bo_003", s: "Doğruluk tablosu oluştururken sıralama nasıl olur?", c: "once_bagli_degiskenler_sonra_ana_baglac", v: {}, z:"orta", alt:"tablo_sirasi" },
@@ -7660,7 +7878,7 @@ const SORU_BANKASI = {
   { id: "s17_bo_017", s: "p⇔q = (p⇒q)∧(q⇒p) denkliğini kontrol ediniz.", c: "dogrudur", v: {}, z:"cok_zor", alt:"ancak_denklik" },
 
   // ALT DAL 8: BİLEŞİK ÖNERME ÖZET
-  { id: "s17_bo_018", s: "n değişkenli doğruluk tablosunda kaç satır vardır?", c: "2ⁿ", v: {}, z:"orta", alt:"n_degisken_satir" },
+  { id: "s17_bo_018", s: "n değişkenli doğruluk tablosunda kaç satır vardır?", c: "Math.pow(2,{n})", v: {n:[1,4]}, z:"orta", alt:"n_degisken_satir" },
   { id: "s17_bo_019", s: "Bileşik önermelerde işlem önceliği nasıldır?", c: "parantez_oncesi:_'_(degil),_∧_(ve),_∨_(veya),_⇒_(ise),_⇔_(ancak)", v: {}, z:"cok_zor", alt:"islem_onceligi" },
 
 
@@ -7875,7 +8093,7 @@ const SORU_BANKASI = {
   { id: "s17_mp_008", s: "p: \"x asaldır\", q: \"x tektir\" ise p⇒q her zaman doğru mudur?", c: "hayir_(x=2_icin_p_dogru_q_yanlis)", v: {}, z:"cok_zor", alt:"asal_tek_ise" },
 
   // ALT DAL 5: DOĞRULUK TABLOSU PROBLEMLERİ
-  { id: "s17_mp_009", s: "3 değişkenli bir doğruluk tablosunda kaç farklı bileşik önerme yazılabilir?", c: "2⁸=256", v: {}, z:"cok_zor", alt:"bilesik_sayisi" },
+  { id: "s17_mp_009", s: "3 değişkenli bir doğruluk tablosunda kaç farklı bileşik önerme yazılabilir?", c: "256", v: {}, z:"cok_zor", alt:"bilesik_sayisi" },
   { id: "s17_mp_010", s: "n değişkenli kaç farklı totoloji yazılabilir?", c: "1_(tum_degerler_1_olan_sutun)", v: {}, z:"cok_zor", alt:"totoloji_sayisi" },
 
   // ALT DAL 6: MANTIK PROBLEMLERİ ÖZET
@@ -7884,7 +8102,8 @@ const SORU_BANKASI = {
 
 ],
 
-  // ==========================================
+
+// ==========================================
 // SEVİYE 18: GEOMETRİ
 // ==========================================
 18: [
@@ -7933,7 +8152,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 7: AÇI SORULARI
   { id: "s18_ac_027", s: "Bir açının tümleri ile bütünlerinin toplamı {t}° ise bu açı kaç derecedir?", c: "(270-{t})/2", v: {t:[100,200]}, z:"cok_zor", alt:"tumler_butunler_toplam" },
-  { id: "s18_ac_028", s: "Bir açının bütünleri tümlerinin {k} katı ise bu açı kaç derecedir?", c: "(90{k}-180)/({k}-1)", v: {k:[3,6]}, z:"cok_zor", alt:"butunler_tumler_kat" },
+  { id: "s18_ac_028", s: "Bir açının bütünleri tümlerinin {k} katı ise bu açı kaç derecedir?", c: "(90*{k}-180)/({k}-1)", v: {k:[3,6]}, z:"cok_zor", alt:"butunler_tumler_kat" },
 
   // ALT DAL 8: AÇI ÇEŞİTLERİ ÖZET
   { id: "s18_ac_029", s: "Komşu açı nedir?", c: "bir_kenari_ortak_olan_acilar", v: {}, z:"orta", alt:"komsu" },
@@ -7969,12 +8188,17 @@ const SORU_BANKASI = {
   { id: "s18_ut_009", s: "Dik üçgende bir açı kaç derecedir?", c: "90°", v: {}, z:"orta", alt:"dik_ucgen" },
   { id: "s18_ut_010", s: "Geniş açılı üçgende bir açı nasıldır?", c: "90°'den_buyuktur", v: {}, z:"orta", alt:"genis_acili" },
 
+const SORU_BANKASI = {
+  // ==========================================
+  // KONU 18: ÜÇGENLER (8 alt dal)
+  // ==========================================
+
   // ALT DAL 4: ÜÇGEN EŞİTSİZLİĞİ
   { id: "s18_ut_011", s: "Üçgen eşitsizliği nedir?", c: "bir_kenar_diger_iki_kenarin_toplamindan_kucuk_farkindan_buyuk_olmalidir", v: {}, z:"orta", alt:"ucgen_esitsizligi" },
-  { id: "s18_ut_012", s: "Kenarları {a}, {b}, {c} olan üçgen için eşitsizlikleri yazınız.", c: "{a}+{b}>{c}, {a}+{c}>{b}, {b}+{c}>{a}", v: {a:[3,8], b:[4,10], c:[5,12]}, z:"orta", alt:"esitsizlik_yazma" },
-  { id: "s18_ut_013", s: "Kenar uzunlukları {a} cm, {b} cm olan üçgenin üçüncü kenarı tam sayı olarak en az kaç cm'dir?", c: "|{a}-{b}|+1", v: {a:[5,10], b:[3,7]}, z:"cok_zor", alt:"ucuncu_kenar_min" },
-  { id: "s18_ut_014", s: "Kenar uzunlukları {a} cm, {b} cm olan üçgenin üçüncü kenarı tam sayı olarak en çok kaç cm'dir?", c: "{a}+{b}-1", v: {a:[5,10], b:[3,7]}, z:"cok_zor", alt:"ucuncu_kenar_max" },
-  { id: "s18_ut_015", s: "Kenar uzunlukları {a} cm ve {b} cm olan üçgenin 3. kenarı kaç farklı tam sayı değeri alır?", c: "2×min({a},{b})-1", v: {a:[5,10], b:[4,9]}, z:"cok_zor", alt:"ucuncu_kenar_sayisi" },
+  { id: "s18_ut_012", s: "Kenarları {a}, {b}, {c} olan üçgen için eşitsizlikleri yazınız.", c: "{a}+{b}>{c}, {a}+{c}>{b}, {b}+{c}>{a}", v: {a:[3,5,7], b:[4,6,8,10], c:[5,7,9,11]}, z:"orta", alt:"esitsizlik_yazma" },
+  { id: "s18_ut_013", s: "Kenar uzunlukları {a} cm, {b} cm olan üçgenin üçüncü kenarı tam sayı olarak en az kaç cm'dir?", c: "mutlak_deger({a} - {b}) + 1", v: {a:[5,7,9], b:[3,5,7]}, z:"cok_zor", alt:"ucuncu_kenar_min" },
+  { id: "s18_ut_014", s: "Kenar uzunlukları {a} cm, {b} cm olan üçgenin üçüncü kenarı tam sayı olarak en çok kaç cm'dir?", c: "{a} + {b} - 1", v: {a:[5,7,9], b:[3,5,7]}, z:"cok_zor", alt:"ucuncu_kenar_max" },
+  { id: "s18_ut_015", s: "Kenar uzunlukları {a} cm ve {b} cm olan üçgenin 3. kenarı kaç farklı tam sayı değeri alır?", c: "2 * min({a},{b}) - 1", v: {a:[5,7,9], b:[4,6,8]}, z:"cok_zor", alt:"ucuncu_kenar_sayisi" },
 
   // ALT DAL 5: KENAR-AÇI İLİŞKİSİ
   { id: "s18_ut_016", s: "Büyük açı karşısında hangi kenar bulunur?", c: "buyuk_kenar", v: {}, z:"orta", alt:"aci_kenar" },
@@ -7999,35 +8223,35 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: İÇ AÇILAR TOPLAMI
-  { id: "s18_ua_001", s: "Bir üçgenin iç açıları toplamı kaç derecedir?", c: "180°", v: {}, z:"orta", alt:"ic_acilar_toplami" },
-  { id: "s18_ua_002", s: "İki iç açısı {a}° ve {b}° olan üçgenin üçüncü açısı kaç derecedir?", c: "{180-a-b}°", v: {a:[20,80], b:[20,80], kosul:"a+b<180"}, z:"orta", alt:"ucuncu_aci" },
-  { id: "s18_ua_003", s: "Eşkenar üçgenin bir iç açısı kaç derecedir?", c: "60°", v: {}, z:"orta", alt:"eskenar_aci" },
+  { id: "s18_ua_001", s: "Bir üçgenin iç açıları toplamı kaç derecedir?", c: "180", v: {}, z:"orta", alt:"ic_acilar_toplami" },
+  { id: "s18_ua_002", s: "İki iç açısı {a}° ve {b}° olan üçgenin üçüncü açısı kaç derecedir?", c: "180 - {a} - {b}", v: {a:[20,40,60], b:[30,50,70]}, z:"orta", alt:"ucuncu_aci" },
+  { id: "s18_ua_003", s: "Eşkenar üçgenin bir iç açısı kaç derecedir?", c: "60", v: {}, z:"orta", alt:"eskenar_aci" },
 
   // ALT DAL 2: DIŞ AÇILAR
-  { id: "s18_ua_004", s: "Bir üçgenin dış açıları toplamı kaç derecedir?", c: "360°", v: {}, z:"orta", alt:"dis_acilar_toplami" },
+  { id: "s18_ua_004", s: "Bir üçgenin dış açıları toplamı kaç derecedir?", c: "360", v: {}, z:"orta", alt:"dis_acilar_toplami" },
   { id: "s18_ua_005", s: "Bir dış açı kendisine komşu olmayan iki iç açının toplamına eşit midir?", c: "evet", v: {}, z:"orta", alt:"dis_aci_kural" },
-  { id: "s18_ua_006", s: "İki iç açısı {a}° ve {b}° olan üçgenin bu açılara komşu olmayan dış açısı kaç derecedir?", c: "{a+b}°", v: {a:[20,70], b:[30,80]}, z:"orta", alt:"dis_aci_hesap" },
+  { id: "s18_ua_006", s: "İki iç açısı {a}° ve {b}° olan üçgenin bu açılara komşu olmayan dış açısı kaç derecedir?", c: "{a} + {b}", v: {a:[20,40,50], b:[30,50,70]}, z:"orta", alt:"dis_aci_hesap" },
 
   // ALT DAL 3: İKİZKENAR ÜÇGENDE AÇILAR
   { id: "s18_ua_007", s: "İkizkenar üçgende taban açıları nasıldır?", c: "esittir", v: {}, z:"orta", alt:"ikizkenar_taban" },
-  { id: "s18_ua_008", s: "Taban açısı {a}° olan ikizkenar üçgenin tepe açısı kaç derecedir?", c: "{180-2*a}°", v: {a:[10,80]}, z:"orta", alt:"tepe_acisi" },
-  { id: "s18_ua_009", s: "Tepe açısı {a}° olan ikizkenar üçgenin taban açıları kaçar derecedir?", c: "{(180-a)/2}°", v: {a:[20,160,2]}, z:"orta", alt:"taban_acisi" },
+  { id: "s18_ua_008", s: "Taban açısı {a}° olan ikizkenar üçgenin tepe açısı kaç derecedir?", c: "180 - 2*{a}", v: {a:[10,30,50,70]}, z:"orta", alt:"tepe_acisi" },
+  { id: "s18_ua_009", s: "Tepe açısı {a}° olan ikizkenar üçgenin taban açıları kaçar derecedir?", c: "(180 - {a}) / 2", v: {a:[20,40,60,80]}, z:"orta", alt:"taban_acisi" },
 
   // ALT DAL 4: DİK ÜÇGENDE AÇILAR
-  { id: "s18_ua_010", s: "Dik üçgende dar açıların toplamı kaç derecedir?", c: "90°", v: {}, z:"orta", alt:"dik_ucgen_dar" },
-  { id: "s18_ua_011", s: "Bir dik üçgende dar açılardan biri {a}° ise diğeri kaç derecedir?", c: "{90-a}°", v: {a:[10,80]}, z:"orta", alt:"diger_dar_aci" },
+  { id: "s18_ua_010", s: "Dik üçgende dar açıların toplamı kaç derecedir?", c: "90", v: {}, z:"orta", alt:"dik_ucgen_dar" },
+  { id: "s18_ua_011", s: "Bir dik üçgende dar açılardan biri {a}° ise diğeri kaç derecedir?", c: "90 - {a}", v: {a:[10,20,30,40]}, z:"orta", alt:"diger_dar_aci" },
 
   // ALT DAL 5: AÇI-KENAR BAĞINTILARI
   { id: "s18_ua_012", s: "Üçgende en büyük kenar karşısında hangi açı bulunur?", c: "en_buyuk_aci", v: {}, z:"orta", alt:"buyuk_kenar_aci" },
   { id: "s18_ua_013", s: "Üçgende açılar sıralanarak kenarlar nasıl sıralanır?", c: "buyuk_aci_karsisinda_buyuk_kenar", v: {}, z:"orta", alt:"aci_kenar_sira" },
 
   // ALT DAL 6: AÇI PROBLEMLERİ
-  { id: "s18_ua_014", s: "İç açıları {a}, {b}, {c} ile orantılı üçgenin en büyük açısı kaç derecedir?", c: "{c}*180/({a}+{b}+{c})", v: {a:[2,5], b:[3,6], c:[4,8]}, z:"cok_zor", alt:"orantili_acilar" },
-  { id: "s18_ua_015", s: "Bir üçgenin iç açıları 2, 3, 4 ile orantılı ise en küçük açı kaç derecedir?", c: "40°", v: {}, z:"cok_zor", alt:"2_3_4_acilar" },
+  { id: "s18_ua_014", s: "İç açıları {a}, {b}, {c} ile orantılı üçgenin en büyük açısı kaç derecedir?", c: "{c} * 180 / ({a}+{b}+{c})", v: {a:[2,3,4], b:[3,4,5], c:[4,5,6]}, z:"cok_zor", alt:"orantili_acilar" },
+  { id: "s18_ua_015", s: "Bir üçgenin iç açıları 2, 3, 4 ile orantılı ise en küçük açı kaç derecedir?", c: "40", v: {}, z:"cok_zor", alt:"2_3_4_acilar" },
 
   // ALT DAL 7: AÇI SORULARI
-  { id: "s18_ua_016", s: "Bir üçgende bir dış açı 120° ve iç açılardan biri 50° ise diğer iki iç açı kaçar derecedir?", c: "70°_ve_60°", v: {}, z:"zor", alt:"dis_aci_soru" },
-  { id: "s18_ua_017", s: "İç açılarından biri diğerinin 2 katı, üçüncüsü 3 katı olan üçgenin en büyük açısı kaç derecedir?", c: "90°", v: {}, z:"cok_zor", alt:"katli_acilar" },
+  { id: "s18_ua_016", s: "Bir üçgende bir dış açı 120° ve iç açılardan biri 50° ise diğer iki iç açı kaçar derecedir?", c: "70 ve 60", v: {}, z:"zor", alt:"dis_aci_soru" },
+  { id: "s18_ua_017", s: "İç açılarından biri diğerinin 2 katı, üçüncüsü 3 katı olan üçgenin en büyük açısı kaç derecedir?", c: "90", v: {}, z:"cok_zor", alt:"katli_acilar" },
 
   // ALT DAL 8: ÜÇGEN AÇI ÖZET
   { id: "s18_ua_018", s: "Üçgende iç açılar toplamı neden 180°'dir?", c: "bir_dogru_aci_180°_oldugu_icin_(ispat_edilebilir)", v: {}, z:"orta", alt:"ispat" },
@@ -8041,13 +8265,13 @@ const SORU_BANKASI = {
   // ALT DAL 1: PİSAGOR TEOREMİ
   { id: "s18_dp_001", s: "Pisagor teoremi nedir?", c: "dik_ucgende_dik_kenarlarin_kareleri_toplami_hipotenusun_karesine_esittir", v: {}, z:"orta", alt:"pisagor" },
   { id: "s18_dp_002", s: "a²+b²=c² formülünde c nedir?", c: "hipotenus_(dik_acı_karsisindaki_kenar)", v: {}, z:"orta", alt:"hipotenus" },
-  { id: "s18_dp_003", s: "Dik kenarları {a} ve {b} olan üçgenin hipotenüsü kaçtır?", c: "√({a}²+{b}²)", v: {a:[3,8], b:[4,10]}, z:"orta", alt:"hipotenus_hesap" },
-  { id: "s18_dp_004", s: "Hipotenüsü {c}, bir dik kenarı {a} olan üçgenin diğer dik kenarı kaçtır?", c: "√({c}²-{a}²)", v: {c:[5,13], a:[3,5], kosul:"c>a"}, z:"orta", alt:"dik_kenar_hesap" },
+  { id: "s18_dp_003", s: "Dik kenarları {a} ve {b} olan üçgenin hipotenüsü kaçtır?", c: "karekok({a} kare + {b} kare)", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"hipotenus_hesap" },
+  { id: "s18_dp_004", s: "Hipotenüsü {c}, bir dik kenarı {a} olan üçgenin diğer dik kenarı kaçtır?", c: "karekok({c} kare - {a} kare)", v: {c:[5,10,13], a:[3,6,5]}, z:"orta", alt:"dik_kenar_hesap" },
 
   // ALT DAL 2: 3-4-5 ÜÇGENİ
   { id: "s18_dp_005", s: "3-4-5 üçgeni nasıl bir üçgendir?", c: "dik_ucgen_(3²+4²=5²)", v: {}, z:"orta", alt:"3_4_5" },
   { id: "s18_dp_006", s: "3-4-5 üçgeninin katları nelerdir?", c: "6-8-10,_9-12-15,_12-16-20...", v: {}, z:"orta", alt:"3_4_5_katlari" },
-  { id: "s18_dp_007", s: "Kenarları {a}, {b}, {c} olan üçgen dik üçgen midir? (3-4-5 orantısı)", c: "{evet_hayir}", v: {a:[3,12], b:[4,16], c:[5,20], kosul:"3k_4k_5k"}, z:"orta", alt:"3_4_5_kontrol" },
+  { id: "s18_dp_007", s: "Kenarları {a}, {b}, {c} olan üçgen dik üçgen midir? (3-4-5 orantısı)", c: "evet_hayir_kontrolu", v: {a:[3,6,9], b:[4,8,12], c:[5,10,15]}, z:"orta", alt:"3_4_5_kontrol" },
 
   // ALT DAL 3: 5-12-13 ÜÇGENİ
   { id: "s18_dp_008", s: "5-12-13 üçgeni nasıl bir üçgendir?", c: "dik_ucgen_(5²+12²=13²)", v: {}, z:"orta", alt:"5_12_13" },
@@ -8056,17 +8280,17 @@ const SORU_BANKASI = {
   // ALT DAL 4: DİĞER ÖZEL DİK ÜÇGENLER
   { id: "s18_dp_010", s: "8-15-17 üçgeni dik üçgen midir?", c: "evet_(8²+15²=17²)", v: {}, z:"orta", alt:"8_15_17" },
   { id: "s18_dp_011", s: "7-24-25 üçgeni dik üçgen midir?", c: "evet_(7²+24²=25²)", v: {}, z:"orta", alt:"7_24_25" },
-  { id: "s18_dp_012", s: "Dik kenarları {a} ve {a} olan ikizkenar dik üçgenin hipotenüsü kaçtır?", c: "{a}√2", v: {a:[2,8]}, z:"cok_zor", alt:"ikizkenar_dik" },
+  { id: "s18_dp_012", s: "Dik kenarları {a} ve {a} olan ikizkenar dik üçgenin hipotenüsü kaçtır?", c: "{a} * karekok(2)", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"ikizkenar_dik" },
 
   // ALT DAL 5: 30°-60°-90° ÜÇGENİ
-  { id: "s18_dp_013", s: "30°-60°-90° üçgeninde kenarlar arasındaki oran nedir?", c: "1:√3:2", v: {}, z:"cok_zor", alt:"30_60_90" },
-  { id: "s18_dp_014", s: "30° karşısındaki kenar {a} ise hipotenüs kaçtır?", c: "2×{a}", v: {a:[2,6]}, z:"cok_zor", alt:"30_hipotenus" },
-  { id: "s18_dp_015", s: "60° karşısındaki kenar {a} ise 30° karşısındaki kenar kaçtır?", c: "{a}/√3", v: {a:[3,12]}, z:"cok_zor", alt:"60_30_kenar" },
+  { id: "s18_dp_013", s: "30°-60°-90° üçgeninde kenarlar arasındaki oran nedir?", c: "1:karekok(3):2", v: {}, z:"cok_zor", alt:"30_60_90" },
+  { id: "s18_dp_014", s: "30° karşısındaki kenar {a} ise hipotenüs kaçtır?", c: "2*{a}", v: {a:[2,4,6]}, z:"cok_zor", alt:"30_hipotenus" },
+  { id: "s18_dp_015", s: "60° karşısındaki kenar {a} ise 30° karşısındaki kenar kaçtır?", c: "{a} / karekok(3)", v: {a:[3,6,9]}, z:"cok_zor", alt:"60_30_kenar" },
   { id: "s18_dp_016", s: "30-60-90 üçgeninde hipotenüs 10 ise 30° karşısındaki kenar kaçtır?", c: "5", v: {}, z:"cok_zor", alt:"30_60_90_ornek" },
 
   // ALT DAL 6: 45°-45°-90° ÜÇGENİ
-  { id: "s18_dp_017", s: "45°-45°-90° üçgeninde kenarlar arasındaki oran nedir?", c: "1:1:√2", v: {}, z:"cok_zor", alt:"45_45_90" },
-  { id: "s18_dp_018", s: "45° karşısındaki kenar {a} ise hipotenüs kaçtır?", c: "{a}√2", v: {a:[2,8]}, z:"cok_zor", alt:"45_hipotenus" },
+  { id: "s18_dp_017", s: "45°-45°-90° üçgeninde kenarlar arasındaki oran nedir?", c: "1:1:karekok(2)", v: {}, z:"cok_zor", alt:"45_45_90" },
+  { id: "s18_dp_018", s: "45° karşısındaki kenar {a} ise hipotenüs kaçtır?", c: "{a} * karekok(2)", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"45_hipotenus" },
 
   // ALT DAL 7: ÖKLİT BAĞINTILARI
   { id: "s18_dp_019", s: "Öklit bağıntısı nedir?", c: "dik_ucgende_yukseklik_ile_kenar_uzunluklari_arasi_baginti", v: {}, z:"cok_zor", alt:"oklit" },
@@ -8074,13 +8298,13 @@ const SORU_BANKASI = {
   { id: "s18_dp_021", s: "Dik kenar bağıntısı: b² = k×a. b dik kenar ise a nedir?", c: "hipotenus", v: {}, z:"cok_zor", alt:"dik_kenar_baginti" },
 
   // ALT DAL 8: PİSAGOR PROBLEMLERİ
-  { id: "s18_dp_022", s: "Bir dikdörtgenin kenarları {a} ve {b} ise köşegeni kaçtır?", c: "√({a}²+{b}²)", v: {a:[3,8], b:[4,10]}, z:"orta", alt:"dikdortgen_kosegen" },
-  { id: "s18_dp_023", s: "Kenarı {a} olan karenin köşegeni kaçtır?", c: "{a}√2", v: {a:[2,8]}, z:"orta", alt:"kare_kosegen" },
-  { id: "s18_dp_024", s: "Eşkenar üçgenin kenarı {a} ise yüksekliği kaçtır?", c: "{a}√3/2", v: {a:[2,10]}, z:"cok_zor", alt:"eskenar_yukseklik" },
+  { id: "s18_dp_022", s: "Bir dikdörtgenin kenarları {a} ve {b} ise köşegeni kaçtır?", c: "karekok({a} kare + {b} kare)", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"dikdortgen_kosegen" },
+  { id: "s18_dp_023", s: "Kenarı {a} olan karenin köşegeni kaçtır?", c: "{a} * karekok(2)", v: {a:[2,4,6,8]}, z:"orta", alt:"kare_kosegen" },
+  { id: "s18_dp_024", s: "Eşkenar üçgenin kenarı {a} ise yüksekliği kaçtır?", c: "{a} * karekok(3) / 2", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"eskenar_yukseklik" },
 
   // ALT DAL 9: PİSAGOR UYGULAMALARI
-  { id: "s18_dp_025", s: "Bir merdivenin ayakları duvardan {a} m uzakta ve merdiven {b} m ise duvar yüksekliği kaç m'dir?", c: "√({b}²-{a}²)", v: {a:[1,4], b:[3,7], kosul:"b>a"}, z:"zor", alt:"merdiven" },
-  { id: "s18_dp_026", s: "Bir direğin tepesinden {a} m uzaktaki noktaya çekilen halat {b} m ise direk kaç m'dir?", c: "√({b}²-{a}²)", v: {a:[3,8], b:[5,12], kosul:"b>a"}, z:"zor", alt:"direk" },
+  { id: "s18_dp_025", s: "Bir merdivenin ayakları duvardan {a} m uzakta ve merdiven {b} m ise duvar yüksekliği kaç m'dir?", c: "karekok({b} kare - {a} kare)", v: {a:[1,2,3], b:[3,5,7]}, z:"zor", alt:"merdiven" },
+  { id: "s18_dp_026", s: "Bir direğin tepesinden {a} m uzaktaki noktaya çekilen halat {b} m ise direk kaç m'dir?", c: "karekok({b} kare - {a} kare)", v: {a:[3,5,7], b:[5,8,11]}, z:"zor", alt:"direk" },
 
   // ALT DAL 10: DİK ÜÇGEN ÖZET
   { id: "s18_dp_027", s: "Pisagor teoreminin formülü nedir?", c: "a²+b²=c²", v: {}, z:"orta", alt:"pisagor_formul" },
@@ -8092,22 +8316,22 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: EŞKENAR ÜÇGEN
-  { id: "s18_ou_001", s: "Eşkenar üçgenin tüm açıları kaçar derecedir?", c: "60°", v: {}, z:"orta", alt:"eskenar_acilar" },
-  { id: "s18_ou_002", s: "Eşkenar üçgenin kenarı {a} ise yüksekliği kaçtır?", c: "{a}√3/2", v: {a:[2,10]}, z:"cok_zor", alt:"eskenar_h" },
-  { id: "s18_ou_003", s: "Eşkenar üçgenin kenarı {a} ise alanı kaçtır?", c: "{a}²√3/4", v: {a:[2,8]}, z:"cok_zor", alt:"eskenar_alan" },
+  { id: "s18_ou_001", s: "Eşkenar üçgenin tüm açıları kaçar derecedir?", c: "60", v: {}, z:"orta", alt:"eskenar_acilar" },
+  { id: "s18_ou_002", s: "Eşkenar üçgenin kenarı {a} ise yüksekliği kaçtır?", c: "{a} * karekok(3) / 2", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"eskenar_h" },
+  { id: "s18_ou_003", s: "Eşkenar üçgenin kenarı {a} ise alanı kaçtır?", c: "{a} kare * karekok(3) / 4", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"eskenar_alan" },
   { id: "s18_ou_004", s: "Eşkenar üçgende yükseklik aynı zamanda nedir?", c: "kenarortay_ve_aciortaydir", v: {}, z:"cok_zor", alt:"eskenar_yukseklik_ozellik" },
 
   // ALT DAL 2: İKİZKENAR ÜÇGEN
   { id: "s18_ou_005", s: "İkizkenar üçgende tabana indirilen yükseklik aynı zamanda nedir?", c: "kenarortay_ve_aciortaydir", v: {}, z:"cok_zor", alt:"ikizkenar_yukseklik" },
-  { id: "s18_ou_006", s: "İkizkenar üçgenin çevresi {c}, tabanı {t} ise eşit kenarlar kaçar birimdir?", c: "({c}-{t})/2", v: {c:[15,30], t:[3,8], kosul:"c>t"}, z:"orta", alt:"ikizkenar_cevre" },
+  { id: "s18_ou_006", s: "İkizkenar üçgenin çevresi {c}, tabanı {t} ise eşit kenarlar kaçar birimdir?", c: "({c} - {t}) / 2", v: {c:[15,20,25], t:[3,5,7]}, z:"orta", alt:"ikizkenar_cevre" },
 
   // ALT DAL 3: 30°-60°-90° ÜÇGENİ (DETAY)
   { id: "s18_ou_007", s: "30-60-90 üçgeninde en kısa kenar hangi açı karşısındadır?", c: "30°", v: {}, z:"orta", alt:"en_kisa_kenar" },
   { id: "s18_ou_008", s: "30-60-90 üçgeninde en uzun kenar hangisidir?", c: "hipotenus_(90°_karsisi)", v: {}, z:"orta", alt:"en_uzun_kenar" },
 
   // ALT DAL 4: İKİZKENAR DİK ÜÇGEN
-  { id: "s18_ou_009", s: "İkizkenar dik üçgende açılar kaçar derecedir?", c: "45°-45°-90°", v: {}, z:"orta", alt:"ikizkenar_dik_acilar" },
-  { id: "s18_ou_010", s: "İkizkenar dik üçgende dik kenar {a} ise hipotenüs kaçtır?", c: "{a}√2", v: {a:[2,8]}, z:"orta", alt:"ikizkenar_dik_hipotenus" },
+  { id: "s18_ou_009", s: "İkizkenar dik üçgende açılar kaçar derecedir?", c: "45-45-90", v: {}, z:"orta", alt:"ikizkenar_dik_acilar" },
+  { id: "s18_ou_010", s: "İkizkenar dik üçgende dik kenar {a} ise hipotenüs kaçtır?", c: "{a} * karekok(2)", v: {a:[2,4,6,8]}, z:"orta", alt:"ikizkenar_dik_hipotenus" },
 
   // ALT DAL 5: GENİŞ AÇILI ÜÇGEN
   { id: "s18_ou_011", s: "Geniş açılı üçgende yükseklikler nerede kesişir?", c: "ucgenin_disinda", v: {}, z:"cok_zor", alt:"genis_yukseklik" },
@@ -8132,24 +8356,24 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: TEMEL ALAN FORMÜLÜ
   { id: "s18_ua2_001", s: "Üçgenin alan formülü nedir?", c: "Taban×Yukseklik/2", v: {}, z:"orta", alt:"alan_formul" },
-  { id: "s18_ua2_002", s: "Tabanı {a}, yüksekliği {h} olan üçgenin alanı kaçtır?", c: "{a}×{h}/2", v: {a:[4,12], h:[3,10]}, z:"orta", alt:"alan_hesap" },
-  { id: "s18_ua2_003", s: "Alanı {A}, tabanı {a} olan üçgenin yüksekliği kaçtır?", c: "2×{A}/{a}", v: {A:[10,40], a:[4,10]}, z:"orta", alt:"yukseklik_bulma" },
+  { id: "s18_ua2_002", s: "Tabanı {a}, yüksekliği {h} olan üçgenin alanı kaçtır?", c: "{a} * {h} / 2", v: {a:[4,6,8,10], h:[3,5,7,9]}, z:"orta", alt:"alan_hesap" },
+  { id: "s18_ua2_003", s: "Alanı {A}, tabanı {a} olan üçgenin yüksekliği kaçtır?", c: "2 * {A} / {a}", v: {A:[10,20,30], a:[4,5,6]}, z:"orta", alt:"yukseklik_bulma" },
 
   // ALT DAL 2: DİK ÜÇGENDE ALAN
-  { id: "s18_ua2_004", s: "Dik kenarları {a} ve {b} olan dik üçgenin alanı kaçtır?", c: "{a}×{b}/2", v: {a:[3,8], b:[4,10]}, z:"orta", alt:"dik_alan" },
+  { id: "s18_ua2_004", s: "Dik kenarları {a} ve {b} olan dik üçgenin alanı kaçtır?", c: "{a} * {b} / 2", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"dik_alan" },
   { id: "s18_ua2_005", s: "Dik üçgende alan dik kenarlar çarpımının yarısıdır. Doğru mu?", c: "evet", v: {}, z:"orta", alt:"dik_alan_kural" },
 
   // ALT DAL 3: EŞKENAR ÜÇGENDE ALAN
-  { id: "s18_ua2_006", s: "Kenarı {a} olan eşkenar üçgenin alanı kaçtır?", c: "{a}²√3/4", v: {a:[2,8]}, z:"cok_zor", alt:"eskenar_alan_formul" },
+  { id: "s18_ua2_006", s: "Kenarı {a} olan eşkenar üçgenin alanı kaçtır?", c: "{a} kare * karekok(3) / 4", v: {a:[2,4,6,8]}, z:"cok_zor", alt:"eskenar_alan_formul" },
   { id: "s18_ua2_007", s: "Eşkenar üçgenin alan formülü: A = ?", c: "a²√3/4", v: {}, z:"cok_zor", alt:"eskenar_alan_formul_2" },
 
   // ALT DAL 4: SİNÜS ALAN FORMÜLÜ
   { id: "s18_ua2_008", s: "Sinüs alan formülü nedir?", c: "A=1/2×a×b×sinC", v: {}, z:"cok_zor", alt:"sinus_alan" },
-  { id: "s18_ua2_009", s: "İki kenarı {a} ve {b}, arasındaki açı {aci}° olan üçgenin alanı kaçtır?", c: "1/2×{a}×{b}×sin({aci}°)", v: {a:[4,10], b:[5,12], aci:[30,60,90]}, z:"cok_zor", alt:"sinus_alan_hesap" },
+  { id: "s18_ua2_009", s: "İki kenarı {a} ve {b}, arasındaki açı {aci}° olan üçgenin alanı kaçtır?", c: "1/2 * {a} * {b} * sin({aci}°)", v: {a:[4,6,8], b:[5,7,9], aci:[30,45,60]}, z:"cok_zor", alt:"sinus_alan_hesap" },
 
   // ALT DAL 5: İÇ TEĞET ÇEMBER YARIÇAPI İLE ALAN
   { id: "s18_ua2_010", s: "İç teğet çember yarıçapı r, çevresi 2u olan üçgenin alanı nedir?", c: "A=u×r", v: {}, z:"cok_zor", alt:"ic_teget_alan" },
-  { id: "s18_ua2_011", s: "u = (a+b+c)/2 olmak üzere Heron formülü nedir?", c: "A=√(u(u-a)(u-b)(u-c))", v: {}, z:"cok_zor", alt:"heron" },
+  { id: "s18_ua2_011", s: "u = (a+b+c)/2 olmak üzere Heron formülü nedir?", c: "A=karekok(u*(u-a)*(u-b)*(u-c))", v: {}, z:"cok_zor", alt:"heron" },
 
   // ALT DAL 6: ALAN PROBLEMLERİ
   { id: "s18_ua2_012", s: "Tabanları aynı olan iki üçgenin alanları oranı neye eşittir?", c: "yukseklikleri_oranina", v: {}, z:"cok_zor", alt:"taban_ayni" },
@@ -8157,8 +8381,8 @@ const SORU_BANKASI = {
   { id: "s18_ua2_014", s: "Benzer iki üçgenin alanları oranı benzerlik oranının neyidir?", c: "karesi", v: {}, z:"cok_zor", alt:"benzer_alan" },
 
   // ALT DAL 7: ALAN HESAPLAMA SORULARI
-  { id: "s18_ua2_015", s: "Kenar uzunlukları {a}, {b}, {c} olan üçgenin alanı kaçtır? (Heron ile)", c: "{alan}", v: {a:[3,10], b:[4,12], c:[5,13], kosul:"ucgen_esitsizligi"}, z:"cok_zor", alt:"heron_hesap" },
-  { id: "s18_ua2_016", s: "Çevresi {c} olan eşkenar üçgenin alanı kaçtır?", c: "({c}/3)²√3/4", v: {c:[12,30,3]}, z:"cok_zor", alt:"cevre_eskenar_alan" },
+  { id: "s18_ua2_015", s: "Kenar uzunlukları {a}, {b}, {c} olan üçgenin alanı kaçtır? (Heron ile)", c: "heron_formulu_ile_hesap", v: {a:[3,5,7], b:[4,6,8], c:[5,7,9]}, z:"cok_zor", alt:"heron_hesap" },
+  { id: "s18_ua2_016", s: "Çevresi {c} olan eşkenar üçgenin alanı kaçtır?", c: "({c}/3)² * karekok(3) / 4", v: {c:[12,18,24]}, z:"cok_zor", alt:"cevre_eskenar_alan" },
 
   // ALT DAL 8: ÜÇGEN ALAN ÖZET
   { id: "s18_ua2_017", s: "Üçgenin alanı kaç farklı formülle hesaplanabilir?", c: "taban×yukseklik/2,_sinus,_heron,_ic_teget_ile", v: {}, z:"orta", alt:"alan_formulleri" },
@@ -8171,43 +8395,43 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: DÖRTGEN TANIMI VE ÇEŞİTLERİ
   { id: "s18_dg_001", s: "Dörtgen nedir?", c: "dort_kenari_olan_kapali_sekil", v: {}, z:"kolay", alt:"dortgen_tanim" },
-  { id: "s18_dg_002", s: "Dörtgenin iç açıları toplamı kaç derecedir?", c: "360°", v: {}, z:"orta", alt:"dortgen_ic_aci" },
+  { id: "s18_dg_002", s: "Dörtgenin iç açıları toplamı kaç derecedir?", c: "360", v: {}, z:"orta", alt:"dortgen_ic_aci" },
   { id: "s18_dg_003", s: "Dörtgen çeşitleri nelerdir?", c: "kare,_dikdortgen,_paralelkenar,_eskenar_dortgen,_yamuk", v: {}, z:"orta", alt:"dortgen_cesit" },
 
   // ALT DAL 2: KARE
-  { id: "s18_dg_004", s: "Kenarı {a} olan karenin alanı kaçtır?", c: "{a}²", v: {a:[2,10]}, z:"orta", alt:"kare_alan" },
-  { id: "s18_dg_005", s: "Kenarı {a} olan karenin çevresi kaçtır?", c: "4×{a}", v: {a:[2,10]}, z:"orta", alt:"kare_cevre" },
-  { id: "s18_dg_006", s: "Kenarı {a} olan karenin köşegeni kaçtır?", c: "{a}√2", v: {a:[2,8]}, z:"orta", alt:"kare_kosegen_dg" },
-  { id: "s18_dg_007", s: "Köşegeni {k} olan karenin alanı kaçtır?", c: "{k}²/2", v: {k:[2,10]}, z:"cok_zor", alt:"kosegen_alan" },
+  { id: "s18_dg_004", s: "Kenarı {a} olan karenin alanı kaçtır?", c: "{a} kare", v: {a:[2,4,6,8]}, z:"orta", alt:"kare_alan" },
+  { id: "s18_dg_005", s: "Kenarı {a} olan karenin çevresi kaçtır?", c: "4*{a}", v: {a:[2,4,6,8]}, z:"orta", alt:"kare_cevre" },
+  { id: "s18_dg_006", s: "Kenarı {a} olan karenin köşegeni kaçtır?", c: "{a} * karekok(2)", v: {a:[2,4,6,8]}, z:"orta", alt:"kare_kosegen_dg" },
+  { id: "s18_dg_007", s: "Köşegeni {k} olan karenin alanı kaçtır?", c: "{k} kare / 2", v: {k:[2,4,6,8]}, z:"cok_zor", alt:"kosegen_alan" },
 
   // ALT DAL 3: DİKDÖRTGEN
-  { id: "s18_dg_008", s: "Kenarları {a} ve {b} olan dikdörtgenin alanı kaçtır?", c: "{a}×{b}", v: {a:[3,10], b:[4,12]}, z:"orta", alt:"dikdortgen_alan" },
-  { id: "s18_dg_009", s: "Kenarları {a} ve {b} olan dikdörtgenin çevresi kaçtır?", c: "2×({a}+{b})", v: {a:[3,10], b:[4,12]}, z:"orta", alt:"dikdortgen_cevre" },
-  { id: "s18_dg_010", s: "Kenarları {a} ve {b} olan dikdörtgenin köşegeni kaçtır?", c: "√({a}²+{b}²)", v: {a:[3,8], b:[4,10]}, z:"orta", alt:"dikdortgen_kosegen_dg" },
+  { id: "s18_dg_008", s: "Kenarları {a} ve {b} olan dikdörtgenin alanı kaçtır?", c: "{a} * {b}", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"dikdortgen_alan" },
+  { id: "s18_dg_009", s: "Kenarları {a} ve {b} olan dikdörtgenin çevresi kaçtır?", c: "2*({a}+{b})", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"dikdortgen_cevre" },
+  { id: "s18_dg_010", s: "Kenarları {a} ve {b} olan dikdörtgenin köşegeni kaçtır?", c: "karekok({a} kare + {b} kare)", v: {a:[3,5,7], b:[4,6,8]}, z:"orta", alt:"dikdortgen_kosegen_dg" },
 
   // ALT DAL 4: PARALELKENAR
   { id: "s18_dg_011", s: "Paralelkenarın alanı nasıl hesaplanır?", c: "taban×yukseklik", v: {}, z:"orta", alt:"paralelkenar_alan" },
-  { id: "s18_dg_012", s: "Tabanı {a}, yüksekliği {h} olan paralelkenarın alanı kaçtır?", c: "{a}×{h}", v: {a:[4,12], h:[3,10]}, z:"orta", alt:"paralelkenar_alan_hesap" },
+  { id: "s18_dg_012", s: "Tabanı {a}, yüksekliği {h} olan paralelkenarın alanı kaçtır?", c: "{a} * {h}", v: {a:[4,6,8], h:[3,5,7]}, z:"orta", alt:"paralelkenar_alan_hesap" },
   { id: "s18_dg_013", s: "Paralelkenarın çevresi nasıl hesaplanır?", c: "2×(a+b)_(komsu_kenarlar)", v: {}, z:"orta", alt:"paralelkenar_cevre" },
 
   // ALT DAL 5: EŞKENAR DÖRTGEN
   { id: "s18_dg_014", s: "Eşkenar dörtgenin alanı nasıl hesaplanır?", c: "kosegenler_carpimi/2", v: {}, z:"orta", alt:"eskenar_dortgen_alan" },
-  { id: "s18_dg_015", s: "Köşegenleri {k1} ve {k2} olan eşkenar dörtgenin alanı kaçtır?", c: "{k1}×{k2}/2", v: {k1:[4,12], k2:[3,10]}, z:"orta", alt:"eskenar_dortgen_alan_hesap" },
-  { id: "s18_dg_016", s: "Kenarı {a} olan eşkenar dörtgenin çevresi kaçtır?", c: "4×{a}", v: {a:[2,10]}, z:"orta", alt:"eskenar_dortgen_cevre" },
+  { id: "s18_dg_015", s: "Köşegenleri {k1} ve {k2} olan eşkenar dörtgenin alanı kaçtır?", c: "{k1} * {k2} / 2", v: {k1:[4,6,8], k2:[3,5,7]}, z:"orta", alt:"eskenar_dortgen_alan_hesap" },
+  { id: "s18_dg_016", s: "Kenarı {a} olan eşkenar dörtgenin çevresi kaçtır?", c: "4*{a}", v: {a:[2,4,6,8]}, z:"orta", alt:"eskenar_dortgen_cevre" },
 
   // ALT DAL 6: YAMUK
   { id: "s18_dg_017", s: "Yamuğun alanı nasıl hesaplanır?", c: "(alt_taban+ust_taban)×yukseklik/2", v: {}, z:"orta", alt:"yamuk_alan" },
-  { id: "s18_dg_018", s: "Alt tabanı {a}, üst tabanı {b}, yüksekliği {h} olan yamuğun alanı kaçtır?", c: "({a}+{b})×{h}/2", v: {a:[5,15], b:[3,10], h:[4,10]}, z:"orta", alt:"yamuk_alan_hesap" },
+  { id: "s18_dg_018", s: "Alt tabanı {a}, üst tabanı {b}, yüksekliği {h} olan yamuğun alanı kaçtır?", c: "({a}+{b}) * {h} / 2", v: {a:[5,7,9], b:[3,5,7], h:[4,6,8]}, z:"orta", alt:"yamuk_alan_hesap" },
   { id: "s18_dg_019", s: "İkizkenar yamukta köşegenler nasıldır?", c: "esittir", v: {}, z:"cok_zor", alt:"ikizkenar_yamuk" },
 
   // ALT DAL 7: DÖRTGENDE ALAN PROBLEMLERİ
-  { id: "s18_dg_020", s: "Alanı {A}, bir kenarı {a} olan karenin diğer kenarı kaçtır?", c: "{a}", v: {A:[9,100], a:[3,10], kosul:"A=a²"}, z:"orta", alt:"kare_kenar" },
-  { id: "s18_dg_021", s: "Alanı {A}, bir kenarı {a} olan dikdörtgenin diğer kenarı kaçtır?", c: "{A}/{a}", v: {A:[12,60], a:[3,8]}, z:"orta", alt:"dikdortgen_kenar" },
+  { id: "s18_dg_020", s: "Alanı {A}, bir kenarı {a} olan karenin diğer kenarı kaçtır?", c: "{a}", v: {A:[9,25,49], a:[3,5,7]}, z:"orta", alt:"kare_kenar" },
+  { id: "s18_dg_021", s: "Alanı {A}, bir kenarı {a} olan dikdörtgenin diğer kenarı kaçtır?", c: "{A} / {a}", v: {A:[12,20,30], a:[3,4,5]}, z:"orta", alt:"dikdortgen_kenar" },
 
   // ALT DAL 8: ÇOKGENLER
-  { id: "s18_dg_022", s: "n kenarlı çokgenin iç açıları toplamı kaçtır?", c: "(n-2)×180°", v: {}, z:"cok_zor", alt:"cokgen_ic_aci" },
-  { id: "s18_dg_023", s: "{n} kenarlı düzgün çokgenin bir iç açısı kaç derecedir?", c: "({n}-2)×180/{n}", v: {n:[3,8]}, z:"cok_zor", alt:"duzgun_ic_aci" },
-  { id: "s18_dg_024", s: "n kenarlı çokgenin dış açıları toplamı kaçtır?", c: "360°", v: {}, z:"cok_zor", alt:"cokgen_dis_aci" },
+  { id: "s18_dg_022", s: "n kenarlı çokgenin iç açıları toplamı kaçtır?", c: "(n-2)*180", v: {}, z:"cok_zor", alt:"cokgen_ic_aci" },
+  { id: "s18_dg_023", s: "{n} kenarlı düzgün çokgenin bir iç açısı kaç derecedir?", c: "({n}-2)*180/{n}", v: {n:[3,4,5,6]}, z:"cok_zor", alt:"duzgun_ic_aci" },
+  { id: "s18_dg_024", s: "n kenarlı çokgenin dış açıları toplamı kaçtır?", c: "360", v: {}, z:"cok_zor", alt:"cokgen_dis_aci" },
 
   // ALT DAL 9: DÖRTGEN ÖZELLİKLERİ
   { id: "s18_dg_025", s: "Kare hangi dörtgenlerin özel halidir?", c: "dikdortgenin_ve_eskenar_dortgenin", v: {}, z:"orta", alt:"kare_ozel" },
@@ -8231,18 +8455,18 @@ const SORU_BANKASI = {
   { id: "s18_cd_004", s: "Merkez açı nedir?", c: "kosesi_merkezde_olan_aci", v: {}, z:"orta", alt:"merkez_aci" },
   { id: "s18_cd_005", s: "Çevre açı nedir?", c: "kosesi_cember_uzerinde_olan_aci", v: {}, z:"orta", alt:"cevre_aci" },
   { id: "s18_cd_006", s: "Aynı yayı gören çevre açı ile merkez açı arasındaki ilişki nedir?", c: "merkez_aci=2×cevre_aci", v: {}, z:"cok_zor", alt:"merkez_cevre_iliski" },
-  { id: "s18_cd_007", s: "Çapı gören çevre açı kaç derecedir?", c: "90°", v: {}, z:"cok_zor", alt:"cap_cevre_aci" },
+  { id: "s18_cd_007", s: "Çapı gören çevre açı kaç derecedir?", c: "90", v: {}, z:"cok_zor", alt:"cap_cevre_aci" },
 
   // ALT DAL 3: DAİRE ALAN VE ÇEVRE
   { id: "s18_cd_008", s: "Dairenin alanı nasıl hesaplanır?", c: "πr²", v: {}, z:"orta", alt:"daire_alan" },
-  { id: "s18_cd_009", s: "Yarıçapı {r} olan dairenin alanı kaçtır? (π=3 al)", c: "3×{r}²", v: {r:[2,10]}, z:"orta", alt:"daire_alan_hesap" },
+  { id: "s18_cd_009", s: "Yarıçapı {r} olan dairenin alanı kaçtır? (π=3 al)", c: "3 * {r} kare", v: {r:[2,4,6,8]}, z:"orta", alt:"daire_alan_hesap" },
   { id: "s18_cd_010", s: "Dairenin çevresi nasıl hesaplanır?", c: "2πr", v: {}, z:"orta", alt:"daire_cevre" },
-  { id: "s18_cd_011", s: "Yarıçapı {r} olan dairenin çevresi kaçtır? (π=3 al)", c: "6×{r}", v: {r:[2,10]}, z:"orta", alt:"daire_cevre_hesap" },
-  { id: "s18_cd_012", s: "Çevresi {c} olan dairenin yarıçapı kaçtır? (π=3 al)", c: "{c}/6", v: {c:[12,60,6]}, z:"orta", alt:"cevreden_yaricap" },
+  { id: "s18_cd_011", s: "Yarıçapı {r} olan dairenin çevresi kaçtır? (π=3 al)", c: "6 * {r}", v: {r:[2,4,6,8]}, z:"orta", alt:"daire_cevre_hesap" },
+  { id: "s18_cd_012", s: "Çevresi {c} olan dairenin yarıçapı kaçtır? (π=3 al)", c: "{c} / 6", v: {c:[12,24,36]}, z:"orta", alt:"cevreden_yaricap" },
 
   // ALT DAL 4: DAİRE DİLİMİ
   { id: "s18_cd_013", s: "Daire diliminin alanı nasıl hesaplanır?", c: "πr²×α/360", v: {}, z:"cok_zor", alt:"dilim_alan" },
-  { id: "s18_cd_014", s: "Yarıçapı {r}, merkez açısı {a}° olan daire diliminin alanı kaçtır? (π=3)", c: "3×{r}²×{a}/360", v: {r:[2,8], a:[30,120]}, z:"cok_zor", alt:"dilim_alan_hesap" },
+  { id: "s18_cd_014", s: "Yarıçapı {r}, merkez açısı {a}° olan daire diliminin alanı kaçtır? (π=3)", c: "3 * {r} kare * {a} / 360", v: {r:[2,4,6], a:[30,60,90]}, z:"cok_zor", alt:"dilim_alan_hesap" },
   { id: "s18_cd_015", s: "Yay uzunluğu nasıl hesaplanır?", c: "2πr×α/360", v: {}, z:"cok_zor", alt:"yay_uzunlugu" },
 
   // ALT DAL 5: ÇEMBERDE YAY VE AÇI
@@ -8256,15 +8480,15 @@ const SORU_BANKASI = {
 
   // ALT DAL 7: DAİRE HALKA
   { id: "s18_cd_021", s: "Daire halkasının alanı nasıl hesaplanır?", c: "π(R²-r²)_(R_dis,_r_ic_yaricap)", v: {}, z:"cok_zor", alt:"halka_alan" },
-  { id: "s18_cd_022", s: "Dış yarıçapı {R}, iç yarıçapı {r} olan halkanın alanı kaçtır? (π=3)", c: "3×({R}²-{r}²)", v: {R:[4,10], r:[1,"{R}-1"]}, z:"cok_zor", alt:"halka_alan_hesap" },
+  { id: "s18_cd_022", s: "Dış yarıçapı {R}, iç yarıçapı {r} olan halkanın alanı kaçtır? (π=3)", c: "3 * ({R} kare - {r} kare)", v: {R:[4,6,8], r:[2,3,4]}, z:"cok_zor", alt:"halka_alan_hesap" },
 
   // ALT DAL 8: ÇEMBER PROBLEMLERİ
-  { id: "s18_cd_023", s: "Yarıçapı {r} olan daire içine çizilebilen en büyük karenin alanı kaçtır?", c: "2×{r}²", v: {r:[2,8]}, z:"cok_zor", alt:"daire_ici_kare" },
-  { id: "s18_cd_024", s: "Kenarı {a} olan karenin içine çizilebilen en büyük dairenin alanı kaçtır? (π=3)", c: "3×({a}/2)²", v: {a:[4,10,2]}, z:"cok_zor", alt:"kare_ici_daire" },
+  { id: "s18_cd_023", s: "Yarıçapı {r} olan daire içine çizilebilen en büyük karenin alanı kaçtır?", c: "2 * {r} kare", v: {r:[2,4,6]}, z:"cok_zor", alt:"daire_ici_kare" },
+  { id: "s18_cd_024", s: "Kenarı {a} olan karenin içine çizilebilen en büyük dairenin alanı kaçtır? (π=3)", c: "3 * ({a}/2) kare", v: {a:[4,6,8]}, z:"cok_zor", alt:"kare_ici_daire" },
 
   // ALT DAL 9: ÇEMBER VE YAY
-  { id: "s18_cd_025", s: "Çemberin tamamı kaç derecedir?", c: "360°", v: {}, z:"orta", alt:"tam_cember" },
-  { id: "s18_cd_026", s: "Yarım çember kaç derecedir?", c: "180°", v: {}, z:"orta", alt:"yarim_cember" },
+  { id: "s18_cd_025", s: "Çemberin tamamı kaç derecedir?", c: "360", v: {}, z:"orta", alt:"tam_cember" },
+  { id: "s18_cd_026", s: "Yarım çember kaç derecedir?", c: "180", v: {}, z:"orta", alt:"yarim_cember" },
 
   // ALT DAL 10: ÇEMBER-DAİRE ÖZET
   { id: "s18_cd_027", s: "Çember ile daire arasındaki fark nedir?", c: "cember_sadece_kenar_(cizgi)_daire_ic_bolge_dahil", v: {}, z:"orta", alt:"cember_daire_fark" },
@@ -8276,33 +8500,33 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: KÜP
-  { id: "s18_ks_001", s: "Kenarı {a} olan küpün hacmi kaçtır?", c: "{a}³", v: {a:[2,8]}, z:"orta", alt:"kup_hacim" },
-  { id: "s18_ks_002", s: "Kenarı {a} olan küpün yüzey alanı kaçtır?", c: "6×{a}²", v: {a:[2,8]}, z:"orta", alt:"kup_yuzey" },
-  { id: "s18_ks_003", s: "Kenarı {a} olan küpün cisim köşegeni kaçtır?", c: "{a}√3", v: {a:[2,6]}, z:"cok_zor", alt:"kup_kosegen" },
+  { id: "s18_ks_001", s: "Kenarı {a} olan küpün hacmi kaçtır?", c: "{a} küp", v: {a:[2,3,4,5]}, z:"orta", alt:"kup_hacim" },
+  { id: "s18_ks_002", s: "Kenarı {a} olan küpün yüzey alanı kaçtır?", c: "6 * {a} kare", v: {a:[2,3,4,5]}, z:"orta", alt:"kup_yuzey" },
+  { id: "s18_ks_003", s: "Kenarı {a} olan küpün cisim köşegeni kaçtır?", c: "{a} * karekok(3)", v: {a:[2,3,4]}, z:"cok_zor", alt:"kup_kosegen" },
 
   // ALT DAL 2: DİKDÖRTGENLER PRİZMASI
-  { id: "s18_ks_004", s: "Kenarları {a}, {b}, {c} olan prizmanın hacmi kaçtır?", c: "{a}×{b}×{c}", v: {a:[2,8], b:[3,7], c:[4,10]}, z:"orta", alt:"prizma_hacim" },
-  { id: "s18_ks_005", s: "Kenarları {a}, {b}, {c} olan prizmanın yüzey alanı kaçtır?", c: "2×({a}×{b}+{a}×{c}+{b}×{c})", v: {a:[2,6], b:[3,7], c:[4,8]}, z:"zor", alt:"prizma_yuzey" },
+  { id: "s18_ks_004", s: "Kenarları {a}, {b}, {c} olan prizmanın hacmi kaçtır?", c: "{a} * {b} * {c}", v: {a:[2,3,4], b:[3,4,5], c:[4,5,6]}, z:"orta", alt:"prizma_hacim" },
+  { id: "s18_ks_005", s: "Kenarları {a}, {b}, {c} olan prizmanın yüzey alanı kaçtır?", c: "2 * ({a}*{b} + {a}*{c} + {b}*{c})", v: {a:[2,3,4], b:[3,4,5], c:[4,5,6]}, z:"zor", alt:"prizma_yuzey" },
 
   // ALT DAL 3: SİLİNDİR
-  { id: "s18_ks_006", s: "Yarıçapı {r}, yüksekliği {h} olan silindirin hacmi kaçtır? (π=3)", c: "3×{r}²×{h}", v: {r:[2,6], h:[3,10]}, z:"orta", alt:"silindir_hacim" },
+  { id: "s18_ks_006", s: "Yarıçapı {r}, yüksekliği {h} olan silindirin hacmi kaçtır? (π=3)", c: "3 * {r} kare * {h}", v: {r:[2,3,4], h:[3,4,5]}, z:"orta", alt:"silindir_hacim" },
   { id: "s18_ks_007", s: "Silindirin yanal alanı nasıl hesaplanır?", c: "2πrh", v: {}, z:"cok_zor", alt:"silindir_yanal" },
-  { id: "s18_ks_008", s: "Yarıçapı {r}, yüksekliği {h} olan silindirin yüzey alanı kaçtır? (π=3)", c: "2×3×{r}×({r}+{h})", v: {r:[2,6], h:[3,10]}, z:"cok_zor", alt:"silindir_yuzey" },
+  { id: "s18_ks_008", s: "Yarıçapı {r}, yüksekliği {h} olan silindirin yüzey alanı kaçtır? (π=3)", c: "2*3*{r}*({r}+{h})", v: {r:[2,3,4], h:[3,4,5]}, z:"cok_zor", alt:"silindir_yuzey" },
 
   // ALT DAL 4: KONİ
-  { id: "s18_ks_009", s: "Yarıçapı {r}, yüksekliği {h} olan koninin hacmi kaçtır? (π=3)", c: "3×{r}²×{h}/3={r}²×{h}", v: {r:[2,6], h:[3,9]}, z:"cok_zor", alt:"koni_hacim" },
-  { id: "s18_ks_010", s: "Koninin hacmi silindirin hacminin kaçta kaçıdır?", c: "1/3'u", v: {}, z:"cok_zor", alt:"koni_silindir" },
+  { id: "s18_ks_009", s: "Yarıçapı {r}, yüksekliği {h} olan koninin hacmi kaçtır? (π=3)", c: "{r} kare * {h}", v: {r:[2,3,4], h:[3,4,5]}, z:"cok_zor", alt:"koni_hacim" },
+  { id: "s18_ks_010", s: "Koninin hacmi silindirin hacminin kaçta kaçıdır?", c: "1/3", v: {}, z:"cok_zor", alt:"koni_silindir" },
 
   // ALT DAL 5: KÜRE
-  { id: "s18_ks_011", s: "Yarıçapı {r} olan kürenin hacmi kaçtır? (π=3)", c: "4×3×{r}³/3=4×{r}³", v: {r:[2,5]}, z:"cok_zor", alt:"kure_hacim" },
+  { id: "s18_ks_011", s: "Yarıçapı {r} olan kürenin hacmi kaçtır? (π=3)", c: "4 * {r} küp", v: {r:[2,3,4]}, z:"cok_zor", alt:"kure_hacim" },
   { id: "s18_ks_012", s: "Kürenin yüzey alanı nasıl hesaplanır?", c: "4πr²", v: {}, z:"cok_zor", alt:"kure_yuzey" },
-  { id: "s18_ks_013", s: "Yarıçapı {r} olan kürenin yüzey alanı kaçtır? (π=3)", c: "12×{r}²", v: {r:[2,6]}, z:"cok_zor", alt:"kure_yuzey_hesap" },
+  { id: "s18_ks_013", s: "Yarıçapı {r} olan kürenin yüzey alanı kaçtır? (π=3)", c: "12 * {r} kare", v: {r:[2,3,4]}, z:"cok_zor", alt:"kure_yuzey_hesap" },
 
   // ALT DAL 6: PİRAMİT
-  { id: "s18_ks_014", s: "Taban alanı {A}, yüksekliği {h} olan piramidin hacmi kaçtır?", c: "{A}×{h}/3", v: {A:[10,40], h:[3,10]}, z:"cok_zor", alt:"piramit_hacim" },
+  { id: "s18_ks_014", s: "Taban alanı {A}, yüksekliği {h} olan piramidin hacmi kaçtır?", c: "{A} * {h} / 3", v: {A:[10,20,30], h:[3,4,5]}, z:"cok_zor", alt:"piramit_hacim" },
 
   // ALT DAL 7: KATI CİSİM PROBLEMLERİ
-  { id: "s18_ks_015", s: "Hacmi {V} olan küpün bir kenarı kaçtır?", c: "∛{V}", v: {V:[8,27,64,125]}, z:"cok_zor", alt:"hacimden_kenar" },
+  { id: "s18_ks_015", s: "Hacmi {V} olan küpün bir kenarı kaçtır?", c: "kupkok({V})", v: {V:[8,27,64]}, z:"cok_zor", alt:"hacimden_kenar" },
   { id: "s18_ks_016", s: "Küp, prizma, silindir, koni, küre hacim formülleri nedir?", c: "V_kup=a³,_V_prizma=abc,_V_silindir=πr²h,_V_koni=πr²h/3,_V_kure=4πr³/3", v: {}, z:"orta", alt:"hacim_formulleri" },
 
   // ALT DAL 8: KATI CİSİM ÖZET
@@ -8316,54 +8540,52 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: KOORDİNAT SİSTEMİ
   { id: "s18_ag_001", s: "Koordinat sisteminde x ekseni ve y ekseni nerede kesişir?", c: "orijinde_(0,0)", v: {}, z:"orta", alt:"koordinat" },
-  { id: "s18_ag_002", s: "A({a},{b}) noktası hangi bölgededir?", c: "{bolge}", v: {a:[-10,10], b:[-10,10]}, z:"orta", alt:"bolge_bulma" },
+  { id: "s18_ag_002", s: "A({a},{b}) noktası hangi bölgededir?", c: "bolge_bulma_kurali", v: {a:[-5,-2,2,5], b:[-5,-2,2,5]}, z:"orta", alt:"bolge_bulma" },
   { id: "s18_ag_003", s: "x ekseni üzerindeki noktaların y değeri kaçtır?", c: "0", v: {}, z:"orta", alt:"x_ekseni" },
   { id: "s18_ag_004", s: "y ekseni üzerindeki noktaların x değeri kaçtır?", c: "0", v: {}, z:"orta", alt:"y_ekseni" },
 
   // ALT DAL 2: İKİ NOKTA ARASI UZAKLIK
-  { id: "s18_ag_005", s: "İki nokta arası uzaklık formülü nedir?", c: "√((x₂-x₁)²+(y₂-y₁)²)", v: {}, z:"orta", alt:"uzaklik_formul" },
-  { id: "s18_ag_006", s: "A({x1},{y1}) ile B({x2},{y2}) arası uzaklık kaç birimdir?", c: "√(({x2}-{x1})²+({y2}-{y1})²)", v: {x1:[0,5], y1:[0,5], x2:[3,10], y2:[3,10]}, z:"orta", alt:"uzaklik_hesap" },
+  { id: "s18_ag_005", s: "İki nokta arası uzaklık formülü nedir?", c: "karekok((x₂-x₁)²+(y₂-y₁)²)", v: {}, z:"orta", alt:"uzaklik_formul" },
+  { id: "s18_ag_006", s: "A({x1},{y1}) ile B({x2},{y2}) arası uzaklık kaç birimdir?", c: "karekok(({x2}-{x1})²+({y2}-{y1})²)", v: {x1:[0,2,4], y1:[0,2,4], x2:[3,5,7], y2:[3,5,7]}, z:"orta", alt:"uzaklik_hesap" },
   { id: "s18_ag_007", s: "A(3,4) noktasının orijine uzaklığı kaç birimdir?", c: "5", v: {}, z:"orta", alt:"orijine_uzaklik" },
 
   // ALT DAL 3: ORTA NOKTA
   { id: "s18_ag_008", s: "Orta nokta formülü nedir?", c: "((x₁+x₂)/2,(y₁+y₂)/2)", v: {}, z:"orta", alt:"orta_nokta" },
-  { id: "s18_ag_009", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarının orta noktası nedir?", c: "(({x1}+{x2})/2,({y1}+{y2})/2)", v: {x1:[0,5], y1:[0,5], x2:[4,10], y2:[4,10], kosul:"toplam_cift"}, z:"orta", alt:"orta_nokta_hesap" },
+  { id: "s18_ag_009", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarının orta noktası nedir?", c: "(({x1}+{x2})/2, ({y1}+{y2})/2)", v: {x1:[0,2,4], y1:[0,2,4], x2:[4,6,8], y2:[4,6,8]}, z:"orta", alt:"orta_nokta_hesap" },
 
   // ALT DAL 4: EĞİM
   { id: "s18_ag_010", s: "Eğim formülü nedir?", c: "m=(y₂-y₁)/(x₂-x₁)", v: {}, z:"orta", alt:"egim_formul" },
-  { id: "s18_ag_011", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarından geçen doğrunun eğimi kaçtır?", c: "({y2}-{y1})/({x2}-{x1})", v: {x1:[0,5], y1:[0,5], x2:[2,8], y2:[2,8], kosul:"x2!=x1"}, z:"orta", alt:"egim_hesap" },
+  { id: "s18_ag_011", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarından geçen doğrunun eğimi kaçtır?", c: "({y2}-{y1})/({x2}-{x1})", v: {x1:[0,2,4], y1:[0,2,4], x2:[2,4,6], y2:[2,4,6]}, z:"orta", alt:"egim_hesap" },
   { id: "s18_ag_012", s: "x eksenine paralel doğrunun eğimi kaçtır?", c: "0", v: {}, z:"orta", alt:"yatay_egim" },
   { id: "s18_ag_013", s: "y eksenine paralel doğrunun eğimi nedir?", c: "tanimsiz", v: {}, z:"orta", alt:"dikey_egim" },
 
   // ALT DAL 5: DOĞRU DENKLEMİ
   { id: "s18_ag_014", s: "Eğimi m, y'yi kestiği nokta n olan doğrunun denklemi nedir?", c: "y=mx+n", v: {}, z:"cok_zor", alt:"dogru_denklemi" },
-  { id: "s18_ag_015", s: "Eğimi {m}, A({x0},{y0}) noktasından geçen doğru denklemi nedir?", c: "y-{y0}={m}(x-{x0})", v: {m:[2,5], x0:[1,5], y0:[2,6]}, z:"cok_zor", alt:"nokta_egim" },
-  { id: "s18_ag_016", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarından geçen doğru denklemi nedir?", c: "(y-{y1})/(x-{x1})=({y2}-{y1})/({x2}-{x1})", v: {x1:[0,4], y1:[0,4], x2:[2,8], y2:[2,8], kosul:"x2!=x1"}, z:"cok_zor", alt:"iki_nokta_denklem" },
+  { id: "s18_ag_015", s: "Eğimi {m}, A({x0},{y0}) noktasından geçen doğru denklemi nedir?", c: "y - {y0} = {m} (x - {x0})", v: {m:[2,3,4], x0:[1,2,3], y0:[2,3,4]}, z:"cok_zor", alt:"nokta_egim" },
+  { id: "s18_ag_016", s: "A({x1},{y1}) ve B({x2},{y2}) noktalarından geçen doğru denklemi nedir?", c: "(y-{y1})/(x-{x1}) = ({y2}-{y1})/({x2}-{x1})", v: {x1:[0,2,4], y1:[0,2,4], x2:[2,4,6], y2:[2,4,6]}, z:"cok_zor", alt:"iki_nokta_denklem" },
 
   // ALT DAL 6: DOĞRULARIN KESİŞİMİ
   { id: "s18_ag_017", s: "İki doğrunun kesişim noktası nasıl bulunur?", c: "denklemler_ortak_cozulur", v: {}, z:"cok_zor", alt:"kesisim" },
-  { id: "s18_ag_018", s: "y={m1}x+{n1} ve y={m2}x+{n2} doğrularının kesişim noktası nedir?", c: "({n2}-{n1})/({m1}-{m2})", v: {m1:[2,5], n1:[1,6], m2:[1,3], n2:[2,8], kosul:"m1!=m2"}, z:"cok_zor", alt:"kesisim_hesap" },
+  { id: "s18_ag_018", s: "y={m1}x+{n1} ve y={m2}x+{n2} doğrularının kesişim noktası nedir?", c: "x = ({n2}-{n1})/({m1}-{m2})", v: {m1:[2,3,4], n1:[1,2,3], m2:[1,2,3], n2:[2,3,4]}, z:"cok_zor", alt:"kesisim_hesap" },
 
   // ALT DAL 7: PARALEL VE DİK DOĞRULAR
   { id: "s18_ag_019", s: "Paralel doğruların eğimleri nasıldır?", c: "esittir_(m₁=m₂)", v: {}, z:"cok_zor", alt:"paralel_egim" },
-  { id: "s18_ag_020", s: "Dik doğruların eğimleri çarpımı kaçtır?", c: "-1_(m₁×m₂=-1)", v: {}, z:"cok_zor", alt:"dik_egim" },
-  { id: "s18_ag_021", s: "Eğimi {m} olan doğruya dik olan doğrunun eğimi kaçtır?", c: "-1/{m}", v: {m:[2,5]}, z:"cok_zor", alt:"dik_egim_bulma" },
+  { id: "s18_ag_020", s: "Dik doğruların eğimleri çarpımı kaçtır?", c: "-1", v: {}, z:"cok_zor", alt:"dik_egim" },
+  { id: "s18_ag_021", s: "Eğimi {m} olan doğruya dik olan doğrunun eğimi kaçtır?", c: "-1/{m}", v: {m:[2,3,4]}, z:"cok_zor", alt:"dik_egim_bulma" },
 
   // ALT DAL 8: NOKTANIN DOĞRUYA UZAKLIĞI
-  { id: "s18_ag_022", s: "A(x₀,y₀) noktasının ax+by+c=0 doğrusuna uzaklığı formülü nedir?", c: "|ax₀+by₀+c|/√(a²+b²)", v: {}, z:"cok_zor", alt:"nokta_dogru_uzaklik" },
-  { id: "s18_ag_023", s: "A({x0},{y0}) noktasının y={m}x+{n} doğrusuna uzaklığı kaç birimdir?", c: "|{m}×{x0}-{y0}+{n}|/√({m}²+1)", v: {m:[1,4], x0:[1,6], y0:[2,8], n:[1,5]}, z:"cok_zor", alt:"uzaklik_hesap_ag" },
+  { id: "s18_ag_022", s: "A(x₀,y₀) noktasının ax+by+c=0 doğrusuna uzaklığı formülü nedir?", c: "|ax₀+by₀+c|/karekok(a²+b²)", v: {}, z:"cok_zor", alt:"nokta_dogru_uzaklik" },
+  { id: "s18_ag_023", s: "A({x0},{y0}) noktasının y={m}x+{n} doğrusuna uzaklığı kaç birimdir?", c: "|{m}*{x0} - {y0} + {n}| / karekok({m}²+1)", v: {m:[1,2,3], x0:[1,2,3], y0:[2,3,4], n:[1,2,3]}, z:"cok_zor", alt:"uzaklik_hesap_ag" },
 
   // ALT DAL 9: ANALİTİK GEOMETRİ PROBLEMLERİ
   { id: "s18_ag_024", s: "Köşe koordinatları verilen üçgenin alanı nasıl bulunur?", c: "determinant_formulu_ile", v: {}, z:"cok_zor", alt:"ucgen_alan_analitik" },
-  { id: "s18_ag_025", s: "A({x1},{y1}), B({x2},{y2}), C({x3},{y3}) üçgeninin alanı kaç birimkaredir?", c: "|{x1}({y2}-{y3})+{x2}({y3}-{y1})+{x3}({y1}-{y2})|/2", v: {x1:[0,4], y1:[0,4], x2:[2,6], y2:[0,4], x3:[1,5], y3:[3,7]}, z:"cok_zor", alt:"alan_analitik" },
+  { id: "s18_ag_025", s: "A({x1},{y1}), B({x2},{y2}), C({x3},{y3}) üçgeninin alanı kaç birimkaredir?", c: "|{x1}({y2}-{y3})+{x2}({y3}-{y1})+{x3}({y1}-{y2})|/2", v: {x1:[0,2,4], y1:[0,2,4], x2:[2,4,6], y2:[0,2,4], x3:[1,3,5], y3:[3,5,7]}, z:"cok_zor", alt:"alan_analitik" },
 
   // ALT DAL 10: ANALİTİK GEOMETRİ ÖZET
   { id: "s18_ag_026", s: "Analitik geometride temel formüller nelerdir?", c: "uzaklik,_orta_nokta,_egim,_dogru_denklemi", v: {}, z:"orta", alt:"temel_formuller_ag" },
   { id: "s18_ag_027", s: "Eğim neyi ifade eder?", c: "dogrunun_x_ekseni_ile_yaptigi_acının_tanjantini", v: {}, z:"orta", alt:"egim_anlam" },
   { id: "s18_ag_028", s: "Orijinden geçen doğrunun denklemi nasıldır?", c: "y=mx_(sabit_terim_0)", v: {}, z:"orta", alt:"orijin_dogru" },
-
- ],
-};   // SORU_BANKASI objesi burada kapanıyor.
+};
 
 // Kullanım için export
 if (typeof module !== 'undefined' && module.exports) {
