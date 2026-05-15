@@ -2982,10 +2982,10 @@ const SORU_BANKASI = {
   { id: "s6_tk_028", s: "(x²+{2a}x+{a2})/(x+{a}) = ?", c: "x+{a}", v: {a:[1,8], a2:"{a}*{a}"}, z:"zor", alt:"tam_kare_bolme" },
   { id: "s6_tk_029", s: "√(x²+6x+9) = ?", c: "|x+3|", v: {}, z:"cok_zor", alt:"tam_kare_kok" },
 
-    // ALT DAL 9: CARPANLARA AYIRMA TAM KARE
-  { id: "s6_tk_030", s: "{a}x² + {2ab}x + {b2} = ?", c: "({a}x+{b})²", v: { a: [2, 4], b: [1, 4] }, computed: { "2ab": (v) => 2 * v.a * v.b, b2: (v) => v.b * v.b }, z: "cok_zor", alt: "katsayili_tam_kare_carpan" },
-  { id: "s6_tk_031", s: "4x^2 + 12x + 9 = ?", c: "(2x+3)^2", v: {}, z:"zor", alt:"4x2_12x_9" },
-  { id: "s6_tk_032", s: "9x^2 - 24x + 16 = ?", c: "(3x-4)^2", v: {}, z:"zor", alt:"9x2_24x_16" },
+// ALT DAL 9: CARPANLARA AYIRMA TAM KARE
+  { id: "s6_tk_030", s: "{a}x² + {2ab}x + {b2} = ?", c: "({a}x+{b})²", v: { a: [2, 4], b: [1, 4], "2ab": [4, 32], b2: [1, 16] }, z: "cok_zor", alt: "katsayili_tam_kare_carpan" },
+  { id: "s6_tk_031", s: "4x^2 + 12x + 9 = ?", c: "(2x+3)^2", v: {}, z: "zor", alt: "4x2_12x_9" },
+  { id: "s6_tk_032", s: "9x^2 - 24x + 16 = ?", c: "(3x-4)^2", v: {}, z: "zor", alt: "9x2_24x_16" },
 
   // ALT DAL 10: TAM KARE KARIŞIK
   { id: "s6_tk_033", s: "x²+y²+2xy-1 = ?", c: "(x+y)²-1=(x+y-1)(x+y+1)", v: {}, z:"cok_zor", alt:"tam_kare_eksi_1" },
