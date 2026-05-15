@@ -4,7 +4,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f0f23">
+    <meta name="apple-mobile-web-app-capable" content="yes"><!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f23">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Matematik Öğretici | Çalışma Uygulaması</title>
+   
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ==================== APP KAPSAYICI ==================== -->
+    <div id="appContainer">
+        
+        <!-- HEADER -->
+        <header id="mainHeader">
+            <button class="btn-icon" id="btnBack" onclick="goBack()" aria-label="Geri">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span id="headerTitle">Matematik Öğretici</span>
+            <button class="btn-icon" id="btnMenu" onclick="toggleMenu()" aria-label="Menü">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </header>
+
+        <!-- YAN MENU (OVERLAY) -->
+        <div id="sideMenu" class="overlay hidden">
+            <div class="overlay-bg" onclick="toggleMenu()"></div>
+            <div class="overlay-panel">
+                <div class="side-menu-header">
+                    <span>Menü</span>
+                    <button class="btn-icon" onclick="toggleMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="side-menu-actions">
+                    <button class="btn btn-ghost btn-full" onclick="goHome(); toggleMenu();">🏠 Ana Sayfa</button>
+                    <button class="btn btn-ghost btn-full" onclick="goTopics(); toggleMenu();">📚 Konu Çalış</button>
+                    <button class="btn btn-ghost btn-full" onclick="goQuestionBank(); toggleMenu();">📝 Soru Bankası</button>
+                    <button class="btn btn-ghost btn-full" onclick="goExamList(); toggleMenu();">📋 Deneme Sınavı</button>
+                    <button class="btn btn-ghost btn-full" onclick="goStats(); toggleMenu();">📊 İstatistikler</button>
+                </div>
+                <div class="side-menu-footer">
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('api');">
+                        🔑 API Anahtarı
+                        <span id="apiStatusMini" style="font-size: 10px; margin-left: 6px;"></span>
+                    </button>
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('reset');">🔄 Sıfırla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANA İÇERİK -->
+        <main id="mainContent">
+            
+            <!-- ========== ANA SAYFA ========== -->
+            <div id="vHome" class="view active">
+                <div class="hero-section">
+                    <div class="hero-icon">🧮</div>
+                    <h1>Matematik Öğretici</h1>
+                    <p class="hero-sub">Planlı çalış, seviyeni gör, kazan!</p>
+                </div>
+
+                <div class="stats-row" id="homeStatsRow">
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statTopics">0</span>
+                        <span class="stat-mini-lbl">Konu</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statQuestions">0</span>
+                        <span class="stat-mini-lbl">Soru</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statAccuracy">%0</span>
+                        <span class="stat-mini-lbl">Doğruluk</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statStreak">0</span>
+                        <span class="stat-mini-lbl">Seri</span>
+                    </div>
+                </div>
+
+                <div class="next-topic-badge" id="nextTopicBadge">
+                    Sıradaki: Yükleniyor...
+                </div>
+
+                <div class="btn-group-vertical">
+                    <button class="btn btn-primary btn-full" onclick="goTopics()">
+                        <span class="btn-icon-left">📚</span> Konu Çalış
+                    </button>
+                    <button class="btn btn-accent btn-full" onclick="goQuestionBank()">
+                        <span class="btn-icon-left">📝</span> Soru Bankası
+                    </button>
+                    <button class="btn btn-exam btn-full" onclick="goExamList()">
+                        <span class="btn-icon-left">📋</span> Deneme Sınavı
+                    </button>
+                    <button class="btn btn-stats btn-full" onclick="goStats()">
+                        <span class="btn-icon-left">📊</span> İstatistikler
+                    </button>
+                </div>
+            </div>
+
+            <!-- ========== KONU LİSTESİ ========== -->
+            <div id="vTopics" class="view">
+                <div class="section-header">
+                    <h2>📚 Konular</h2>
+                    <span class="badge" id="topicsDoneLabel">0/45</span>
+                </div>
+                <div id="topicsList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- ========== ÖĞRENME (KONU ÇALIŞ) ========== -->
+            <div id="vLearn" class="view">
+                <div id="learnHeader" class="learn-header">
+                    <h2 id="learnTitle">Konu</h2>
+                    <span class="badge badge-acc" id="learnKademe">Seviye</span>
+                </div>
+                <div id="learnContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== SORU BANKASI LİSTESİ ========== -->
+            <div id="vQuestionBank" class="view">
+                <div class="section-header">
+                    <h2>📝 Soru Bankası</h2>
+                    <span>Konu başına 300 soru</span>
+                </div>
+                <div id="qbTopicsList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- ========== SORU BANKASI ÇÖZME ========== -->
+            <div id="vQBSolve" class="view">
+                <div id="qbSolveHeader" class="learn-header">
+                    <h2 id="qbSolveTitle">Soru Bankası</h2>
+                    <span class="badge badge-acc" id="qbSolveProgress">0/300</span>
+                </div>
+                <div id="qbSolveContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== DENEME LİSTESİ ========== -->
+            <div id="vExamList" class="view">
+                <div class="section-header">
+                    <h2>📋 Deneme Sınavları</h2>
+                    <span>20 soru / 20 dakika</span>
+                </div>
+                <div id="examListContent">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== DENEME SINAVI ========== -->
+            <div id="vExam" class="view">
+                <div id="examHeader" class="exam-header">
+                    <div class="exam-info">
+                        <h2 id="examTitle">Deneme Sınavı</h2>
+                        <span class="badge badge-warn" id="examTimer">20:00</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="cancelExam()">Vazgeç</button>
+                </div>
+                <div id="examContent" class="learn-content">
+                    <!-- Dinamik içerik -->
+                </div>
+            </div>
+
+            <!-- ========== İSTATİSTİKLER ========== -->
+            <div id="vStats" class="view">
+                <div class="section-header">
+                    <h2>📊 İstatistikler</h2>
+                </div>
+                <div id="statsContent">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODALLAR ==================== -->
+    
+    <!-- API Anahtarı Modal -->
+    <div id="apiModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('api')"></div>
+        <div class="modal-card">
+            <h3>🔑 Groq API Anahtarı</h3>
+            <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">
+                Konu özetleri ve öğretmene sor özelliği için gereklidir.<br>
+                <a href="https://console.groq.com/keys" target="_blank" style="color: #6c63ff;">groq.com/keys</a> adresinden ücretsiz alabilirsiniz.
+            </p>
+            <input id="apiInp" class="input" type="password" placeholder="gsk_...">
+            <div class="btn-row">
+                <button class="btn btn-ghost btn-full" onclick="closeModal('api')">Vazgeç</button>
+                <button class="btn btn-primary btn-full" onclick="saveKey()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sıfırlama Modal -->
+    <div id="resetModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('reset')"></div>
+        <div class="modal-card">
+            <h3>🔄 Sıfırla</h3>
+            <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">Neyi sıfırlamak istersiniz?</p>
+            <button class="btn btn-ghost btn-full" onclick="doReset('topic')">Sadece Bu Konuyu Sıfırla</button>
+            <button class="btn btn-danger btn-full" onclick="doReset('all')">Tüm İlerlemeyi Sıfırla</button>
+            <button class="btn btn-ghost btn-full" onclick="closeModal('reset')" style="margin-top: 8px;">Vazgeç</button>
+        </div>
+    </div>
+
+    <!-- Kutlama Animasyonu -->
+    <div id="celWrap" class="celebrate hidden">
+        <div class="cel-box">
+            <span class="cel-icon">🎉</span>
+            <span id="celTxt">Tebrikler!</span>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTLER (Sıra önemli!) ==================== -->
+    <script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
+
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Matematik Öğretici | Çalışma Uygulaması</title>
     
