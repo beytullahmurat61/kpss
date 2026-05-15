@@ -2,18 +2,10 @@
 // BAĞIMLILIK KONTROLÜ - config.js ve questions.js bekle
 // ============================================
 (function waitForDeps() {
-    if (typeof TOPICS === 'undefined' || 
-        typeof LEVELS === 'undefined' || 
-        typeof SORU_BANKASI === 'undefined') {
-        console.log('⏳ Bekleniyor...', {
-            TOPICS: typeof TOPICS,
-            LEVELS: typeof LEVELS,
-            SORU_BANKASI: typeof SORU_BANKASI
-        });
+    if (typeof TOPICS === 'undefined' || typeof LEVELS === 'undefined' || typeof SORU_BANKASI === 'undefined') {
         setTimeout(waitForDeps, 50);
         return;
     }
-    console.log('✅ Tüm bağımlılıklar yüklendi!');
     startApp();
 })();
 
