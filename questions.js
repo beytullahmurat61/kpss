@@ -8362,7 +8362,8 @@ const SORU_BANKASI = {
   { id: "s18_ag_027", s: "Eğim neyi ifade eder?", c: "dogrunun_x_ekseni_ile_yaptigi_acının_tanjantini", v: {}, z:"orta", alt:"egim_anlam" },
   { id: "s18_ag_028", s: "Orijinden geçen doğrunun denklemi nasıldır?", c: "y=mx_(sabit_terim_0)", v: {}, z:"orta", alt:"orijin_dogru" },
 
-],
+ ],
+};   // SORU_BANKASI objesi burada kapanıyor.
 
 // Kullanım için export
 if (typeof module !== 'undefined' && module.exports) {
