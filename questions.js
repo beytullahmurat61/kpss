@@ -3,7 +3,7 @@
 // Tüm Seviyeler (0-18)
 // Toplam: 19 Seviye, 207 Konu, 4.247 Şablon Soru
 // ==========================================
-if (typeof SORU_BANKASI === 'undefined') {
+
 const SORU_BANKASI = {
   
   // ==========================================
@@ -1889,9 +1889,9 @@ const SORU_BANKASI = {
   { id: "s4_od_012", s: "(-1)²ⁿ⁺¹ = ?", c: "-1", v: {n:[0,4]}, z:"orta", alt:"eksi1_2n+1" },
 
   // ALT DAL 4: 10'UN KUVVETLERİ - DÜZELTİLDİ
-  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "Math.pow(10,{n})", v: { n: [1,6] }, z: "kolay", alt: "10_un_kuvveti" },
+  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "1" + "0".repeat({n}), v: {n:[1,6]}, z:"kolay", alt:"10_un_kuvveti" },
   { id: "s4_od_014", s: "10ⁿ sayısında n tane ne vardır?", c: "sifir", v: {}, z:"kolay", alt:"10_un_kuvveti_sifir" },
-  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "Math.pow(10,-{n})", v: { n: [1,5] }, z: "orta", alt: "10_negatif_us" },
+  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "0." + "0".repeat({n}-1) + "1", v: {n:[1,5]}, z:"orta", alt:"10_negatif_us" },
 
   // ALT DAL 5: SAYILARIN KUVVETLERİNİN SON BASAMAKLARI
   { id: "s4_od_016", s: "2ⁿ ifadesinin son basamağı n={n} için kaçtır?", c: "{son_basamak}", v: {n:[1,10]}, z:"zor", alt:"2_son_basamak" },
@@ -8580,13 +8580,10 @@ const SORU_BANKASI = {
   { id: "s18_ag_026", s: "Analitik geometride temel formüller nelerdir?", c: "uzaklik,_orta_nokta,_egim,_dogru_denklemi", v: {}, z:"orta", alt:"temel_formuller_ag" },
   { id: "s18_ag_027", s: "Eğim neyi ifade eder?", c: "dogrunun_x_ekseni_ile_yaptigi_acının_tanjantini", v: {}, z:"orta", alt:"egim_anlam" },
   { id: "s18_ag_028", s: "Orijinden geçen doğrunun denklemi nasıldır?", c: "y=mx_(sabit_terim_0)", v: {}, z:"orta", alt:"orijin_dogru" },
-
-  ],
-
+],
 };
 
 // Kullanım için export
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = SORU_BANKASI;
 }
-} // if (typeof SORU_BANKASI === 'undefined') sonu
