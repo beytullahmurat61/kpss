@@ -1,6 +1,6 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Geometri çizim desteği eklendi (konu 29)
+// Versiyon: 4.0 - İyileştirilmiş ve Kararlı
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
@@ -10,22 +10,25 @@ console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
 // ============================================
 
 function normAns(s) {
+    if (!s) return '';
     return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.')
         .replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m/g,'').trim();
 }
 
 function checkEqual(userAns, correctAns) {
-    const u = normAns(userAns), c = normAns(correctAns);
-    if (u === c) return true;
-    const uParts = u.split('/'), cParts = c.split('/');
-    if (cParts.length === 2 || uParts.length === 2) {
-        const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : parseFloat(u);
-        const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : parseFloat(c);
-        if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.01) return true;
-    }
-    const un = parseFloat(u), cn = parseFloat(c);
-    if (!isNaN(un) && !isNaN(cn) && Math.abs(un - cn) < 0.05) return true;
-    return false;
+    try {
+        const u = normAns(userAns), c = normAns(correctAns);
+        if (u === c) return true;
+        const uParts = u.split('/'), cParts = c.split('/');
+        if (cParts.length === 2 || uParts.length === 2) {
+            const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : parseFloat(u);
+            const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : parseFloat(c);
+            if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.01) return true;
+        }
+        const un = parseFloat(u), cn = parseFloat(c);
+        if (!isNaN(un) && !isNaN(cn) && Math.abs(un - cn) < 0.05) return true;
+        return false;
+    } catch(e) { return false; }
 }
 
 function dots() { return '<div class="dots"><span></span><span></span><span></span></div>'; }
@@ -37,7 +40,11 @@ function celebrate(msg, dur = 1900) {
     setTimeout(() => w.classList.add('hidden'), dur);
 }
 
-function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randomInt(min, max) { 
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 function randomFloat(min, max) { return Math.random() * (max - min) + min; }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function findGCD(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
@@ -59,24 +66,27 @@ function getPrimesInRange(min, max) {
 function simpleHash(str) {
     let h = 0;
     for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h = h & h; }
-    return Math.abs(h).toString(36).substring(0, 6);
+    return Math.abs(h).toString(36).substring(0, 8);
 }
 
 // ---------- fillTemplate (drawGeometry'den ÖNCE tanımlanmalı) ----------
 function fillTemplate(text, vars) {
+    if (!text) return '';
     let result = String(text);
-    const missing = [];
     const matches = result.match(/\{[^}]+\}/g) || [];
     for (let match of matches) {
         const key = match.slice(1, -1);
-        if (vars.hasOwnProperty(key)) result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), vars[key]);
-        else missing.push(key);
+        if (vars && vars.hasOwnProperty(key)) {
+            const val = vars[key];
+            result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
+        } else {
+            return text; // Eksik değişken varsa orijinal metni döndür (hata verme)
+        }
     }
-    if (missing.length) throw new Error(`Eksik değişken: ${missing.join(', ')}`);
     return result;
 }
 
-// ========== GEOMETRİ ÇİZİM FONKSİYONU ==========
+// ========== GEOMETRİ ÇİZİM FONKSİYONU (İyileştirilmiş) ==========
 function drawGeometry(canvasId, drawType, vars, params) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -84,10 +94,8 @@ function drawGeometry(canvasId, drawType, vars, params) {
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
   
-  // Arka planı beyaz yap (daha kontrastlı)
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, w, h);
-  
   ctx.strokeStyle = '#6c63ff';
   ctx.fillStyle = '#1a1a2e';
   ctx.lineWidth = 5;
@@ -99,6 +107,7 @@ function drawGeometry(canvasId, drawType, vars, params) {
     if (drawType === 'triangle') {
       const a = parseFloat(fillTemplate(params.angles[0], vars));
       const b = parseFloat(fillTemplate(params.angles[1], vars));
+      if (isNaN(a) || isNaN(b)) throw new Error('Geçersiz açı');
       const A = { x: w/2, y: 60 };
       const B = { x: 80, y: h - 80 };
       const C = { x: w - 80, y: h - 80 };
@@ -118,6 +127,7 @@ function drawGeometry(canvasId, drawType, vars, params) {
     else if (drawType === 'rectangle') {
       const width = parseFloat(fillTemplate(params.width, vars));
       const height = parseFloat(fillTemplate(params.height, vars));
+      if (isNaN(width) || isNaN(height)) throw new Error('Geçersiz kenar');
       const startX = (w - width) / 2;
       const startY = (h - height) / 2;
       ctx.strokeRect(startX, startY, width, height);
@@ -127,6 +137,7 @@ function drawGeometry(canvasId, drawType, vars, params) {
     }
     else if (drawType === 'square') {
       const side = parseFloat(fillTemplate(params.side, vars));
+      if (isNaN(side)) throw new Error('Geçersiz kenar');
       const startX = (w - side) / 2;
       const startY = (h - side) / 2;
       ctx.strokeRect(startX, startY, side, side);
@@ -135,8 +146,9 @@ function drawGeometry(canvasId, drawType, vars, params) {
     }
     else if (drawType === 'circle') {
       const r = parseFloat(fillTemplate(params.radius, vars));
+      if (isNaN(r)) throw new Error('Geçersiz yarıçap');
       ctx.beginPath();
-      ctx.arc(w/2, h/2, r, 0, 2*Math.PI);
+      ctx.arc(w/2, h/2, Math.min(r, Math.min(w,h)/2 - 20), 0, 2*Math.PI);
       ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
       ctx.fillText(`r = ${r} cm`, w/2, h/2 + r + 40);
@@ -144,6 +156,7 @@ function drawGeometry(canvasId, drawType, vars, params) {
     else if (drawType === 'right_triangle') {
       const leg1 = parseFloat(fillTemplate(params.legs[0], vars));
       const leg2 = parseFloat(fillTemplate(params.legs[1], vars));
+      if (isNaN(leg1) || isNaN(leg2)) throw new Error('Geçersiz kenar');
       ctx.beginPath();
       ctx.moveTo(80, h-80);
       ctx.lineTo(80+leg1, h-80);
@@ -156,10 +169,13 @@ function drawGeometry(canvasId, drawType, vars, params) {
     }
   } catch(e) {
     console.warn('Geometri çizim hatası:', e);
+    ctx.fillStyle = '#ff6584';
+    ctx.font = 'bold 20px Inter';
+    ctx.fillText('Şekil yüklenemedi', w/2, h/2);
   }
 }
 
-// ---------- GELİŞMİŞ safeEval (tek tanım) ----------
+// ---------- GELİŞMİŞ safeEval ----------
 function ebob(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
 function ekok(a, b) { return Math.abs(a * b) / ebob(a, b); }
 function asalCarpan(n) {
@@ -230,12 +246,13 @@ const SAFE_CONTEXT = {
 };
 
 function safeEval(expr) {
+    if (!expr) return null;
     if (/[;`'"\\]|__proto__|constructor|prototype|eval\(/i.test(expr)) throw new Error('Güvensiz ifade');
     let clean = String(expr).replace(/×/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/√\(/g,'Math.sqrt(').replace(/√/g,'Math.sqrt');
     try {
         const func = new Function(...Object.keys(SAFE_CONTEXT), `return (${clean})`);
         return func(...Object.values(SAFE_CONTEXT));
-    } catch(e) { throw new Error('Hesaplama hatası'); }
+    } catch(e) { throw new Error('Hesaplama hatası: ' + e.message); }
 }
 
 function shuffleArray(arr) {
@@ -273,7 +290,7 @@ function loadState() {
         const saved = JSON.parse(localStorage.getItem(CONSTANTS.STORAGE_KEY) || '{}');
         if (saved.version === STATE_VERSION) Object.assign(ST, saved);
         else if (Object.keys(saved).length > 0) Object.assign(ST, saved);
-    } catch (e) {}
+    } catch (e) { console.warn('State yüklenemedi', e); }
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
     if (!ST.lastView) ST.lastView = 'vHome';
     
@@ -306,7 +323,7 @@ function saveState() {
     try {
         const { apiKey, cq, ...d } = ST;
         localStorage.setItem(CONSTANTS.STORAGE_KEY, JSON.stringify(d));
-    } catch (e) {}
+    } catch (e) { console.warn('State kaydedilemedi', e); }
 }
 
 function getHist(topicId) {
@@ -502,7 +519,7 @@ function setLearnHeader() {
 }
 
 // ===============================
-//  PROFESYONEL SORU ÜRETİM MOTORU
+//  PROFESYONEL SORU ÜRETİM MOTORU (İyileştirilmiş)
 // ===============================
 
 let GLOBAL_QUESTION_FINGERPRINTS = new Set();
@@ -516,7 +533,14 @@ function getQuestionFingerprint(templateId, vars) {
 }
 
 function isQuestionUsedGlobally(fingerprint) { return GLOBAL_QUESTION_FINGERPRINTS.has(fingerprint); }
-function markQuestionUsedGlobally(fingerprint) { GLOBAL_QUESTION_FINGERPRINTS.add(fingerprint); if (GLOBAL_QUESTION_FINGERPRINTS.size > 10000) { const toDelete = [...GLOBAL_QUESTION_FINGERPRINTS].slice(0, 5000); toDelete.forEach(f => GLOBAL_QUESTION_FINGERPRINTS.delete(f)); } }
+function markQuestionUsedGlobally(fingerprint) { 
+    GLOBAL_QUESTION_FINGERPRINTS.add(fingerprint); 
+    // Otomatik temizleme (2000'den fazla olursa eski kayıtları sil)
+    if (GLOBAL_QUESTION_FINGERPRINTS.size > 5000) {
+        const toDelete = [...GLOBAL_QUESTION_FINGERPRINTS].slice(0, 2000);
+        toDelete.forEach(f => GLOBAL_QUESTION_FINGERPRINTS.delete(f));
+    }
+}
 
 function getUserSolvedFingerprints(topicId, level) {
     const key = `${topicId}|${level}`;
@@ -538,66 +562,111 @@ function valueMatchesFilter(val, filter) {
 }
 
 function generateVariables(varRanges, rule) {
+    if (!varRanges || Object.keys(varRanges).length === 0) return {};
+    
     const keys = Object.keys(varRanges);
     const independent = keys.filter(k => Array.isArray(varRanges[k]));
     const dependent = keys.filter(k => !Array.isArray(varRanges[k]));
 
-    for (let attempt = 0; attempt < 80; attempt++) {
+    for (let attempt = 0; attempt < 100; attempt++) {
         const vars = {};
+        let valid = true;
+        
+        // Bağımsız değişkenleri üret
         for (const key of independent) {
             const arr = varRanges[key];
             const min = arr[0], max = arr[1], filter = arr[2];
-            let val, tries = 0;
-            do { val = randomInt(min, max); tries++; if (tries > 200) break; } while (!valueMatchesFilter(val, filter));
-            if (tries > 200) vars[key] = randomInt(min,max);
-            else vars[key] = val;
+            let val = randomInt(min, max);
+            if (filter && !valueMatchesFilter(val, filter)) {
+                // Filtreye uymuyorsa tekrar dene (5 kez)
+                for (let i = 0; i < 5; i++) {
+                    val = randomInt(min, max);
+                    if (valueMatchesFilter(val, filter)) break;
+                }
+            }
+            vars[key] = val;
         }
-        let depOk = true;
+        
+        // Bağımlı değişkenleri hesapla
         for (const key of dependent) {
             let expr = varRanges[key];
-            if (typeof expr === 'number') vars[key] = expr;
-            else if (typeof expr === 'string') {
+            if (typeof expr === 'number') {
+                vars[key] = expr;
+            } else if (typeof expr === 'string') {
                 let resolved = expr;
-                for (const k of Object.keys(vars)) resolved = resolved.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
-                if (/\{[^}]+\}/.test(resolved)) { depOk = false; break; }
-                try { vars[key] = safeEval(resolved); } catch(e) { depOk = false; break; }
-            } else { depOk = false; break; }
+                for (const k of Object.keys(vars)) {
+                    resolved = resolved.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
+                }
+                if (/\{[^}]+\}/.test(resolved)) {
+                    valid = false;
+                    break;
+                }
+                try {
+                    vars[key] = safeEval(resolved);
+                    if (vars[key] === null || vars[key] === undefined || isNaN(vars[key])) {
+                        valid = false;
+                        break;
+                    }
+                } catch(e) {
+                    valid = false;
+                    break;
+                }
+            } else {
+                valid = false;
+                break;
+            }
         }
-        if (!depOk) continue;
+        if (!valid) continue;
+        
+        // Kural kontrolü
         if (rule) {
             try {
                 let ruleExpr = rule;
-                for (const k of Object.keys(vars)) ruleExpr = ruleExpr.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
+                for (const k of Object.keys(vars)) {
+                    ruleExpr = ruleExpr.replace(new RegExp(`\\{${k}\\}`, 'g'), vars[k]);
+                }
                 if (!safeEval(ruleExpr)) continue;
             } catch(e) { continue; }
         }
         return vars;
     }
+    
+    // Fallback: sadece bağımsız değişkenlerle çalış
     const fallback = {};
-    for (const key of independent) fallback[key] = randomInt(varRanges[key][0], varRanges[key][1]);
-    for (const key of dependent) fallback[key] = 0;
+    for (const key of independent) {
+        const arr = varRanges[key];
+        fallback[key] = randomInt(arr[0], arr[1]);
+    }
+    for (const key of dependent) {
+        fallback[key] = typeof varRanges[key] === 'number' ? varRanges[key] : 0;
+    }
     return fallback;
 }
 
+// Gelişmiş şık üretimi (işlem hatalarına dayalı çeldiriciler)
 function generatePlausibleDistractors(correctAnswer) {
     const correctNum = typeof correctAnswer === 'number' ? correctAnswer : parseFloat(correctAnswer);
     if (isNaN(correctNum)) {
         const verbal = String(correctAnswer);
         const opposites = { 'Tek':'Çift', 'Çift':'Tek', 'Evet':'Hayır', 'Hayır':'Evet', 'Artar':'Azalır', 'Azalır':'Artar', 'Doğru':'Yanlış', 'Yanlış':'Doğru' };
         if (opposites[verbal]) return [opposites[verbal]];
-        return [];
+        return ['Diğer'];
     }
     let dists = new Set();
-    dists.add(correctNum + (correctNum * 0.1));
-    dists.add(correctNum - (correctNum * 0.1));
+    // Yaygın hatalar
     dists.add(correctNum + 1);
     dists.add(correctNum - 1);
+    dists.add(correctNum + (correctNum * 0.1));
+    dists.add(correctNum - (correctNum * 0.1));
     dists.add(correctNum * 2);
     dists.add(correctNum / 2);
+    dists.add(correctNum + (correctNum > 10 ? 10 : 1));
+    dists.add(correctNum > 5 ? correctNum - 2 : correctNum + 2);
+    
     let arr = [...dists].map(v => Math.round(v * 100) / 100).filter(v => Math.abs(v - correctNum) > 0.01 && v > 0);
-    arr = arr.slice(0, 3);
-    while (arr.length < 3) arr.push(correctNum + randomInt(1,10));
-    return arr;
+    arr = arr.slice(0, 4);
+    while (arr.length < 4) arr.push(correctNum + randomInt(1,5));
+    return arr.slice(0, 3);
 }
 
 function autoGenerateChoices(correctAnswer) {
@@ -626,8 +695,12 @@ function autoGenerateChoices(correctAnswer) {
 
 function calculateAnswer(formula, vars) {
     try {
+        if (!formula) return null;
         let expr = String(formula);
-        for (const [k, v] of Object.entries(vars)) expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        for (const [k, v] of Object.entries(vars)) {
+            expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
+        // Kesir kontrolü
         const parts = expr.split('/');
         if (parts.length === 2 && !/[+\-*()]/.test(expr)) {
             const num = safeEval(parts[0]);
@@ -635,7 +708,7 @@ function calculateAnswer(formula, vars) {
             if (den === 0) return null;
             if (num % den === 0) return num / den;
             const g = ebob(Math.abs(num), Math.abs(den));
-            return `${num/g}/${den/g}`;
+            return g > 1 ? `${num/g}/${den/g}` : `${num}/${den}`;
         }
         const result = safeEval(expr);
         return (isFinite(result) && !isNaN(result)) ? result : null;
@@ -650,7 +723,7 @@ function filterTemplatesByLevel(templates, level) {
     const zMap = { 'KOLAY': 'kolay', 'ORTA': 'orta', 'ZOR': 'zor' };
     const targetZ = zMap[level] || 'orta';
     const matching = templates.filter(t => (t.z || 'orta') === targetZ);
-    if (matching.length >= 3) return matching;
+    if (matching.length >= 2) return matching;
     return templates;
 }
 
@@ -659,7 +732,9 @@ function getVarRangesForLevel(template, level) { return template.v || {}; }
 function generateSolution(template, vars, answer) {
     if (template.cozum) {
         let sol = String(template.cozum);
-        for (const [k, v] of Object.entries(vars)) sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        for (const [k, v] of Object.entries(vars)) {
+            sol = sol.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        }
         sol = sol.replace('{cevap}', String(answer));
         return sol;
     }
@@ -667,14 +742,20 @@ function generateSolution(template, vars, answer) {
 }
 
 function formatAnswer(answer, inputType) {
+    if (answer === null || answer === undefined) return '';
     const s = String(answer);
     if (inputType === 'choice') return s;
-    if (!isNaN(Number(s))) { const n = Number(s); if (Number.isInteger(n)) return String(n); return parseFloat(n.toFixed(3)).toString(); }
+    if (!isNaN(Number(s))) {
+        const n = Number(s);
+        if (Number.isInteger(n)) return String(n);
+        return parseFloat(n.toFixed(3)).toString();
+    }
     return s;
 }
 
 function determineInputType(template, answer) {
     if (template.inputType && template.inputType !== 'auto') return template.inputType;
+    if (!answer && answer !== 0) return 'keyboard';
     const s = String(answer);
     if (['Tek','Çift','Evet','Hayır','Artar','Azalır','Doğru','Yanlış'].includes(s)) return 'choice';
     if (/[√π∞\[\{]/.test(s)) return 'choice';
@@ -693,7 +774,10 @@ function getSolvedIds(topicId, level, mode) {
 
 function generateQuestion(topicId, level, options = {}) {
     const templates = QUESTION_TEMPLATES[topicId];
-    if (!templates || !templates.length) return null;
+    if (!templates || !templates.length) {
+        console.warn(`Konu ${topicId} için şablon bulunamadı`);
+        return generateFallbackQuestion(topicId, level, options);
+    }
 
     const solvedFingerprints = getSolvedIds(topicId, level, options.mode);
     let eligible = filterTemplatesByLevel(templates, level);
@@ -706,7 +790,7 @@ function generateQuestion(topicId, level, options = {}) {
     const shuffled = shuffleArray([...fresh]);
     for (let i = 0; i < shuffled.length; i++) {
         const template = shuffled[i];
-        for (let a = 0; a < 8; a++) {
+        for (let a = 0; a < 12; a++) { // Daha fazla deneme
             const q = tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, options);
             if (q) {
                 addRecentTemplateId(topicId, template.id);
@@ -718,117 +802,160 @@ function generateQuestion(topicId, level, options = {}) {
 }
 
 function tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, options) {
-    const varRanges = getVarRangesForLevel(template, level);
-    const vars = generateVariables(varRanges, template.kural);
-    if (!vars) return null;
+    try {
+        const varRanges = getVarRangesForLevel(template, level);
+        const vars = generateVariables(varRanges, template.kural);
+        if (!vars || Object.keys(vars).length === 0) return null;
 
-    let questionText;
-    try { questionText = fillTemplate(template.s, vars); } catch(e) { return null; }
+        let questionText;
+        try { questionText = fillTemplate(template.s, vars); } catch(e) { return null; }
+        if (!questionText || questionText === template.s) return null;
 
-    const cevapSonuc = calculateAnswer(template.c, vars);
-    if (cevapSonuc === null || cevapSonuc === undefined) return null;
+        const cevapSonuc = calculateAnswer(template.c, vars);
+        if (cevapSonuc === null || cevapSonuc === undefined) return null;
 
-    const fingerprint = getQuestionFingerprint(template.id, vars);
-    if (isQuestionUsedGlobally(fingerprint)) return null;
-    
-    if (solvedFingerprints.has && solvedFingerprints.has(fingerprint)) return null;
-    if (Array.isArray(solvedFingerprints) && solvedFingerprints.includes(fingerprint)) return null;
+        const fingerprint = getQuestionFingerprint(template.id, vars);
+        if (isQuestionUsedGlobally(fingerprint)) return null;
+        
+        if (solvedFingerprints.has && solvedFingerprints.has(fingerprint)) return null;
+        if (Array.isArray(solvedFingerprints) && solvedFingerprints.includes(fingerprint)) return null;
 
-    const inputType = determineInputType(template, cevapSonuc);
-    let choices = null;
-    let correctChoiceIndex = 0;
+        const inputType = determineInputType(template, cevapSonuc);
+        let choices = null;
+        let correctChoiceIndex = 0;
 
-    if (inputType === 'choice') {
-        if (template.choices && Array.isArray(template.choices)) {
-            choices = template.choices.map((ct, i) => {
-                let text = String(ct);
-                for (const [k, v] of Object.entries(vars)) text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-                return { label: String.fromCharCode(65+i), text, isCorrect: String(text).trim() === String(cevapSonuc).trim() };
-            });
-        } else {
-            choices = autoGenerateChoices(cevapSonuc);
+        if (inputType === 'choice') {
+            if (template.choices && Array.isArray(template.choices)) {
+                choices = template.choices.map((ct, i) => {
+                    let text = String(ct);
+                    for (const [k, v] of Object.entries(vars)) {
+                        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+                    }
+                    return { label: String.fromCharCode(65+i), text, isCorrect: String(text).trim() === String(cevapSonuc).trim() };
+                });
+            } else {
+                choices = autoGenerateChoices(cevapSonuc);
+            }
+            correctChoiceIndex = choices.findIndex(ch => ch.isCorrect);
+            if (correctChoiceIndex === -1) correctChoiceIndex = 0;
         }
-        correctChoiceIndex = choices.findIndex(ch => ch.isCorrect);
-        if (correctChoiceIndex === -1) correctChoiceIndex = 0;
+
+        markQuestionUsedGlobally(fingerprint);
+        const userSet = getUserSolvedFingerprints(topicId, level);
+        userSet.add(fingerprint);
+        if (userSet.size > 2000) { 
+            const toDel = [...userSet].slice(0, 500); 
+            toDel.forEach(f => userSet.delete(f)); 
+        }
+
+        const generatedId = `q_${template.id}_${fingerprint}`;
+
+        return {
+            id: generatedId,
+            fingerprint: fingerprint,
+            templateId: template.id,
+            soru: questionText,
+            cevap: formatAnswer(cevapSonuc, inputType),
+            cevapRaw: cevapSonuc,
+            zorluk: template.z || 'orta',
+            inputType: inputType,
+            choices: choices,
+            correctChoiceIndex: correctChoiceIndex,
+            cozum: generateSolution(template, vars, cevapSonuc),
+            vars: vars,
+            topicId: topicId,
+            draw: template.draw,
+            drawParams: template.drawParams
+        };
+    } catch(e) {
+        console.warn('Şablon işlenirken hata:', template?.id, e.message);
+        return null;
     }
-
-    markQuestionUsedGlobally(fingerprint);
-    const userSet = getUserSolvedFingerprints(topicId, level);
-    userSet.add(fingerprint);
-    if (userSet.size > 2000) { const toDel = [...userSet].slice(0, 500); toDel.forEach(f => userSet.delete(f)); }
-
-    const generatedId = `q_${template.id}_${fingerprint}`;
-
-    return {
-        id: generatedId,
-        fingerprint: fingerprint,
-        templateId: template.id,
-        soru: questionText,
-        cevap: formatAnswer(cevapSonuc, inputType),
-        cevapRaw: cevapSonuc,
-        zorluk: template.z || 'orta',
-        inputType: inputType,
-        choices: choices,
-        correctChoiceIndex: correctChoiceIndex,
-        cozum: generateSolution(template, vars, cevapSonuc),
-        vars: vars,
-        topicId: topicId,
-        draw: template.draw,
-        drawParams: template.drawParams
-    };
 }
 
 function generateFallbackQuestion(topicId, level, options) {
     const templates = QUESTION_TEMPLATES[topicId];
-    if (!templates || !templates.length) return null;
-    for (let i = 0; i < 15; i++) {
-        const tpl = templates[Math.floor(Math.random() * templates.length)];
-        const varRanges = getVarRangesForLevel(tpl, level);
-        const vars = generateVariables(varRanges, tpl.kural);
-        if (!vars) continue;
-        const cevapSonuc = calculateAnswer(tpl.c, vars);
-        if (cevapSonuc === null) continue;
-        const fingerprint = getQuestionFingerprint(tpl.id, vars);
-        if (isQuestionUsedGlobally(fingerprint)) continue;
-        markQuestionUsedGlobally(fingerprint);
-        const inputType = determineInputType(tpl, cevapSonuc);
-        let choices = null;
-        let correctChoiceIndex = 0;
-        if (inputType === 'choice') {
-            choices = tpl.choices ? tpl.choices.map((ct,i) => ({ label: String.fromCharCode(65+i), text: fillTemplate(ct, vars), isCorrect: false })) : autoGenerateChoices(cevapSonuc);
-            const correctIdx = choices.findIndex(ch => String(ch.text).trim() === String(cevapSonuc).trim());
-            if (correctIdx !== -1) { choices[correctIdx].isCorrect = true; correctChoiceIndex = correctIdx; }
-            else if (choices.length > 0) { choices[0].isCorrect = true; correctChoiceIndex = 0; }
-        }
+    if (!templates || !templates.length) {
         return {
-            id: `q_${tpl.id}_${fingerprint}`,
-            fingerprint,
-            templateId: tpl.id,
-            soru: fillTemplate(tpl.s, vars),
-            cevap: formatAnswer(cevapSonuc, inputType),
-            cevapRaw: cevapSonuc,
-            zorluk: tpl.z || 'orta',
-            inputType,
-            choices,
-            correctChoiceIndex,
-            cozum: generateSolution(tpl, vars, cevapSonuc),
-            vars,
-            topicId,
-            draw: tpl.draw,
-            drawParams: tpl.drawParams
+            id: 'joker_1',
+            soru: '1 + 1 kaçtır?',
+            cevap: '2',
+            cevapRaw: 2,
+            zorluk: 'kolay',
+            inputType: 'keyboard',
+            choices: null,
+            cozum: '1+1=2',
+            topicId: topicId
         };
     }
-    return { id: 'joker_1', soru: '1 + 1 kaçtır?', cevap: '2', cevapRaw: 2, zorluk: 'kolay', inputType: 'keyboard', choices: null, cozum: '1+1=2', topicId };
+    
+    for (let i = 0; i < 20; i++) {
+        const tpl = templates[Math.floor(Math.random() * templates.length)];
+        try {
+            const varRanges = getVarRangesForLevel(tpl, level);
+            const vars = generateVariables(varRanges, tpl.kural);
+            if (!vars) continue;
+            const cevapSonuc = calculateAnswer(tpl.c, vars);
+            if (cevapSonuc === null) continue;
+            const fingerprint = getQuestionFingerprint(tpl.id, vars);
+            if (isQuestionUsedGlobally(fingerprint)) continue;
+            markQuestionUsedGlobally(fingerprint);
+            const inputType = determineInputType(tpl, cevapSonuc);
+            let choices = null;
+            let correctChoiceIndex = 0;
+            if (inputType === 'choice') {
+                choices = tpl.choices ? tpl.choices.map((ct,i) => ({ label: String.fromCharCode(65+i), text: fillTemplate(ct, vars), isCorrect: false })) : autoGenerateChoices(cevapSonuc);
+                const correctIdx = choices.findIndex(ch => String(ch.text).trim() === String(cevapSonuc).trim());
+                if (correctIdx !== -1) { choices[correctIdx].isCorrect = true; correctChoiceIndex = correctIdx; }
+                else if (choices.length > 0) { choices[0].isCorrect = true; correctChoiceIndex = 0; }
+            }
+            return {
+                id: `q_${tpl.id}_${fingerprint}`,
+                fingerprint,
+                templateId: tpl.id,
+                soru: fillTemplate(tpl.s, vars),
+                cevap: formatAnswer(cevapSonuc, inputType),
+                cevapRaw: cevapSonuc,
+                zorluk: tpl.z || 'orta',
+                inputType,
+                choices,
+                correctChoiceIndex,
+                cozum: generateSolution(tpl, vars, cevapSonuc),
+                vars,
+                topicId,
+                draw: tpl.draw,
+                drawParams: tpl.drawParams
+            };
+        } catch(e) { continue; }
+    }
+    return {
+        id: 'joker_1',
+        soru: '1 + 1 kaçtır?',
+        cevap: '2',
+        cevapRaw: 2,
+        zorluk: 'kolay',
+        inputType: 'keyboard',
+        choices: null,
+        cozum: '1+1=2',
+        topicId: topicId
+    };
 }
 
-const SoruUretimMotoru = { generateQuestion, resetGlobalFingerprints: () => GLOBAL_QUESTION_FINGERPRINTS.clear(), resetUserProgress: (topicId, level) => { USER_SOLVED_FINGERPRINTS.delete(`${topicId}|${level}`); } };
+const SoruUretimMotoru = { 
+    generateQuestion, 
+    resetGlobalFingerprints: () => GLOBAL_QUESTION_FINGERPRINTS.clear(), 
+    resetUserProgress: (topicId, level) => { USER_SOLVED_FINGERPRINTS.delete(`${topicId}|${level}`); } 
+};
 
 // ============================================
 // BÖLÜM 6: SORU GÖSTERİM & CEVAP
 // ============================================
 
 function renderNextQuestion() {
-    if (typeof QUESTION_TEMPLATES === 'undefined') { document.getElementById('learnContent').innerHTML = '<div class="err">Şablonlar yüklenemedi.</div>'; return; }
+    if (typeof QUESTION_TEMPLATES === 'undefined') { 
+        document.getElementById('learnContent').innerHTML = '<div class="err">Şablonlar yüklenemedi.</div>'; 
+        return; 
+    }
     const t = getTopicById(ST.topic);
     if (!t) return;
     const level = ST.currentLevel, levelInfo = LEVELS[level];
@@ -837,7 +964,10 @@ function renderNextQuestion() {
     if (!el) return;
     el.innerHTML = `<div class="card">${dots()}</div>`;
     const qData = generateQuestion(ST.topic, level, { mode: 'study' });
-    if (!qData) { el.innerHTML = `<div class="card accent-top" style="text-align:center"><h3>📭 Soru Üretilemedi</h3><button class="btn btn-primary btn-full" onclick="resetLevelQuestions()">🔄 Tekrar Dene</button></div>`; return; }
+    if (!qData) { 
+        el.innerHTML = `<div class="card accent-top" style="text-align:center"><h3>📭 Soru Üretilemedi</h3><button class="btn btn-primary btn-full" onclick="resetLevelQuestions()">🔄 Tekrar Dene</button></div>`; 
+        return; 
+    }
     ST.cq = { ...qData, level };
     renderQuestionUI(qData, level, levelInfo);
 }
@@ -850,7 +980,6 @@ function renderQuestionUI(q, level, levelInfo) {
     const el = document.getElementById('learnContent');
     if (!el) return;
 
-    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
@@ -943,7 +1072,7 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 7: API (Groq)
+// BÖLÜM 7: API (Groq) - Mevcut haliyle aynı kalabilir
 // ============================================
 
 async function fetchTopicSummary(topic) {
@@ -1063,7 +1192,6 @@ function renderNextQBQuestion() {
     const t = getTopicById(topicId);
     const hasChoices = qData.inputType === 'choice' && qData.choices && qData.choices.length >= 2;
     
-    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (qData.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
@@ -1113,7 +1241,7 @@ window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQ
 window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
 // ============================================
-// BÖLÜM 9: DENEME SINAVI
+// BÖLÜM 9: DENEME SINAVI (Mevcut haliyle)
 // ============================================
 
 function renderExamList() {
@@ -1185,7 +1313,6 @@ function loadExamQuestion(idx) {
     const zc=q.z==='kolay'?'badge-grn':q.z==='zor'?'badge-red':'badge-warn';
     const hasChoices=q.inputType==='choice'&&q.choices&&q.choices.length>=2;
     
-    // Geometri çizimi için canvas oluştur - BÜYÜK BOYUT
     let geometryHtml = '';
     if (q.draw) {
         const canvasId = `geoCanvas_${Date.now()}_${Math.random()}`;
@@ -1225,7 +1352,7 @@ window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.curre
 window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 10: İSTATİSTİK
+// BÖLÜM 10: İSTATİSTİK (Mevcut haliyle)
 // ============================================
 
 function renderStats() {
@@ -1302,7 +1429,7 @@ function initApp() {
 }
 
 // ============================================
-// BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ)
+// BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ) - Mevcut haliyle
 // ============================================
 
 let musveddeActive = false;
