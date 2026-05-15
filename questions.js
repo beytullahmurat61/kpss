@@ -8364,8 +8364,6 @@ const SORU_BANKASI = {
 
 ],
 
-};
-
 // Kullanım için export
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = SORU_BANKASI;
