@@ -1,9 +1,14 @@
 // ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
-// Versiyon: 4.0 - İyileştirilmiş ve Kararlı
+// Versiyon: 4.1 - DÜZELTİLMİŞ VE KARARLI
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
+
+// ============================================
+// SÜRÜM SABİTİ
+// ============================================
+const STATE_VERSION = "4.0";
 
 // ============================================
 // BÖLÜM 1: YARDIMCI FONKSİYONLAR (TÜMÜ)
@@ -11,20 +16,33 @@ console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
 
 function normAns(s) {
     if (!s) return '';
-    return String(s).toLowerCase().replace(/\s+/g,'').replace(/,/g,'.')
-        .replace(/[×x]/g,'*').replace(/%|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m/g,'').trim();
+    // Birimleri daha nazikçe temizle (sadece sonundaki birimleri)
+    let cleaned = String(s).toLowerCase().trim();
+    // Birimleri kaldır (sadece sayısal kısmı al)
+    cleaned = cleaned.replace(/(\d+(?:\.\d+)?)\s*(?:tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)$/i, '$1');
+    // Virgülü noktaya çevir
+    cleaned = cleaned.replace(/,/g, '.');
+    // Çarpı işaretini * yap
+    cleaned = cleaned.replace(/[×x]/g, '*');
+    // Boşlukları temizle
+    cleaned = cleaned.replace(/\s+/g, '');
+    return cleaned;
 }
 
 function checkEqual(userAns, correctAns) {
     try {
         const u = normAns(userAns), c = normAns(correctAns);
         if (u === c) return true;
+        
+        // Kesir kontrolü
         const uParts = u.split('/'), cParts = c.split('/');
         if (cParts.length === 2 || uParts.length === 2) {
             const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : parseFloat(u);
             const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : parseFloat(c);
             if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.01) return true;
         }
+        
+        // Ondalık kontrol
         const un = parseFloat(u), cn = parseFloat(c);
         if (!isNaN(un) && !isNaN(cn) && Math.abs(un - cn) < 0.05) return true;
         return false;
@@ -69,7 +87,7 @@ function simpleHash(str) {
     return Math.abs(h).toString(36).substring(0, 8);
 }
 
-// ---------- fillTemplate (drawGeometry'den ÖNCE tanımlanmalı) ----------
+// ---------- fillTemplate ----------
 function fillTemplate(text, vars) {
     if (!text) return '';
     let result = String(text);
@@ -80,13 +98,13 @@ function fillTemplate(text, vars) {
             const val = vars[key];
             result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
         } else {
-            return text; // Eksik değişken varsa orijinal metni döndür (hata verme)
+            return text;
         }
     }
     return result;
 }
 
-// ========== GEOMETRİ ÇİZİM FONKSİYONU (İyileştirilmiş) ==========
+// ========== GEOMETRİ ÇİZİM FONKSİYONU ==========
 function drawGeometry(canvasId, drawType, vars, params) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -248,7 +266,10 @@ const SAFE_CONTEXT = {
 function safeEval(expr) {
     if (!expr) return null;
     if (/[;`'"\\]|__proto__|constructor|prototype|eval\(/i.test(expr)) throw new Error('Güvensiz ifade');
-    let clean = String(expr).replace(/×/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/√\(/g,'Math.sqrt(').replace(/√/g,'Math.sqrt');
+    let clean = String(expr).replace(/×/g,'*').replace(/÷/g,'/').replace(/\^/g,'**');
+    // Kök dönüşümü: √(x) veya √x formatı için
+    clean = clean.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
+    clean = clean.replace(/√(\d+(?:\.\d+)?)/g, 'Math.sqrt($1)');
     try {
         const func = new Function(...Object.keys(SAFE_CONTEXT), `return (${clean})`);
         return func(...Object.values(SAFE_CONTEXT));
@@ -273,6 +294,64 @@ function shuffleWithSeed(arr, seed) {
 }
 
 // ============================================
+// EKSİK FONKSİYONLAR
+// ============================================
+function getTopicById(id) {
+    if (typeof TOPICS === 'undefined') return null;
+    return TOPICS.find(t => t.id === id);
+}
+
+function getNextLevel(levelName) {
+    if (typeof LEVELS === 'undefined') return null;
+    const levels = Object.keys(LEVELS);
+    const idx = levels.indexOf(levelName);
+    return idx < levels.length - 1 ? levels[idx + 1] : null;
+}
+
+function getNextTopic(currentId) {
+    if (typeof TOPICS === 'undefined') return null;
+    const current = getTopicById(currentId);
+    return current ? TOPICS.find(t => t.order === current.order + 1) || null : null;
+}
+
+// ============================================
+// SORU ŞABLONLARINI DÖNÜŞTÜR (SORU_BANKASI -> QUESTION_TEMPLATES)
+// ============================================
+let QUESTION_TEMPLATES = {};
+
+function convertQuestionBankToTemplates() {
+    if (typeof SORU_BANKASI === 'undefined') {
+        console.warn('SORU_BANKASI tanımlı değil!');
+        return;
+    }
+    
+    // TOPICS yapısına göre her konu için uygun şablonları bul
+    for (let topicId = 1; topicId <= CONSTANTS.TOTAL_TOPICS; topicId++) {
+        QUESTION_TEMPLATES[topicId] = [];
+    }
+    
+    // Her seviyedeki soruları uygun konulara dağıt
+    for (let level in SORU_BANKASI) {
+        const levelNum = parseInt(level);
+        // Seviye 0-18 arası, her seviye yaklaşık 205/19 ≈ 10-11 konuya karşılık gelir
+        const startTopicId = levelNum * 10 + 1;
+        const endTopicId = Math.min(startTopicId + 10, CONSTANTS.TOTAL_TOPICS);
+        
+        for (let template of SORU_BANKASI[level]) {
+            // Şablonu seviyeye uygun konulara ekle
+            for (let topicId = startTopicId; topicId <= endTopicId; topicId++) {
+                if (QUESTION_TEMPLATES[topicId]) {
+                    // Şablonu kopyala (referans değil, değer kopyası)
+                    QUESTION_TEMPLATES[topicId].push({ ...template });
+                }
+            }
+        }
+    }
+    
+    console.log('✅ Soru şablonları dönüştürüldü. Konular:', Object.keys(QUESTION_TEMPLATES).length);
+}
+
+// ============================================
 // BÖLÜM 2: STATE YÖNETİMİ
 // ============================================
 let ST = {
@@ -288,14 +367,11 @@ let ST = {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem(CONSTANTS.STORAGE_KEY) || '{}');
-        // SADECE versiyon uyuyorsa yükle
         if (saved.version === STATE_VERSION) {
             Object.assign(ST, saved);
         }
-        // Versiyon uymuyorsa eski state'i TEMİZLE (yükleme)
         else if (Object.keys(saved).length > 0) {
             console.log('Eski state tespit edildi, temizleniyor...');
-            // Eski state'i yükleme, sadece gerekli alanları sıfırla
             ST.completedTopics = [];
             ST.hist = {};
             ST.questionBankProgress = {};
@@ -307,7 +383,6 @@ function loadState() {
     } catch (e) { console.warn('State yüklenemedi', e); }
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
     
-    // KALICI ÇÖZÜM: lastView'ı kontrol et, eğer learn/question ise home'a yönlendir
     if (ST.lastView === 'vLearn' || ST.lastView === 'vQBSolve') {
         const hasActiveStudy = ST.topic && ST.phase && (ST.phase === 'question' || ST.phase === 'feedback') && getTopicById(ST.topic);
         if (!hasActiveStudy) {
@@ -353,7 +428,7 @@ function getQBProgress(topicId) {
 }
 
 // ============================================
-// BÖLÜM 3: SAYFA GEÇİŞLERİ (YENİLEME SORUNU ÇÖZÜLDÜ)
+// BÖLÜM 3: SAYFA GEÇİŞLERİ
 // ============================================
 
 let currentView = 'vHome';
@@ -535,7 +610,7 @@ function setLearnHeader() {
 }
 
 // ===============================
-//  PROFESYONEL SORU ÜRETİM MOTORU (İyileştirilmiş)
+//  PROFESYONEL SORU ÜRETİM MOTORU
 // ===============================
 
 let GLOBAL_QUESTION_FINGERPRINTS = new Set();
@@ -551,7 +626,6 @@ function getQuestionFingerprint(templateId, vars) {
 function isQuestionUsedGlobally(fingerprint) { return GLOBAL_QUESTION_FINGERPRINTS.has(fingerprint); }
 function markQuestionUsedGlobally(fingerprint) { 
     GLOBAL_QUESTION_FINGERPRINTS.add(fingerprint); 
-    // Otomatik temizleme (2000'den fazla olursa eski kayıtları sil)
     if (GLOBAL_QUESTION_FINGERPRINTS.size > 5000) {
         const toDelete = [...GLOBAL_QUESTION_FINGERPRINTS].slice(0, 2000);
         toDelete.forEach(f => GLOBAL_QUESTION_FINGERPRINTS.delete(f));
@@ -588,13 +662,11 @@ function generateVariables(varRanges, rule) {
         const vars = {};
         let valid = true;
         
-        // Bağımsız değişkenleri üret
         for (const key of independent) {
             const arr = varRanges[key];
             const min = arr[0], max = arr[1], filter = arr[2];
             let val = randomInt(min, max);
             if (filter && !valueMatchesFilter(val, filter)) {
-                // Filtreye uymuyorsa tekrar dene (5 kez)
                 for (let i = 0; i < 5; i++) {
                     val = randomInt(min, max);
                     if (valueMatchesFilter(val, filter)) break;
@@ -603,7 +675,6 @@ function generateVariables(varRanges, rule) {
             vars[key] = val;
         }
         
-        // Bağımlı değişkenleri hesapla
         for (const key of dependent) {
             let expr = varRanges[key];
             if (typeof expr === 'number') {
@@ -634,7 +705,6 @@ function generateVariables(varRanges, rule) {
         }
         if (!valid) continue;
         
-        // Kural kontrolü
         if (rule) {
             try {
                 let ruleExpr = rule;
@@ -647,7 +717,6 @@ function generateVariables(varRanges, rule) {
         return vars;
     }
     
-    // Fallback: sadece bağımsız değişkenlerle çalış
     const fallback = {};
     for (const key of independent) {
         const arr = varRanges[key];
@@ -659,7 +728,6 @@ function generateVariables(varRanges, rule) {
     return fallback;
 }
 
-// Gelişmiş şık üretimi (işlem hatalarına dayalı çeldiriciler)
 function generatePlausibleDistractors(correctAnswer) {
     const correctNum = typeof correctAnswer === 'number' ? correctAnswer : parseFloat(correctAnswer);
     if (isNaN(correctNum)) {
@@ -669,7 +737,6 @@ function generatePlausibleDistractors(correctAnswer) {
         return ['Diğer'];
     }
     let dists = new Set();
-    // Yaygın hatalar
     dists.add(correctNum + 1);
     dists.add(correctNum - 1);
     dists.add(correctNum + (correctNum * 0.1));
@@ -716,7 +783,6 @@ function calculateAnswer(formula, vars) {
         for (const [k, v] of Object.entries(vars)) {
             expr = expr.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
         }
-        // Kesir kontrolü
         const parts = expr.split('/');
         if (parts.length === 2 && !/[+\-*()]/.test(expr)) {
             const num = safeEval(parts[0]);
@@ -789,15 +855,14 @@ function getSolvedIds(topicId, level, mode) {
 }
 
 function generateQuestion(topicId, level, options = {}) {
-    const templates = QUESTION_TEMPLATES[topicId];
-    if (!templates || !templates.length) {
+    if (!QUESTION_TEMPLATES[topicId] || !QUESTION_TEMPLATES[topicId].length) {
         console.warn(`Konu ${topicId} için şablon bulunamadı`);
         return generateFallbackQuestion(topicId, level, options);
     }
 
     const solvedFingerprints = getSolvedIds(topicId, level, options.mode);
-    let eligible = filterTemplatesByLevel(templates, level);
-    if (!eligible.length) eligible = templates;
+    let eligible = filterTemplatesByLevel(QUESTION_TEMPLATES[topicId], level);
+    if (!eligible.length) eligible = QUESTION_TEMPLATES[topicId];
 
     const recentIds = getRecentTemplateIds(topicId, 3);
     let fresh = eligible.filter(t => !recentIds.includes(t.id));
@@ -806,7 +871,7 @@ function generateQuestion(topicId, level, options = {}) {
     const shuffled = shuffleArray([...fresh]);
     for (let i = 0; i < shuffled.length; i++) {
         const template = shuffled[i];
-        for (let a = 0; a < 12; a++) { // Daha fazla deneme
+        for (let a = 0; a < 12; a++) {
             const q = tryGenerateFromTemplate(template, level, solvedFingerprints, topicId, options);
             if (q) {
                 addRecentTemplateId(topicId, template.id);
@@ -1088,7 +1153,7 @@ window.resetLevelQuestions = function() {
 };
 
 // ============================================
-// BÖLÜM 7: API (Groq) - Mevcut haliyle aynı kalabilir
+// BÖLÜM 7: API (Groq)
 // ============================================
 
 async function fetchTopicSummary(topic) {
@@ -1147,7 +1212,7 @@ Kesinlikle uzun uzun düşünme, direkt en kısa yoldan çöz. Türkçe, max 150
             ], temperature:0.5, max_tokens:500 })
         });
         const d = await r.json();
-        if (re) re.innerHTML = (d?.choices?.[0]?.message?.content?.trim()||'Cevap alınamadı').replace(/\n/g,'<br>');
+        if (re) re.innerHTML = (d?.choices?.[0]?.message?.content?.trim() || 'Cevap alınamadı').replace(/\n/g,'<br>');
     } catch(e) { if (re) re.innerHTML = '❌ Hata oluştu.'; }
     inp.disabled = false;
 };
@@ -1257,7 +1322,7 @@ window.skipQBQuestion = function() { const q = ST.cq; if(!q)return; const p=getQ
 window.nextQBQuestion = function() { ST.cq=null; window.scrollTo(0,0); renderNextQBQuestion(); };
 
 // ============================================
-// BÖLÜM 9: DENEME SINAVI (Mevcut haliyle)
+// BÖLÜM 9: DENEME SINAVI
 // ============================================
 
 function renderExamList() {
@@ -1368,7 +1433,7 @@ window.cancelExam = function() { if(ST.currentExam?.timer)clearInterval(ST.curre
 window.resetAllExams = function() { if(!confirm('Sıfırlansın mı?'))return; ST.examGeneration++; Object.keys(ST.examSets).forEach((sid,i)=>{ST.examSets[sid]={seed:EXAM_SEEDS[i]+(ST.examGeneration-1)*100,completed:false,answers:[],net:null,date:null}}); saveState(); renderExamList(); alert('✅ Sıfırlandı!'); };
 
 // ============================================
-// BÖLÜM 10: İSTATİSTİK (Mevcut haliyle)
+// BÖLÜM 10: İSTATİSTİK
 // ============================================
 
 function renderStats() {
@@ -1435,10 +1500,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 function initApp() {
     loadState();
     
-    // 🔧 URL'deki hash'i temizle (direkt yönlenmeyi engelle)
+    // Soru şablonlarını dönüştür
+    convertQuestionBankToTemplates();
+    
+    // URL'deki hash'i temizle
     if (window.location.hash && window.location.hash !== '#/vHome') {
         const validViews = ['vHome', 'vTopics', 'vLearn', 'vQuestionBank', 'vQBSolve', 'vExamList', 'vExam', 'vStats'];
-        const currentHash = window.location.hash.slice(2); // #/vHome -> vHome
+        const currentHash = window.location.hash.slice(2);
         if (!validViews.includes(currentHash)) {
             window.location.hash = '#/vHome';
         }
@@ -1452,10 +1520,10 @@ function initApp() {
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
     initMusvedde();
-},
+}
 
 // ============================================
-// BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ) - Mevcut haliyle
+// BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ)
 // ============================================
 
 let musveddeActive = false;
