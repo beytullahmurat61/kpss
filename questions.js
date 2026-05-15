@@ -1889,9 +1889,9 @@ const SORU_BANKASI = {
   { id: "s4_od_012", s: "(-1)²ⁿ⁺¹ = ?", c: "-1", v: {n:[0,4]}, z:"orta", alt:"eksi1_2n+1" },
 
   // ALT DAL 4: 10'UN KUVVETLERİ - DÜZELTİLDİ
-  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "Math.pow(10,{n})", v: {n:[1,6]}, z:"kolay", alt:"10_un_kuvveti" },
+  { id: "s4_od_013", s: "10ⁿ = ? (n={n})", c: "Math.pow(10,{n})", v: { n: [1,6] }, z: "kolay", alt: "10_un_kuvveti" },
   { id: "s4_od_014", s: "10ⁿ sayısında n tane ne vardır?", c: "sifir", v: {}, z:"kolay", alt:"10_un_kuvveti_sifir" },
-  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "Math.pow(10,-{n})", v: {n:[1,5]}, z:"orta", alt:"10_negatif_us" },
+  { id: "s4_od_015", s: "10⁻ⁿ = ? (n={n})", c: "Math.pow(10,-{n})", v: { n: [1,5] }, z: "orta", alt: "10_negatif_us" },
 
   // ALT DAL 5: SAYILARIN KUVVETLERİNİN SON BASAMAKLARI
   { id: "s4_od_016", s: "2ⁿ ifadesinin son basamağı n={n} için kaçtır?", c: "{son_basamak}", v: {n:[1,10]}, z:"zor", alt:"2_son_basamak" },
