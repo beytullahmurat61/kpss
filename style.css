@@ -1,5 +1,7 @@
 /* ============================================
    KPSS MATEMATİK - ANA STİL DOSYASI
+   Versiyon: 5.2
+   19 Seviye • 205 Konu • 4.247+ Soru
    Modern • Ferah • Koyu Tema • Responsive
    ============================================ */
 
@@ -86,8 +88,6 @@ body {
     min-height: 100dvh;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 /* Scrollbar */
@@ -134,7 +134,10 @@ body {
     font-size: 16px;
     font-weight: 600;
     letter-spacing: -0.3px;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, #6c63ff, #43e97b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .btn-icon {
@@ -274,8 +277,13 @@ body {
 }
 
 .hero-sub {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
+}
+
+.hero-sub small {
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
 /* ==================== İSTATİSTİK MİNİ KARTLAR ==================== */
@@ -721,6 +729,8 @@ body {
     background: var(--bg-input);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .ans-row {
@@ -806,95 +816,6 @@ body {
     color: var(--text-primary);
 }
 
-/* ==================== FORMÜL KUTUSU ==================== */
-.formula-box {
-    background: var(--bg-input);
-    border: 1px solid var(--border-accent);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-top: 4px;
-}
-
-.fb-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-}
-
-.fb-content {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.8;
-}
-
-/* ==================== ÖĞRETMENE SOR ==================== */
-.ask-section {
-    margin-top: 4px;
-}
-
-.ask-toggle {
-    width: 100%;
-    padding: 14px;
-    background: var(--bg-card);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    color: var(--text-secondary);
-    font-family: var(--font);
-    font-size: 14px;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.ask-toggle:hover {
-    border-color: var(--accent);
-    color: var(--accent-light);
-}
-
-.ask-form {
-    display: none;
-    margin-top: 8px;
-    gap: 8px;
-}
-
-.ask-form.open {
-    display: flex;
-}
-
-.ask-inp {
-    flex: 1;
-    padding: 12px 14px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-primary);
-    font-family: var(--font);
-    font-size: 14px;
-}
-
-.ask-inp:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-.ask-result {
-    display: none;
-    margin-top: 10px;
-    padding: 14px;
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    border: 1px solid var(--border);
-}
-
-.ask-result.open {
-    display: block;
-}
-
 /* ==================== DENEME SAYFASI ==================== */
 .exam-header {
     display: flex;
@@ -922,7 +843,7 @@ body {
 }
 
 /* ==================== DENEME LİSTESİ ==================== */
-.exam-set-card {
+.exam-item {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -935,39 +856,31 @@ body {
     margin-bottom: 8px;
 }
 
-.exam-set-card:hover {
+.exam-item:hover {
     border-color: var(--border-accent);
     box-shadow: var(--shadow-glow);
+    transform: translateX(4px);
 }
 
-.exam-set-card:active {
+.exam-item:active {
     transform: scale(0.98);
 }
 
-.exam-set-info h3 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 2px;
+.exam-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
 }
 
-.exam-set-info span {
+.exam-status {
     font-size: 12px;
     color: var(--text-muted);
 }
 
-.exam-set-score {
-    text-align: right;
-}
-
-.exam-set-score .net {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--accent);
-}
-
-.exam-set-score .date {
+.exam-desc {
     font-size: 11px;
     color: var(--text-muted);
+    margin-top: 4px;
 }
 
 /* ==================== SINAV SONUÇ ==================== */
@@ -994,8 +907,8 @@ body {
 
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
     margin: 16px 0;
 }
 
@@ -1015,29 +928,6 @@ body {
     font-size: 11px;
     color: var(--text-muted);
     margin-top: 2px;
-}
-
-/* ==================== ZAYIF KONULAR ==================== */
-.weak-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.weak-row:last-child {
-    border-bottom: none;
-}
-
-.weak-name {
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.weak-pct {
-    font-size: 13px;
-    font-weight: 600;
 }
 
 /* ==================== LOADING ==================== */
@@ -1207,6 +1097,24 @@ hr {
     margin: 16px 0;
 }
 
+/* ==================== SEVİYE ETİKETLERİ ==================== */
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.level-badge.level-0 { background: rgba(108, 99, 255, 0.15); color: #8b85ff; }
+.level-badge.level-1 { background: rgba(67, 233, 123, 0.15); color: #43e97b; }
+.level-badge.level-2 { background: rgba(255, 179, 71, 0.15); color: #ffb347; }
+.level-badge.level-3 { background: rgba(255, 101, 132, 0.15); color: #ff6584; }
+.level-badge.level-4 { background: rgba(69, 183, 209, 0.15); color: #45b7d1; }
+.level-badge.level-5 { background: rgba(108, 99, 255, 0.15); color: #8b85ff; }
+
 /* ==================== RESPONSIVE ==================== */
 
 /* Tablet (600px ve üzeri) */
@@ -1287,49 +1195,4 @@ hr {
         overflow: hidden;
         min-height: calc(100dvh - 40px);
     }
-}
-
-/* ==================== MÜSVETTE ALANI ==================== */
-
-.musvedde-area {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 40vh;
-    background: #f9f9f9;
-    border-top: 3px solid var(--accent);
-    z-index: 1000;
-    display: none;
-    flex-direction: column;
-}
-.musvedde-area.open {
-    display: flex;
-}
-.musvedde-toolbar {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-}
-.musvedde-toolbar button {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-}
-.musvedde-canvas-wrap {
-    flex: 1;
-    touch-action: none;
-}
-.musvedde-canvas-wrap canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-.musvedde-toggle {
-    margin-top: 12px;
-    text-align: center;
 }
