@@ -8188,11 +8188,6 @@ const SORU_BANKASI = {
   { id: "s18_ut_009", s: "Dik üçgende bir açı kaç derecedir?", c: "90°", v: {}, z:"orta", alt:"dik_ucgen" },
   { id: "s18_ut_010", s: "Geniş açılı üçgende bir açı nasıldır?", c: "90°'den_buyuktur", v: {}, z:"orta", alt:"genis_acili" },
 
-const SORU_BANKASI = {
-  // ==========================================
-  // KONU 18: ÜÇGENLER (8 alt dal)
-  // ==========================================
-
   // ALT DAL 4: ÜÇGEN EŞİTSİZLİĞİ
   { id: "s18_ut_011", s: "Üçgen eşitsizliği nedir?", c: "bir_kenar_diger_iki_kenarin_toplamindan_kucuk_farkindan_buyuk_olmalidir", v: {}, z:"orta", alt:"ucgen_esitsizligi" },
   { id: "s18_ut_012", s: "Kenarları {a}, {b}, {c} olan üçgen için eşitsizlikleri yazınız.", c: "{a}+{b}>{c}, {a}+{c}>{b}, {b}+{c}>{a}", v: {a:[3,5,7], b:[4,6,8,10], c:[5,7,9,11]}, z:"orta", alt:"esitsizlik_yazma" },
