@@ -498,7 +498,6 @@ window.nextQBQuestion = function() { ST.cq = null; renderNextQBQuestion(); };
 // DENEME SINAVI (BASİT)
 // ============================================
 
-const EXAM_SEEDS = [42, 71, 13, 88, 56];
 const EXAM_QUESTIONS = 20;
 const EXAM_DURATION = 20;
 
