@@ -1200,6 +1200,17 @@ window.doReset = function(type) {
 // ============================================
 // BAŞLATMA - BAĞIMLILIKLARI BEKLE
 // ============================================
+function startApp() {
+    loadState();
+    convertQuestionBankToTemplates();
+    initExamSets();
+    const targetView = ST.lastView || 'vHome';
+    showView(targetView);
+    saveState();
+    history.replaceState({ view: targetView }, '', '#/' + targetView);
+    console.log('✅ app.js (v5.2) hazır!');
+}
+
 (function waitForDeps() {
     if (typeof TOPICS === 'undefined' || 
         typeof LEVELS === 'undefined' || 
@@ -1215,22 +1226,6 @@ window.doReset = function(type) {
     console.log('✅ Tüm bağımlılıklar yüklendi! Uygulama başlatılıyor...');
     startApp();
 })();
-
-function startApp() {
-    if (typeof TOPICS === 'undefined') {
-        console.warn('TOPICS henüz yüklenmedi, bekleniyor...');
-        setTimeout(startApp, 100);
-        return;
-    }
-    loadState();
-    convertQuestionBankToTemplates();
-    initExamSets();
-    const targetView = ST.lastView || 'vHome';
-    showView(targetView);
-    saveState();
-    history.replaceState({ view: targetView }, '', '#/' + targetView);
-    console.log('✅ app.js (v5.2) hazır!');
-}
 
 // Sayfa geçmişi yönetimi
 window.addEventListener('popstate', function(event) {
