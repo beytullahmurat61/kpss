@@ -347,22 +347,25 @@ function getHist(topicId) {
 
 let currentView = 'vHome';
 
-function showView(id) {
+function showView(id, pushHistory = true) {
     document.getElementById(currentView)?.classList.remove('active');
     document.getElementById(id)?.classList.add('active');
     currentView = id;
     ST.lastView = id;
     updateHeader(id);
     window.scrollTo(0, 0);
-    history.pushState({ view: id }, '', '#/' + id);
-    
+
+    if (pushHistory) {
+        history.pushState({ view: id }, '', '#/' + id);
+    }
+
     if (id === 'vHome') updateHomeStats();
     else if (id === 'vTopics') renderTopicsList();
     else if (id === 'vLearn') renderPreStudySummary();
     else if (id === 'vQuestionBank') renderQuestionBankList();
     else if (id === 'vStats') renderStats();
     else if (id === 'vExamList') renderExamList();
-    
+
     saveState();
 }
 
@@ -1200,17 +1203,6 @@ window.doReset = function(type) {
 // ============================================
 // BAŞLATMA - BAĞIMLILIKLARI BEKLE
 // ============================================
-function startApp() {
-    loadState();
-    convertQuestionBankToTemplates();
-    initExamSets();
-    const targetView = ST.lastView || 'vHome';
-    showView(targetView);
-    saveState();
-    history.replaceState({ view: targetView }, '', '#/' + targetView);
-    console.log('✅ app.js (v5.2) hazır!');
-}
-
 (function waitForDeps() {
     if (typeof TOPICS === 'undefined' || 
         typeof LEVELS === 'undefined' || 
@@ -1227,9 +1219,20 @@ function startApp() {
     startApp();
 })();
 
+function startApp() {
+    loadState();
+    convertQuestionBankToTemplates();
+    initExamSets();
+    const targetView = ST.lastView || 'vHome';
+    history.replaceState({ view: targetView }, '', '#/' + targetView);
+    showView(targetView, false);
+    saveState();
+    console.log('✅ app.js (v5.2) hazır!');
+}
+
 // Sayfa geçmişi yönetimi
 window.addEventListener('popstate', function(event) {
     const state = event.state;
-    if (state && state.view) showView(state.view);
-    else showView('vHome');
+    if (state && state.view) showView(state.view, false);
+    else showView('vHome', false);
 });
