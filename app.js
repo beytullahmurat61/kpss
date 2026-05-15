@@ -405,8 +405,12 @@ function updateHomeStats() {
     document.getElementById('statAccuracy').textContent = '%' + acc;
     document.getElementById('statStreak').textContent = ST.maxStreak;
     
-    const nt = TOPICS.find(t => !ST.completedTopics.includes(t.id));
-    document.getElementById('nextTopicBadge').textContent = nt ? `🎯 Sıradaki: ${nt.e} ${nt.n}` : '🏆 Tüm konular tamamlandı!';
+    if (typeof TOPICS !== 'undefined' && TOPICS.length) {
+        const nt = TOPICS.find(t => !ST.completedTopics.includes(t.id));
+        document.getElementById('nextTopicBadge').textContent = nt ? `🎯 Sıradaki: ${nt.e} ${nt.n}` : '🏆 Tüm konular tamamlandı!';
+    } else {
+        document.getElementById('nextTopicBadge').textContent = '📚 Konular yükleniyor...';
+    }
 }
 
 // ============================================
@@ -1213,6 +1217,11 @@ window.doReset = function(type) {
 })();
 
 function startApp() {
+    if (typeof TOPICS === 'undefined') {
+        console.warn('TOPICS henüz yüklenmedi, bekleniyor...');
+        setTimeout(startApp, 100);
+        return;
+    }
     loadState();
     convertQuestionBankToTemplates();
     initExamSets();
