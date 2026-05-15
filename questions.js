@@ -2983,7 +2983,7 @@ const SORU_BANKASI = {
   { id: "s6_tk_029", s: "√(x²+6x+9) = ?", c: "|x+3|", v: {}, z:"cok_zor", alt:"tam_kare_kok" },
 
   // ALT DAL 9: ÇARPANLARA AYIRMA TAM KARE
-  { id: "s6_tk_030", s: "{a}x² + {2ab}x + {b2} = ?", c: "({a}x+{b})²", v: {a:[2,4], b:[1,4], 2ab:"2*{a}*{b}", b2:"{b}*{b}"}, z:"cok_zor", alt:"katsayili_tam_kare_carpan" },
+    { id: "s6_tk_030", s: "{a}x² + {2ab}x + {b2} = ?", c: "({a}x+{b})²", v: {a:[2,4], b:[1,4], 2ab:"2*{a}*{b}", b2:"{b}*{b}"}, z:"cok_zor", alt:"katsayili_tam_kare_carpan" },
   { id: "s6_tk_031", s: "4x² + 12x + 9 = ?", c: "(2x+3)²", v: {}, z:"zor", alt:"4x2_12x_9" },
   { id: "s6_tk_032", s: "9x² - 24x + 16 = ?", c: "(3x-4)²", v: {}, z:"zor", alt:"9x2_24x_16" },
 
