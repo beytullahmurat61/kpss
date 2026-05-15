@@ -3207,7 +3207,7 @@ const SORU_BANKASI = {
   // ==========================================
 
   // ALT DAL 1: TEMEL ÖZDEŞLİKLER
-  { id: "s6_oz_001", s: "(a+b)² = a²+2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}+{b})²={a2}+{2ab}+{b2}", v: {a:[2,5], b:[3,6], a2:"{a}*{a}", "2ab":"2*{a}*{b}", b2:"{b}*{b}"}, z:"orta", alt:"tam_kare_ozdeslik" },
+  { id: "s6_oz_001", s: "(a+b)² = a²+2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}+{b})²={a2}+{2ab}+{b2}", v: {a:[2,5], b:[3,6], a2:"{a}*{a}", 2ab:"2*{a}*{b}", b2:"{b}*{b}"}, z:"orta", alt:"tam_kare_ozdeslik" },
   { id: "s6_oz_002", s: "(a-b)² = a²-2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}-{b})²={a2}-{2ab}+{b2}", v: {a:[5,8], b:[1,4]}, z:"orta", alt:"tam_kare_fark_ozdeslik" },
   { id: "s6_oz_003", s: "a²-b² = (a-b)(a+b) özdeşliğini doğrulayınız. a={a}, b={b}", c: "{a}²-{b}²=({a}-{b})({a}+{b})", v: {a:[3,7], b:[1,4]}, z:"orta", alt:"kare_fark_ozdeslik" },
 
@@ -3217,7 +3217,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 3: (a+b+c)² ÖZDEŞLİĞİ
   { id: "s6_oz_006", s: "(a+b+c)² = ? (Açılım)", c: "a²+b²+c²+2ab+2ac+2bc", v: {}, z:"cok_zor", alt:"uc_terim_kare_ozdeslik" },
-  { id: "s6_oz_007", s: "(x+y+{a})² açılımını yazınız.", c: "x²+y²+{a}²+2xy+{2a}x+{2a}y", v: {a:[1,5], "2a":"2*{a}"}, z:"cok_zor", alt:"x+y+a_kare" },
+  { id: "s6_oz_007", s: "(x+y+{a})² açılımını yazınız.", c: "x²+y²+{a}²+2xy+{2a}x+{2a}y", v: {a:[1,5], 2a:"2*{a}"}, z:"cok_zor", alt:"x+y+a_kare" },
 
   // ALT DAL 4: a³+b³+c³-3abc ÖZDEŞLİĞİ
   { id: "s6_oz_008", s: "a³+b³+c³-3abc = ?", c: "(a+b+c)(a²+b²+c²-ab-ac-bc)", v: {}, z:"cok_zor", alt:"uc_kup_ozdeslik" },
@@ -3375,7 +3375,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: ÖZEL DURUMLAR
   { id: "s7_id_010", s: "x+y={t} ve x+y={f} (t≠f) sisteminin çözümü nedir?", c: "bos_kume", v: {t:[5,10], f:[12,18]}, z:"zor", alt:"celisik_sistem" },
-  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], "2t":"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
+  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], 2t:"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
   { id: "s7_id_012", s: "Denklem sisteminin tek çözümü olma şartı nedir?", c: "katsayilar_orani_esit_olmamali", v: {}, z:"orta", alt:"tek_cozum_sarti" },
 
   // ALT DAL 5: PROBLEMLİ DENKLEM SİSTEMLERİ
@@ -4480,7 +4480,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: ÇARPMA ÖZELLİĞİ
   { id: "s9_mo_001", s: "|x·y| = ?", c: "|x|·|y|", v: {}, z:"orta", alt:"carpma_ozelligi" },
-  { id: "s9_mo_002", s: "|{a}·{b}| = ?", c: "{a*b_abs}", v: {a:[-10,10], b:[-10,10], "a*b_abs":"Math.abs({a}*{b})"}, z:"orta", alt:"carpma_ornek" },
+  { id: "s9_mo_002", s: "|{a}·{b}| = ?", c: "{a*b_abs}", v: {a:[-10,10], b:[-10,10], a*b_abs:"Math.abs({a}*{b})"}, z:"orta", alt:"carpma_ornek" },
   { id: "s9_mo_003", s: "|x·y| = |x|·|y| eşitliği her zaman doğru mudur?", c: "evet", v: {}, z:"orta", alt:"carpma_her_zaman" },
 
   // ALT DAL 2: BÖLME ÖZELLİĞİ
