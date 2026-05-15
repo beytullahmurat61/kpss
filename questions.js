@@ -3208,7 +3208,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 1: TEMEL ÖZDEŞLİKLER
 { id: "s6_oz_001", s: "(a+b)² = a²+2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}+{b})²={a2}+{2ab}+{b2}", v: {a:[2,5], b:[3,6], a2:"{a}*{a}", "2ab":"2*{a}*{b}", "b2":"{b}*{b}", z:"orta", alt:"tam_kare_ozdeslik" },
-  { id: "s6_oz_002", s: "(a-b)² = a²-2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}-{b})²={a2}-{2ab}+{b2}", v: {a:[5,8], b:[1,4]}, z:"orta", alt:"tam_kare_fark_ozdeslik" },
+  { id: "s6_oz_002", s: "(a-b)² = a²-2ab+b² özdeşliğini doğrulayınız. a={a}, b={b}", c: "({a}-{b})²={a2}-{2ab}+{b2}", v: {a:[5,8], b:[1,4], a2:"{a}*{a}", "2ab":"2*{a}*{b}", b2:"{b}*{b}"}, z:"orta", alt:"tam_kare_fark_ozdeslik" },
   { id: "s6_oz_003", s: "a²-b² = (a-b)(a+b) özdeşliğini doğrulayınız. a={a}, b={b}", c: "{a}²-{b}²=({a}-{b})({a}+{b})", v: {a:[3,7], b:[1,4]}, z:"orta", alt:"kare_fark_ozdeslik" },
 
   // ALT DAL 2: İKİ KÜP ÖZDEŞLİĞİ
