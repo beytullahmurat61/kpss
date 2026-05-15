@@ -3103,7 +3103,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: ÖZEL DURUMLAR
   { id: "s7_id_010", s: "x+y={t} ve x+y={f} (t≠f) sisteminin çözümü nedir?", c: "bos_kume", v: {t:[5,10], f:[12,18]}, z:"zor", alt:"celisik_sistem" },
-  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], 2t:"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
+  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], "2t":"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
   { id: "s7_id_012", s: "Denklem sisteminin tek çözümü olma şartı nedir?", c: "katsayilar_orani_esit_olmamali", v: {}, z:"orta", alt:"tek_cozum_sarti" },
 
   // ALT DAL 5: PROBLEMLİ DENKLEM SİSTEMLERİ
@@ -3278,7 +3278,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 9: KÖK-KATSAYI İLİŞKİLERİ İLE İLGİLİ SORULAR
   { id: "s7_kk_023", s: "x² + mx + 6 = 0 denkleminin bir kökü 2 ise m kaçtır?", c: "-5", v: {}, z:"zor", alt:"bir_kok_verilince" },
-  { id: "s7_kk_024", s: "x² + {b}x + {c} = 0 denkleminin kökleri arasında x₁={k}x₂ bağıntısı varsa?", c: "cozume_bagli", v: {b:[3,8], c:[2,12], k:[2,3]}, z:"cok_zor", alt:"katli_kok" },
+  { id: "s7_kk_024", s: "x² + {b}x + {c} = 0 denkleminin kökleri arasında x₁={k}x₂ bağıntısı varsa?", c: "{cozum}", v: {b:[3,8], c:[2,12], k:[2,3]}, z:"cok_zor", alt:"katli_kok" },
 
   // ALT DAL 10: SİMETRİK KÖKLER
   { id: "s7_kk_025", s: "x² + mx + n = 0 denkleminin kökleri simetrik ise m kaçtır?", c: "0", v: {}, z:"zor", alt:"simetrik_kok" },
@@ -3586,7 +3586,7 @@ const SORU_BANKASI = {
 
   // ALT DAL 4: ÖZEL DURUMLAR
   { id: "s7_id_010", s: "x+y={t} ve x+y={f} (t≠f) sisteminin çözümü nedir?", c: "bos_kume", v: {t:[5,10], f:[12,18]}, z:"zor", alt:"celisik_sistem" },
-  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], 2t:"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
+  { id: "s7_id_011", s: "x+y={t} ve 2x+2y={2t} sisteminin çözümü nedir?", c: "sonsuz_cozum", v: {t:[3,10], "2t":"2*{t}"}, z:"zor", alt:"bagimli_sistem" },
   { id: "s7_id_012", s: "Denklem sisteminin tek çözümü olma şartı nedir?", c: "katsayilar_orani_esit_olmamali", v: {}, z:"orta", alt:"tek_cozum_sarti" },
 
   // ALT DAL 5: PROBLEMLİ DENKLEM SİSTEMLERİ
@@ -8580,6 +8580,9 @@ const SORU_BANKASI = {
   { id: "s18_ag_026", s: "Analitik geometride temel formüller nelerdir?", c: "uzaklik,_orta_nokta,_egim,_dogru_denklemi", v: {}, z:"orta", alt:"temel_formuller_ag" },
   { id: "s18_ag_027", s: "Eğim neyi ifade eder?", c: "dogrunun_x_ekseni_ile_yaptigi_acının_tanjantini", v: {}, z:"orta", alt:"egim_anlam" },
   { id: "s18_ag_028", s: "Orijinden geçen doğrunun denklemi nasıldır?", c: "y=mx_(sabit_terim_0)", v: {}, z:"orta", alt:"orijin_dogru" },
+
+  ],
+
 };
 
 // Kullanım için export
