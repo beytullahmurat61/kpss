@@ -4,7 +4,7 @@
 // ============================================
 
 console.log('🚀 app.js KPSS/DGS sürümü yükleniyor...');
-
+const STATE_VERSION = 4.1;
 
 // ============================================
 // BÖLÜM 1: YARDIMCI FONKSİYONLAR (TÜMÜ)
