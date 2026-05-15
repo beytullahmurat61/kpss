@@ -1,19 +1,278 @@
 // ============================================
-// app.js içinde LEVELS kullanan yerde değişiklik
+// config.js - KPSS MATEMATİK YAPILANDIRMA
+// 205 Konu, 19 Seviye
 // ============================================
 
-// ÖNCEKİ KOD:
-function getNextLevel(levelName) {
-    if (typeof LEVELS === 'undefined') return null;
-    const levels = Object.keys(LEVELS);
-    const idx = levels.indexOf(levelName);
-    return idx < levels.length - 1 ? levels[idx + 1] : null;
-}
+// ============================================
+// SEVİYELER (0-18)
+// ============================================
+const LEVELS = {
+    '0':  { name: 'Başlangıç',      icon: '🌱', questionCount: 10, minCorrect: 7 },
+    '1':  { name: 'Temel',          icon: '📗', questionCount: 10, minCorrect: 7 },
+    '2':  { name: 'Kolay',          icon: '📘', questionCount: 10, minCorrect: 7 },
+    '3':  { name: 'Orta-Altı',      icon: '📙', questionCount: 10, minCorrect: 7 },
+    '4':  { name: 'Orta',           icon: '📒', questionCount: 10, minCorrect: 8 },
+    '5':  { name: 'Orta-Üstü',      icon: '📓', questionCount: 10, minCorrect: 8 },
+    '6':  { name: 'Zor',            icon: '🔴', questionCount: 10, minCorrect: 8 },
+    '7':  { name: 'Zor+',           icon: '🔥', questionCount: 10, minCorrect: 8 },
+    '8':  { name: 'İleri',          icon: '⚡', questionCount: 10, minCorrect: 8 },
+    '9':  { name: 'İleri+',         icon: '💡', questionCount: 10, minCorrect: 8 },
+    '10': { name: 'Uzman',          icon: '🏅', questionCount: 10, minCorrect: 8 },
+    '11': { name: 'Uzman+',         icon: '🥈', questionCount: 10, minCorrect: 9 },
+    '12': { name: 'Usta',           icon: '🥇', questionCount: 10, minCorrect: 9 },
+    '13': { name: 'Usta+',          icon: '🏆', questionCount: 10, minCorrect: 9 },
+    '14': { name: 'Şampiyon',       icon: '👑', questionCount: 10, minCorrect: 9 },
+    '15': { name: 'Şampiyon+',      icon: '💎', questionCount: 10, minCorrect: 9 },
+    '16': { name: 'Efsane',         icon: '🌟', questionCount: 10, minCorrect: 9 },
+    '17': { name: 'Efsane+',        icon: '⭐', questionCount: 10, minCorrect: 9 },
+    '18': { name: 'Grandmaster',    icon: '🎓', questionCount: 10, minCorrect: 10 },
+};
 
-// YENİ KOD (aynı çalışır çünkü artık '0','1','2'... kullanılıyor):
-function getNextLevel(levelId) {
-    if (typeof LEVELS === 'undefined') return null;
-    const levels = Object.keys(LEVELS);
-    const idx = levels.indexOf(levelId);
-    return idx < levels.length - 1 ? levels[idx + 1] : null;
-}
+// ============================================
+// KONULAR (205 Konu)
+// id: 1-205, e: emoji, n: konu adı, p: faz, order: sıra
+// ============================================
+const TOPICS = [
+    // ---- FAZ 1: TEMEL ARİTMETİK ----
+    { id: 1,   order: 1,   e: '➕', n: 'Toplama İşlemi',              p: '📐 Temel Aritmetik' },
+    { id: 2,   order: 2,   e: '➖', n: 'Çıkarma İşlemi',              p: '📐 Temel Aritmetik' },
+    { id: 3,   order: 3,   e: '✖️', n: 'Çarpma İşlemi',               p: '📐 Temel Aritmetik' },
+    { id: 4,   order: 4,   e: '➗', n: 'Bölme İşlemi',                p: '📐 Temel Aritmetik' },
+    { id: 5,   order: 5,   e: '🔢', n: 'Dört İşlem Karışık',          p: '📐 Temel Aritmetik' },
+    { id: 6,   order: 6,   e: '🔣', n: 'İşlem Önceliği',              p: '📐 Temel Aritmetik' },
+    { id: 7,   order: 7,   e: '🧮', n: 'Basamak Kavramı',             p: '📐 Temel Aritmetik' },
+    { id: 8,   order: 8,   e: '📊', n: 'Sayı Örüntüleri',             p: '📐 Temel Aritmetik' },
+    { id: 9,   order: 9,   e: '🔁', n: 'Bölünebilme Kuralları',       p: '📐 Temel Aritmetik' },
+    { id: 10,  order: 10,  e: '🔍', n: 'Tek-Çift Sayılar',            p: '📐 Temel Aritmetik' },
+
+    // ---- FAZ 2: SAYILAR ----
+    { id: 11,  order: 11,  e: '🔵', n: 'Doğal Sayılar',               p: '🔢 Sayılar' },
+    { id: 12,  order: 12,  e: '⚫', n: 'Tam Sayılar',                  p: '🔢 Sayılar' },
+    { id: 13,  order: 13,  e: '🔶', n: 'Rasyonel Sayılar',            p: '🔢 Sayılar' },
+    { id: 14,  order: 14,  e: '🔷', n: 'İrrasyonel Sayılar',          p: '🔢 Sayılar' },
+
+    // ---- FAZ 3: KESİRLER ----
+    { id: 15,  order: 15,  e: '½', n: 'Kesir Kavramı',                p: '½ Kesirler' },
+    { id: 16,  order: 16,  e: '🔀', n: 'Kesirlerle Toplama',          p: '½ Kesirler' },
+    { id: 17,  order: 17,  e: '🔀', n: 'Kesirlerle Çıkarma',          p: '½ Kesirler' },
+    { id: 18,  order: 18,  e: '🔀', n: 'Kesirlerle Çarpma',           p: '½ Kesirler' },
+    { id: 19,  order: 19,  e: '🔀', n: 'Kesirlerle Bölme',            p: '½ Kesirler' },
+    { id: 20,  order: 20,  e: '📏', n: 'Karışık Sayılar',             p: '½ Kesirler' },
+    { id: 21,  order: 21,  e: '🔃', n: 'Kesirleri Karşılaştırma',     p: '½ Kesirler' },
+    { id: 22,  order: 22,  e: '💯', n: 'Kesir-Ondalık Dönüşüm',      p: '½ Kesirler' },
+
+    // ---- FAZ 4: KUVVET VE KÖK ----
+    { id: 23,  order: 23,  e: '²', n: 'Kuvvet (Üs) Kavramı',          p: '² Kuvvet ve Kök' },
+    { id: 24,  order: 24,  e: '³', n: 'Kuvvet Çarpma Kuralı',         p: '² Kuvvet ve Kök' },
+    { id: 25,  order: 25,  e: '🔼', n: 'Kuvvet Bölme Kuralı',         p: '² Kuvvet ve Kök' },
+    { id: 26,  order: 26,  e: '🔽', n: 'Negatif Üslü Sayılar',        p: '² Kuvvet ve Kök' },
+    { id: 27,  order: 27,  e: '√', n: 'Karekök Kavramı',              p: '² Kuvvet ve Kök' },
+    { id: 28,  order: 28,  e: '∛', n: 'Küp Kök',                      p: '² Kuvvet ve Kök' },
+    { id: 29,  order: 29,  e: '🧮', n: 'Kök İşlemleri',               p: '² Kuvvet ve Kök' },
+    { id: 30,  order: 30,  e: '📐', n: 'Üslü İfadeler',               p: '² Kuvvet ve Kök' },
+    { id: 31,  order: 31,  e: '🔢', n: 'Bilimsel Gösterim',           p: '² Kuvvet ve Kök' },
+    { id: 32,  order: 32,  e: '🧊', n: 'Kuvvet ve Kök Karışık',       p: '² Kuvvet ve Kök' },
+    { id: 33,  order: 33,  e: '🏁', n: 'Üslü Denklemler (Temel)',     p: '² Kuvvet ve Kök' },
+
+    // ---- FAZ 5: ÇARPANLAR VE KATLAR ----
+    { id: 34,  order: 34,  e: '🔑', n: 'Asal Sayılar',                p: '🔑 Çarpanlar ve Katlar' },
+    { id: 35,  order: 35,  e: '🧩', n: 'Asal Çarpanlara Ayırma',      p: '🔑 Çarpanlar ve Katlar' },
+    { id: 36,  order: 36,  e: '📌', n: 'EBOB (En Büyük Ortak Bölen)', p: '🔑 Çarpanlar ve Katlar' },
+    { id: 37,  order: 37,  e: '📍', n: 'EKOK (En Küçük Ortak Kat)',   p: '🔑 Çarpanlar ve Katlar' },
+    { id: 38,  order: 38,  e: '🔗', n: 'EBOB-EKOK Problemleri',       p: '🔑 Çarpanlar ve Katlar' },
+    { id: 39,  order: 39,  e: '🎯', n: 'Çarpan Sayısı Bulma',         p: '🔑 Çarpanlar ve Katlar' },
+    { id: 40,  order: 40,  e: '🧮', n: 'Ortak Çarpanlar',             p: '🔑 Çarpanlar ve Katlar' },
+    { id: 41,  order: 41,  e: '📊', n: 'Bölme ve Kalan',              p: '🔑 Çarpanlar ve Katlar' },
+    { id: 42,  order: 42,  e: '🔄', n: 'Öklid Bölmesi',               p: '🔑 Çarpanlar ve Katlar' },
+    { id: 43,  order: 43,  e: '💡', n: 'Sayı Teorisi Problemleri',    p: '🔑 Çarpanlar ve Katlar' },
+    { id: 44,  order: 44,  e: '🎲', n: 'Basamaklı Sayı Problemleri',  p: '🔑 Çarpanlar ve Katlar' },
+    { id: 45,  order: 45,  e: '🏆', n: 'Çarpanlar Karışık',           p: '🔑 Çarpanlar ve Katlar' },
+
+    // ---- FAZ 6: YÜZDE VE ORAN ----
+    { id: 46,  order: 46,  e: '💯', n: 'Yüzde Kavramı',               p: '💯 Yüzde ve Oran' },
+    { id: 47,  order: 47,  e: '📈', n: 'Yüzde Artış',                 p: '💯 Yüzde ve Oran' },
+    { id: 48,  order: 48,  e: '📉', n: 'Yüzde Azalış',                p: '💯 Yüzde ve Oran' },
+    { id: 49,  order: 49,  e: '🛒', n: 'İndirim ve Zam Problemleri',  p: '💯 Yüzde ve Oran' },
+    { id: 50,  order: 50,  e: '🏦', n: 'Basit Faiz',                  p: '💯 Yüzde ve Oran' },
+    { id: 51,  order: 51,  e: '🏧', n: 'Bileşik Faiz',                p: '💯 Yüzde ve Oran' },
+    { id: 52,  order: 52,  e: '⚖️', n: 'Oran Kavramı',                p: '💯 Yüzde ve Oran' },
+    { id: 53,  order: 53,  e: '🔢', n: 'Orantı (Doğru Orantı)',       p: '💯 Yüzde ve Oran' },
+    { id: 54,  order: 54,  e: '🔄', n: 'Ters Orantı',                 p: '💯 Yüzde ve Oran' },
+    { id: 55,  order: 55,  e: '🧪', n: 'Karışım Problemleri',         p: '💯 Yüzde ve Oran' },
+    { id: 56,  order: 56,  e: '💰', n: 'Kâr-Zarar Problemleri',       p: '💯 Yüzde ve Oran' },
+    { id: 57,  order: 57,  e: '🏪', n: 'Alış-Satış Problemleri',      p: '💯 Yüzde ve Oran' },
+    { id: 58,  order: 58,  e: '👥', n: 'Bölüşme Problemleri',         p: '💯 Yüzde ve Oran' },
+    { id: 59,  order: 59,  e: '🎯', n: 'Yüzde Karışık Problemler',    p: '💯 Yüzde ve Oran' },
+    { id: 60,  order: 60,  e: '📊', n: 'Oran Karışık Problemler',     p: '💯 Yüzde ve Oran' },
+
+    // ---- FAZ 7: DENKLEMLER ----
+    { id: 61,  order: 61,  e: '🟰', n: 'Denklem Kavramı',             p: '🟰 Denklemler' },
+    { id: 62,  order: 62,  e: '1️⃣', n: 'Birinci Dereceden Denklem',  p: '🟰 Denklemler' },
+    { id: 63,  order: 63,  e: '2️⃣', n: 'İkinci Dereceden Denklem',   p: '🟰 Denklemler' },
+    { id: 64,  order: 64,  e: '🔀', n: 'Denklem Sistemleri',          p: '🟰 Denklemler' },
+    { id: 65,  order: 65,  e: '📝', n: 'Denklem Kurma Problemleri',   p: '🟰 Denklemler' },
+    { id: 66,  order: 66,  e: '🧑', n: 'Yaş Problemleri',             p: '🟰 Denklemler' },
+    { id: 67,  order: 67,  e: '🚶', n: 'Hız-Zaman-Yol Problemleri',   p: '🟰 Denklemler' },
+    { id: 68,  order: 68,  e: '⏱️', n: 'İş Problemleri',              p: '🟰 Denklemler' },
+    { id: 69,  order: 69,  e: '🚿', n: 'Havuz Problemleri',           p: '🟰 Denklemler' },
+    { id: 70,  order: 70,  e: '🏃', n: 'Buluşma-Yetişme Problemleri', p: '🟰 Denklemler' },
+    { id: 71,  order: 71,  e: '🧮', n: 'Sayı Problemleri',            p: '🟰 Denklemler' },
+    { id: 72,  order: 72,  e: '🏆', n: 'Denklem Karışık Problemler',  p: '🟰 Denklemler' },
+
+    // ---- FAZ 8: EŞİTSİZLİKLER ----
+    { id: 73,  order: 73,  e: '↔️', n: 'Eşitsizlik Kavramı',          p: '↔️ Eşitsizlikler' },
+    { id: 74,  order: 74,  e: '📐', n: 'Eşitsizlik Çözme',            p: '↔️ Eşitsizlikler' },
+    { id: 75,  order: 75,  e: '🔗', n: 'Eşitsizlik Sistemleri',       p: '↔️ Eşitsizlikler' },
+    { id: 76,  order: 76,  e: '📊', n: 'Mutlak Değer',                p: '↔️ Eşitsizlikler' },
+    { id: 77,  order: 77,  e: '🔢', n: 'Mutlak Değerli Denklemler',   p: '↔️ Eşitsizlikler' },
+    { id: 78,  order: 78,  e: '🔣', n: 'Mutlak Değerli Eşitsizlikler',p: '↔️ Eşitsizlikler' },
+    { id: 79,  order: 79,  e: '🎯', n: 'Eşitsizlik Problemleri',      p: '↔️ Eşitsizlikler' },
+    { id: 80,  order: 80,  e: '📈', n: 'İkinci Derece Eşitsizlik',    p: '↔️ Eşitsizlikler' },
+    { id: 81,  order: 81,  e: '🔵', n: 'Sayı Doğrusu',                p: '↔️ Eşitsizlikler' },
+    { id: 82,  order: 82,  e: '🏆', n: 'Eşitsizlik Karışık',          p: '↔️ Eşitsizlikler' },
+    { id: 83,  order: 83,  e: '🔍', n: 'Rasyonel Eşitsizlikler',      p: '↔️ Eşitsizlikler' },
+    { id: 84,  order: 84,  e: '💡', n: 'Köklü Eşitsizlikler',         p: '↔️ Eşitsizlikler' },
+    { id: 85,  order: 85,  e: '🎓', n: 'İleri Eşitsizlikler',         p: '↔️ Eşitsizlikler' },
+
+    // ---- FAZ 9: FONKSİYONLAR ----
+    { id: 86,  order: 86,  e: '🔧', n: 'Fonksiyon Kavramı',           p: '📈 Fonksiyonlar' },
+    { id: 87,  order: 87,  e: '📉', n: 'Fonksiyon Tanım-Değer Kümesi',p: '📈 Fonksiyonlar' },
+    { id: 88,  order: 88,  e: '📈', n: 'Fonksiyon Grafikleri',        p: '📈 Fonksiyonlar' },
+    { id: 89,  order: 89,  e: '🔀', n: 'Bileşke Fonksiyon',           p: '📈 Fonksiyonlar' },
+    { id: 90,  order: 90,  e: '🔄', n: 'Ters Fonksiyon',              p: '📈 Fonksiyonlar' },
+    { id: 91,  order: 91,  e: '📐', n: 'Doğrusal Fonksiyon',          p: '📈 Fonksiyonlar' },
+    { id: 92,  order: 92,  e: '🌊', n: 'İkinci Derece Fonksiyon',     p: '📈 Fonksiyonlar' },
+    { id: 93,  order: 93,  e: '🔢', n: 'Üstel Fonksiyon',             p: '📈 Fonksiyonlar' },
+    { id: 94,  order: 94,  e: '📊', n: 'Logaritma Fonksiyonu',        p: '📈 Fonksiyonlar' },
+    { id: 95,  order: 95,  e: '🏆', n: 'Fonksiyon Karışık',           p: '📈 Fonksiyonlar' },
+    { id: 96,  order: 96,  e: '🎯', n: 'Fonksiyon Problemleri',       p: '📈 Fonksiyonlar' },
+    { id: 97,  order: 97,  e: '🎓', n: 'İleri Fonksiyonlar',          p: '📈 Fonksiyonlar' },
+
+    // ---- FAZ 10: LOGARİTMA ----
+    { id: 98,  order: 98,  e: 'log', n: 'Logaritma Kavramı',          p: 'log Logaritma' },
+    { id: 99,  order: 99,  e: '📐', n: 'Logaritma Özellikleri',       p: 'log Logaritma' },
+    { id: 100, order: 100, e: '🔢', n: 'Logaritma İşlemleri',         p: 'log Logaritma' },
+    { id: 101, order: 101, e: '🔀', n: 'Logaritmik Denklemler',       p: 'log Logaritma' },
+    { id: 102, order: 102, e: '📊', n: 'Logaritmik Eşitsizlikler',    p: 'log Logaritma' },
+    { id: 103, order: 103, e: '🎯', n: 'Logaritma Problemleri',       p: 'log Logaritma' },
+    { id: 104, order: 104, e: '🏆', n: 'Logaritma Karışık',           p: 'log Logaritma' },
+    { id: 105, order: 105, e: '💡', n: 'Doğal Logaritma',             p: 'log Logaritma' },
+    { id: 106, order: 106, e: '📈', n: 'Üstel-Log Denklemler',        p: 'log Logaritma' },
+    { id: 107, order: 107, e: '🎓', n: 'İleri Logaritma',             p: 'log Logaritma' },
+
+    // ---- FAZ 11: POLİNOMLAR ----
+    { id: 108, order: 108, e: '📝', n: 'Polinom Kavramı',             p: '📝 Polinomlar' },
+    { id: 109, order: 109, e: '➕', n: 'Polinom Toplama-Çıkarma',     p: '📝 Polinomlar' },
+    { id: 110, order: 110, e: '✖️', n: 'Polinom Çarpma',              p: '📝 Polinomlar' },
+    { id: 111, order: 111, e: '➗', n: 'Polinom Bölme',               p: '📝 Polinomlar' },
+    { id: 112, order: 112, e: '🔀', n: 'Çarpanlara Ayırma',           p: '📝 Polinomlar' },
+    { id: 113, order: 113, e: '🔍', n: 'Özel Çarpım Formülleri',      p: '📝 Polinomlar' },
+    { id: 114, order: 114, e: '🎯', n: 'Polinom Denklemleri',         p: '📝 Polinomlar' },
+    { id: 115, order: 115, e: '📊', n: 'Polinom Grafikleri',          p: '📝 Polinomlar' },
+    { id: 116, order: 116, e: '💡', n: 'Kalan Teoremi',               p: '📝 Polinomlar' },
+    { id: 117, order: 117, e: '🏆', n: 'Polinom Karışık',             p: '📝 Polinomlar' },
+    { id: 118, order: 118, e: '🔢', n: 'Vieta Formülleri',            p: '📝 Polinomlar' },
+    { id: 119, order: 119, e: '🎓', n: 'İleri Polinomlar',            p: '📝 Polinomlar' },
+
+    // ---- FAZ 12: TRİGONOMETRİ ----
+    { id: 120, order: 120, e: '📐', n: 'Trigonometri Temel Kavramlar',p: '📐 Trigonometri' },
+    { id: 121, order: 121, e: '🔺', n: 'Sinüs ve Kosinüs',            p: '📐 Trigonometri' },
+    { id: 122, order: 122, e: '📏', n: 'Tanjant ve Kotanjant',        p: '📐 Trigonometri' },
+    { id: 123, order: 123, e: '⭕', n: 'Trigonometrik Özdeşlikler',   p: '📐 Trigonometri' },
+    { id: 124, order: 124, e: '🔄', n: 'Trigonometrik Denklemler',    p: '📐 Trigonometri' },
+    { id: 125, order: 125, e: '📊', n: 'Trigonometrik Fonksiyon Grafikleri', p: '📐 Trigonometri' },
+    { id: 126, order: 126, e: '🔢', n: 'Toplam-Fark Formülleri',      p: '📐 Trigonometri' },
+    { id: 127, order: 127, e: '2️⃣', n: 'İki Kat Formülleri',         p: '📐 Trigonometri' },
+    { id: 128, order: 128, e: '🎯', n: 'Trigonometri Problemleri',    p: '📐 Trigonometri' },
+    { id: 129, order: 129, e: '🏆', n: 'Trigonometri Karışık',        p: '📐 Trigonometri' },
+    { id: 130, order: 130, e: '🔺', n: 'Sinüs-Kosinüs Teoremi',      p: '📐 Trigonometri' },
+    { id: 131, order: 131, e: '🎓', n: 'İleri Trigonometri',          p: '📐 Trigonometri' },
+
+    // ---- FAZ 13: GEOMETRİ ----
+    { id: 132, order: 132, e: '📏', n: 'Temel Geometri Kavramları',   p: '📐 Geometri' },
+    { id: 133, order: 133, e: '🔺', n: 'Üçgenler',                    p: '📐 Geometri' },
+    { id: 134, order: 134, e: '🟥', n: 'Dörtgenler',                  p: '📐 Geometri' },
+    { id: 135, order: 135, e: '⭕', n: 'Çember ve Daire',             p: '📐 Geometri' },
+    { id: 136, order: 136, e: '🔷', n: 'Çokgenler',                   p: '📐 Geometri' },
+    { id: 137, order: 137, e: '📐', n: 'Açılar',                      p: '📐 Geometri' },
+    { id: 138, order: 138, e: '📏', n: 'Alan Hesaplama',              p: '📐 Geometri' },
+    { id: 139, order: 139, e: '🧊', n: 'Çevre Hesaplama',             p: '📐 Geometri' },
+    { id: 140, order: 140, e: '🎯', n: 'Geometri Problemleri',        p: '📐 Geometri' },
+    { id: 141, order: 141, e: '🏆', n: 'Geometri Karışık',            p: '📐 Geometri' },
+
+    // ---- FAZ 14: KATı CİSİMLER ----
+    { id: 142, order: 142, e: '🧊', n: 'Küp',                         p: '🧊 Katı Cisimler' },
+    { id: 143, order: 143, e: '📦', n: 'Dikdörtgenler Prizması',      p: '🧊 Katı Cisimler' },
+    { id: 144, order: 144, e: '🔺', n: 'Prizmalar',                   p: '🧊 Katı Cisimler' },
+    { id: 145, order: 145, e: '🔶', n: 'Piramit',                     p: '🧊 Katı Cisimler' },
+    { id: 146, order: 146, e: '⚽', n: 'Küre',                        p: '🧊 Katı Cisimler' },
+    { id: 147, order: 147, e: '🥫', n: 'Silindir',                    p: '🧊 Katı Cisimler' },
+    { id: 148, order: 148, e: '🍦', n: 'Koni',                        p: '🧊 Katı Cisimler' },
+    { id: 149, order: 149, e: '📊', n: 'Hacim Hesaplama',             p: '🧊 Katı Cisimler' },
+    { id: 150, order: 150, e: '🎯', n: 'Katı Cisim Problemleri',      p: '🧊 Katı Cisimler' },
+    { id: 151, order: 151, e: '🏆', n: 'Katı Cisim Karışık',          p: '🧊 Katı Cisimler' },
+
+    // ---- FAZ 15: VERİ VE OLASILIK ----
+    { id: 152, order: 152, e: '📊', n: 'Veri Okuma ve Yorumlama',     p: '📊 Veri ve Olasılık' },
+    { id: 153, order: 153, e: '📈', n: 'Ortalama',                    p: '📊 Veri ve Olasılık' },
+    { id: 154, order: 154, e: '📉', n: 'Medyan ve Mod',               p: '📊 Veri ve Olasılık' },
+    { id: 155, order: 155, e: '🔢', n: 'Sayma Yöntemleri',            p: '📊 Veri ve Olasılık' },
+    { id: 156, order: 156, e: '🔀', n: 'Permütasyon',                 p: '📊 Veri ve Olasılık' },
+    { id: 157, order: 157, e: '🎲', n: 'Kombinasyon',                 p: '📊 Veri ve Olasılık' },
+    { id: 158, order: 158, e: '🎯', n: 'Olasılık Kavramı',            p: '📊 Veri ve Olasılık' },
+    { id: 159, order: 159, e: '🔁', n: 'Koşullu Olasılık',            p: '📊 Veri ve Olasılık' },
+    { id: 160, order: 160, e: '📊', n: 'Bağımsız Olaylar',            p: '📊 Veri ve Olasılık' },
+    { id: 161, order: 161, e: '🏆', n: 'Olasılık Karışık',            p: '📊 Veri ve Olasılık' },
+
+    // ---- FAZ 16: DİZİLER ----
+    { id: 162, order: 162, e: '🔢', n: 'Dizi Kavramı',                p: '🔢 Diziler' },
+    { id: 163, order: 163, e: '➕', n: 'Aritmetik Dizi',              p: '🔢 Diziler' },
+    { id: 164, order: 164, e: '✖️', n: 'Geometrik Dizi',              p: '🔢 Diziler' },
+    { id: 165, order: 165, e: '📊', n: 'Dizi Toplamları',             p: '🔢 Diziler' },
+    { id: 166, order: 166, e: '🔁', n: 'Özel Diziler',                p: '🔢 Diziler' },
+    { id: 167, order: 167, e: '∞', n: 'Sonsuz Seriler (Temel)',       p: '🔢 Diziler' },
+    { id: 168, order: 168, e: '🎯', n: 'Dizi Problemleri',            p: '🔢 Diziler' },
+    { id: 169, order: 169, e: '🏆', n: 'Dizi Karışık',                p: '🔢 Diziler' },
+    { id: 170, order: 170, e: '💡', n: 'Faktoriyel ve Binom',         p: '🔢 Diziler' },
+    { id: 171, order: 171, e: '🔷', n: 'Binom Açılımı',               p: '🔢 Diziler' },
+    { id: 172, order: 172, e: '📐', n: 'Matematiksel Tümevarım',      p: '🔢 Diziler' },
+    { id: 173, order: 173, e: '🎓', n: 'İleri Diziler',               p: '🔢 Diziler' },
+    { id: 174, order: 174, e: '🏅', n: 'Dizi Uzmanlık',               p: '🔢 Diziler' },
+
+    // ---- FAZ 17: ANALİZ ----
+    { id: 175, order: 175, e: '🔬', n: 'Limit Kavramı',               p: '🔬 Analiz' },
+    { id: 176, order: 176, e: '📐', n: 'Limit Hesaplama',             p: '🔬 Analiz' },
+    { id: 177, order: 177, e: '📈', n: 'Türev Kavramı',               p: '🔬 Analiz' },
+    { id: 178, order: 178, e: '🔢', n: 'Türev Kuralları',             p: '🔬 Analiz' },
+    { id: 179, order: 179, e: '🏔️', n: 'Maksimum-Minimum Problemleri',p: '🔬 Analiz' },
+    { id: 180, order: 180, e: '📊', n: 'Türev Grafik Uygulamaları',   p: '🔬 Analiz' },
+    { id: 181, order: 181, e: '∫', n: 'İntegral Kavramı',             p: '🔬 Analiz' },
+    { id: 182, order: 182, e: '🔀', n: 'İntegral Hesaplama',          p: '🔬 Analiz' },
+    { id: 183, order: 183, e: '📏', n: 'Alan-Hacim İntegrali',        p: '🔬 Analiz' },
+    { id: 184, order: 184, e: '🏆', n: 'Analiz Karışık',              p: '🔬 Analiz' },
+
+    // ---- FAZ 18: ANALİTİK GEOMETRİ ----
+    { id: 185, order: 185, e: '📍', n: 'Koordinat Sistemi',           p: '📍 Analitik Geometri' },
+    { id: 186, order: 186, e: '📏', n: 'İki Nokta Arası Uzaklık',     p: '📍 Analitik Geometri' },
+    { id: 187, order: 187, e: '🎯', n: 'Orta Nokta',                  p: '📍 Analitik Geometri' },
+    { id: 188, order: 188, e: '📈', n: 'Doğrunun Eğimi',              p: '📍 Analitik Geometri' },
+    { id: 189, order: 189, e: '📐', n: 'Doğru Denklemi',              p: '📍 Analitik Geometri' },
+    { id: 190, order: 190, e: '🔀', n: 'Doğruların Konumu',           p: '📍 Analitik Geometri' },
+    { id: 191, order: 191, e: '⭕', n: 'Çemberin Denklemi',           p: '📍 Analitik Geometri' },
+    { id: 192, order: 192, e: '🌀', n: 'Parabol',                     p: '📍 Analitik Geometri' },
+    { id: 193, order: 193, e: '🥚', n: 'Elips (Temel)',               p: '📍 Analitik Geometri' },
+    { id: 194, order: 194, e: '🔺', n: 'Üçgen Alan (Analitik)',       p: '📍 Analitik Geometri' },
+    { id: 195, order: 195, e: '🏆', n: 'Analitik Geometri Karışık',   p: '📍 Analitik Geometri' },
+
+    // ---- FAZ 19: KPSS ÖZEL ----
+    { id: 196, order: 196, e: '📋', n: 'KPSS Soru Tipi Analizi',      p: '🏆 KPSS Özel' },
+    { id: 197, order: 197, e: '⏱️', n: 'Hızlı Çözüm Teknikleri',      p: '🏆 KPSS Özel' },
+    { id: 198, order: 198, e: '🎯', n: 'KPSS Karma Problemler 1',     p: '🏆 KPSS Özel' },
+    { id: 199, order: 199, e: '🎯', n: 'KPSS Karma Problemler 2',     p: '🏆 KPSS Özel' },
+    { id: 200, order: 200, e: '🎯', n: 'KPSS Karma Problemler 3',     p: '🏆 KPSS Özel' },
+    { id: 201, order: 201, e: '📊', n: 'DGS Özel Konular',            p: '🏆 KPSS Özel' },
+    { id: 202, order: 202, e: '📈', n: 'TYT Özel Konular',            p: '🏆 KPSS Özel' },
+    { id: 203, order: 203, e: '🔢', n: 'ALES Sayısal Bölüm',          p: '🏆 KPSS Özel' },
+    { id: 204, order: 204, e: '🏆', n: 'Genel Tekrar 1',              p: '🏆 KPSS Özel' },
+    { id: 205, order: 205, e: '🎓', n: 'Genel Tekrar 2',              p: '🏆 KPSS Özel' },
+];
