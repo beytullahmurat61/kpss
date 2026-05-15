@@ -346,6 +346,38 @@ function convertQuestionBankToTemplates() {
     
     console.log('✅ Soru şablonları dönüştürüldü. Konular:', Object.keys(QUESTION_TEMPLATES).length);
 }
+// ============================================
+// BÖLÜM 1: SÜRÜM BİLGİSİ
+// ============================================
+const STATE_VERSION = 4.1;
+
+// ============================================
+// BÖLÜM 2: STATE YÖNETİMİ
+// ============================================
+let ST = {
+    version: STATE_VERSION,  // artık STATE_VERSION tanımlı
+    apiKey: '',
+    topic: 1,
+    currentLevel: 'KOLAY',
+    streak: 0,
+    maxStreak: 0,
+    totalCorrect: 0,
+    totalQ: 0,
+    completedTopics: [],
+    hist: {},
+    questionBankProgress: {},
+    examSets: {},
+    examGeneration: 1,
+    examHistory: [],
+    apiCallCount: 0,
+    apiCallDate: '',
+    lastSession: null,
+    phase: 'summary',
+    cq: null,
+    summaries: {},
+    testMode: false,
+    lastView: 'vHome'
+};
 
 // ============================================
 // BÖLÜM 2: STATE YÖNETİMİ
