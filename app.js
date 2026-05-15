@@ -319,7 +319,7 @@ function loadState() {
     
     initMissingFields();
     checkApiDate();
-},
+}
 
 function initMissingFields() {
     for (let i = 1; i <= CONSTANTS.TOTAL_TOPICS; i++) if (!ST.hist[i]) ST.hist[i] = { levels: {}, currentLevel: 'KOLAY' };
