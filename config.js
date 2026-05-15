@@ -1,10 +1,11 @@
 // ============================================
 // config.js - KPSS / TYT / DGS MATEMATİK
 // questions.js (19 seviye) ile %100 UYUMLU
-// Versiyon: 4.1
+// Versiyon: 5.1
 // ============================================
 
-// const STATE_VERSION = 4;  // app.js'de tanımlı, burada kaldır
+// STATE_VERSION app.js'de tanımlıdır - burada TANIMLAMA!
+// const STATE_VERSION = 5.1;  // BUNU KESİNLİKLE TANIMLAMA!
 
 const LEVELS = {
     'KOLAY': { name: 'Kolay', icon: '🟢', questionCount: 10, minCorrect: 8 },
@@ -264,7 +265,7 @@ const TOPICS = [
 // SABİTLER
 // ============================================
 const CONSTANTS = {
-    TOTAL_TOPICS: 205,  // Toplam konu sayısı (questions.js'deki 19 seviyeye göre ayrılmış 205 alt konu)
+    TOTAL_TOPICS: 205,
     QUESTIONS_PER_TOPIC: 30,
     QUESTION_BANK_SIZE: 300,
     EXAM_SETS: 5,
@@ -296,60 +297,4 @@ function getNextLevel(levelName) {
     return idx < levels.length - 1 ? levels[idx + 1] : null;
 }
 
-// ============================================
-// FORMÜLLER (İsteğe bağlı, gösterim için)
-// ============================================
-const FORMULAS = {
-    // Dört İşlem - her konu için geçerli genel formüller
-    1: ['Toplama: a + b = c', 'Çıkarma: a - b = c'],
-    2: ['Çarpma: a × b = c', 'Bölme: a ÷ b = c (b≠0)'],
-    3: ['İşlem Önceliği: önce parantez, sonra çarpma/bölme, en son toplama/çıkarma'],
-    11: ['Tek sayı: 2n+1', 'Çift sayı: 2n'],
-    12: ['Negatif × Negatif = Pozitif', 'Pozitif × Negatif = Negatif'],
-    13: ['Ardışık sayılar: n, n+1, n+2', 'Terim sayısı = (Son - İlk)/Artış + 1'],
-    15: ['2 ile bölünebilme: son rakam çift', '3 ile bölünebilme: rakamlar toplamı 3\'ün katı', '5 ile bölünebilme: son rakam 0 veya 5'],
-    16: ['Asal sayı: 1 ve kendisinden başka böleni yok', 'En küçük asal: 2'],
-    19: ['EBOB(a,b) = en büyük ortak bölen', 'EBOB(a,b) × EKOK(a,b) = a×b'],
-    20: ['EKOK(a,b) = en küçük ortak kat'],
-    23: ['Basit kesir: pay < payda', 'Bileşik kesir: pay ≥ payda'],
-    26: ['Kesirlerde toplama: paydalar eşitlenir', 'a/b + c/d = (ad+bc)/bd'],
-    27: ['Kesirlerde çarpma: (a/b)×(c/d) = (ac)/(bd)'],
-    28: ['Kesirlerde bölme: (a/b)÷(c/d) = (a/b)×(d/c) = (ad)/(bc)'],
-    29: ['Ondalık sayılar: virgülün sağında kalan kısım'],
-    34: ['aⁿ = a×a×...×a (n tane)', 'a¹ = a', 'a⁰ = 1 (a≠0)'],
-    35: ['aᵐ × aⁿ = aᵐ⁺ⁿ', 'aᵐ ÷ aⁿ = aᵐ⁻ⁿ', '(aᵐ)ⁿ = aᵐⁿ'],
-    36: ['a⁻ⁿ = 1/aⁿ'],
-    46: ['√a: karesi a olan pozitif sayı', '√a × √a = a'],
-    47: ['∛a: küpü a olan sayı'],
-    49: ['√(a²b) = a√b (a≥0, b≥0)'],
-    54: ['1/(√a+√b) = (√a-√b)/(a-b)'],
-    61: ['Ortak çarpan parantezi: ab + ac = a(b+c)'],
-    63: ['İki kare farkı: a² - b² = (a-b)(a+b)'],
-    64: ['Tam kare: (a±b)² = a² ± 2ab + b²'],
-    65: ['İki küp: a³ ± b³ = (a±b)(a² ∓ ab + b²)'],
-    73: ['Birinci derece denklem: ax + b = 0 → x = -b/a (a≠0)'],
-    86: ['Eşitsizlik yönü negatifle çarpınca/bölünce değişir'],
-    98: ['|x| = x (x≥0), |x| = -x (x<0)'],
-    108: ['Oran: a/b, Orantı: a/b = c/d'],
-    110: ['Doğru orantı: a/b = k (sabit)'],
-    111: ['Ters orantı: a·b = k (sabit)'],
-    120: ['Sayı problemlerinde bilinmeyene x deyip denklem kurulur'],
-    122: ['Yaş farkı sabittir'],
-    123: ['Yüzde: %p = p/100', 'Bir sayının %p\'si: a×p/100'],
-    124: ['Kâr = Satış - Maliyet', 'Kâr% = (Kâr/Maliyet)×100'],
-    126: ['İşçi problemleri: 1/A + 1/B = 1/T (birlikte)'],
-    127: ['Yol = Hız × Zaman'],
-    132: ['Küme: iyi tanımlanmış nesneler topluluğu'],
-    142: ['Sayma: Çarpma kuralı (VE), Toplama kuralı (VEYA)'],
-    143: ['Faktöriyel: n! = n×(n-1)×...×1', '0! = 1'],
-    144: ['Permütasyon: P(n,r) = n!/(n-r)!'],
-    152: ['Kombinasyon: C(n,r) = n!/(r!(n-r)!)'],
-    162: ['Olasılık: P(A) = istenen/toplam'],
-    175: ['Ortalama = Verilerin toplamı / Veri sayısı'],
-    185: ['Önerme: doğru veya yanlış kesin hüküm bildiren ifade'],
-    196: ['Üçgenin iç açıları toplamı: 180°', 'Dörtgenin iç açıları toplamı: 360°'],
-    199: ['Pisagor: a² + b² = c²'],
-    205: ['İki nokta arası uzaklık: √((x₂-x₁)²+(y₂-y₁)²)']
-};
-
-console.log('✅ config.js (v4.1) yüklendi -', TOPICS.length, 'konu');
+console.log('✅ config.js (v5.1) yüklendi -', TOPICS.length, 'konu');
