@@ -288,22 +288,38 @@ let ST = {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem(CONSTANTS.STORAGE_KEY) || '{}');
-        if (saved.version === STATE_VERSION) Object.assign(ST, saved);
-        else if (Object.keys(saved).length > 0) Object.assign(ST, saved);
+        // SADECE versiyon uyuyorsa yükle
+        if (saved.version === STATE_VERSION) {
+            Object.assign(ST, saved);
+        }
+        // Versiyon uymuyorsa eski state'i TEMİZLE (yükleme)
+        else if (Object.keys(saved).length > 0) {
+            console.log('Eski state tespit edildi, temizleniyor...');
+            // Eski state'i yükleme, sadece gerekli alanları sıfırla
+            ST.completedTopics = [];
+            ST.hist = {};
+            ST.questionBankProgress = {};
+            ST.examSets = {};
+            ST.examHistory = [];
+            ST.phase = 'summary';
+            ST.cq = null;
+        }
     } catch (e) { console.warn('State yüklenemedi', e); }
     ST.apiKey = localStorage.getItem(CONSTANTS.API_KEY_STORAGE) || '';
-    if (!ST.lastView) ST.lastView = 'vHome';
     
-    const hasActiveStudy = ST.topic && ST.phase && (ST.phase === 'question' || ST.phase === 'feedback') && getTopicById(ST.topic);
-    if (ST.lastView === 'vLearn' && !hasActiveStudy) {
-        ST.lastView = 'vHome';
-        ST.phase = 'summary';
-        ST.cq = null;
+    // KALICI ÇÖZÜM: lastView'ı kontrol et, eğer learn/question ise home'a yönlendir
+    if (ST.lastView === 'vLearn' || ST.lastView === 'vQBSolve') {
+        const hasActiveStudy = ST.topic && ST.phase && (ST.phase === 'question' || ST.phase === 'feedback') && getTopicById(ST.topic);
+        if (!hasActiveStudy) {
+            ST.lastView = 'vHome';
+            ST.phase = 'summary';
+            ST.cq = null;
+        }
     }
     
     initMissingFields();
     checkApiDate();
-}
+},
 
 function initMissingFields() {
     for (let i = 1; i <= CONSTANTS.TOTAL_TOPICS; i++) if (!ST.hist[i]) ST.hist[i] = { levels: {}, currentLevel: 'KOLAY' };
@@ -1418,6 +1434,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function initApp() {
     loadState();
+    
+    // 🔧 URL'deki hash'i temizle (direkt yönlenmeyi engelle)
+    if (window.location.hash && window.location.hash !== '#/vHome') {
+        const validViews = ['vHome', 'vTopics', 'vLearn', 'vQuestionBank', 'vQBSolve', 'vExamList', 'vExam', 'vStats'];
+        const currentHash = window.location.hash.slice(2); // #/vHome -> vHome
+        if (!validViews.includes(currentHash)) {
+            window.location.hash = '#/vHome';
+        }
+    }
+    
     const targetView = ST.lastView || 'vHome';
     showView(targetView, false);
     initExamSets();
@@ -1426,7 +1452,7 @@ function initApp() {
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js hazır!');
     initMusvedde();
-}
+},
 
 // ============================================
 // BÖLÜM 13: MÜSVEDDE (KARALAMA DEFTERİ) - Mevcut haliyle
