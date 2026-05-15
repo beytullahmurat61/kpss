@@ -1,30 +1,4 @@
 // ============================================
-// BAĞIMLILIK KONTROLÜ - config.js ve questions.js bekle
-// ============================================
-(function waitForDeps() {
-    if (typeof TOPICS === 'undefined' || typeof LEVELS === 'undefined' || typeof SORU_BANKASI === 'undefined') {
-        setTimeout(waitForDeps, 50);
-        return;
-    }
-    startApp();
-})();
-
-function startApp() {
-    loadState();
-    convertQuestionBankToTemplates();
-    initExamSets();
-    const targetView = ST.lastView || 'vHome';
-    showView(targetView);
-    saveState();
-    history.replaceState({ view: targetView }, '', '#/' + targetView);
-    console.log('✅ app.js hazır!');
-}
-
-// DOMContentLoaded olayını KALDIRIN veya boş bırakın
-// document.addEventListener('DOMContentLoaded', initApp); // BU SATIRI SİLİN
-
-
-// ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
 // Versiyon: 5.2 - questions.js (19 seviye) ile %100 Uyumlu
 // ============================================
@@ -83,7 +57,6 @@ function checkEqual(userAns, correctAns) {
         const u = normAns(userAns), c = normAns(correctAns);
         if (u === c) return true;
         
-        // Kesir kontrolü
         const uParts = u.split('/'), cParts = c.split('/');
         if (cParts.length === 2 || uParts.length === 2) {
             const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : parseFloat(u);
@@ -91,7 +64,6 @@ function checkEqual(userAns, correctAns) {
             if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.01) return true;
         }
         
-        // Sayısal karşılaştırma
         const un = parseFloat(u), cn = parseFloat(c);
         if (!isNaN(un) && !isNaN(cn) && Math.abs(un - cn) < 0.05) return true;
         return false;
@@ -229,20 +201,12 @@ function convertQuestionBankToTemplates() {
         return;
     }
     
-    // 205 konu için boş dizi oluştur
     for (let topicId = 1; topicId <= 205; topicId++) {
         QUESTION_TEMPLATES[topicId] = [];
     }
     
-    // SORU_BANKASI'ndaki her seviye için
     for (let level in SORU_BANKASI) {
         const levelNum = parseInt(level);
-        
-        // Her seviye için konu ID aralığı belirleme (questions.js'deki düzene göre)
-        // Seviye 0: Konu 1-10
-        // Seviye 1: Konu 11-14
-        // Seviye 2: Konu 15-22
-        // ... devam ediyor
         let startId, endId;
         
         if (levelNum === 0) { startId = 1; endId = 10; }
@@ -266,7 +230,6 @@ function convertQuestionBankToTemplates() {
         else if (levelNum === 18) { startId = 196; endId = 205; }
         else { continue; }
         
-        // Şablonları ilgili konulara ekle
         for (let template of SORU_BANKASI[level]) {
             for (let topicId = startId; topicId <= endId; topicId++) {
                 if (QUESTION_TEMPLATES[topicId]) {
@@ -354,12 +317,10 @@ function loadState() {
     
     ST.apiKey = localStorage.getItem('kpss_mat_api_key') || '';
     
-    // LEVELS kontrolü - eğer LEVELS tanımlı değilse hata verme
     if (typeof LEVELS !== 'undefined' && ST.currentLevel && !LEVELS[ST.currentLevel]) {
         ST.currentLevel = '0';
     }
     
-    // Her konu için hist oluştur
     for (let i = 1; i <= 205; i++) {
         if (!ST.hist[i]) ST.hist[i] = { levels: {}, currentLevel: '0' };
     }
@@ -1233,26 +1194,38 @@ window.doReset = function(type) {
 };
 
 // ============================================
-// BAŞLATMA
+// BAŞLATMA - BAĞIMLILIKLARI BEKLE
 // ============================================
+(function waitForDeps() {
+    if (typeof TOPICS === 'undefined' || 
+        typeof LEVELS === 'undefined' || 
+        typeof SORU_BANKASI === 'undefined') {
+        console.log('⏳ Bağımlılıklar yükleniyor...', {
+            TOPICS: typeof TOPICS,
+            LEVELS: typeof LEVELS,
+            SORU_BANKASI: typeof SORU_BANKASI
+        });
+        setTimeout(waitForDeps, 100);
+        return;
+    }
+    console.log('✅ Tüm bağımlılıklar yüklendi! Uygulama başlatılıyor...');
+    startApp();
+})();
 
-function initApp() {
+function startApp() {
     loadState();
     convertQuestionBankToTemplates();
     initExamSets();
-    
     const targetView = ST.lastView || 'vHome';
     showView(targetView);
     saveState();
-    
     history.replaceState({ view: targetView }, '', '#/' + targetView);
     console.log('✅ app.js (v5.2) hazır!');
 }
 
+// Sayfa geçmişi yönetimi
 window.addEventListener('popstate', function(event) {
     const state = event.state;
     if (state && state.view) showView(state.view);
     else showView('vHome');
 });
-
-document.addEventListener('DOMContentLoaded', initApp);
