@@ -4,7 +4,7 @@
 // Versiyon: 4.1
 // ============================================
 
-const STATE_VERSION = 4;
+// const STATE_VERSION = 4;  // app.js'de tanımlı, burada kaldır
 
 const LEVELS = {
     'KOLAY': { name: 'Kolay', icon: '🟢', questionCount: 10, minCorrect: 8 },
