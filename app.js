@@ -1,4 +1,30 @@
 // ============================================
+// BAĞIMLILIK KONTROLÜ - config.js ve questions.js bekle
+// ============================================
+(function waitForDeps() {
+    if (typeof TOPICS === 'undefined' || typeof LEVELS === 'undefined' || typeof SORU_BANKASI === 'undefined') {
+        setTimeout(waitForDeps, 50);
+        return;
+    }
+    startApp();
+})();
+
+function startApp() {
+    loadState();
+    convertQuestionBankToTemplates();
+    initExamSets();
+    const targetView = ST.lastView || 'vHome';
+    showView(targetView);
+    saveState();
+    history.replaceState({ view: targetView }, '', '#/' + targetView);
+    console.log('✅ app.js hazır!');
+}
+
+// DOMContentLoaded olayını KALDIRIN veya boş bırakın
+// document.addEventListener('DOMContentLoaded', initApp); // BU SATIRI SİLİN
+
+
+// ============================================
 // app.js - KPSS & DGS MATEMATİK ANA UYGULAMA
 // Versiyon: 5.2 - questions.js (19 seviye) ile %100 Uyumlu
 // ============================================
@@ -328,8 +354,8 @@ function loadState() {
     
     ST.apiKey = localStorage.getItem('kpss_mat_api_key') || '';
     
-    // Eski format uyumluluğu için: currentLevel string kontrolü
-    if (ST.currentLevel && !LEVELS[ST.currentLevel]) {
+    // LEVELS kontrolü - eğer LEVELS tanımlı değilse hata verme
+    if (typeof LEVELS !== 'undefined' && ST.currentLevel && !LEVELS[ST.currentLevel]) {
         ST.currentLevel = '0';
     }
     
