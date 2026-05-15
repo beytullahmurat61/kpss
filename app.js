@@ -1287,8 +1287,8 @@ function renderNextQBQuestion() {
         return;
     }
     
-    const levels = ['KOLAY', 'ORTA', 'ZOR'];
-    const randomLevel = levels[Math.floor(Math.random() * levels.length)];
+    const levelList = ['KOLAY', 'ORTA', 'ZOR'];
+	const randomLevel = levelList[Math.floor(Math.random() * levelList.length)];
     
     el.innerHTML = `<div class="card">${dots()}</div>`;
     const qData = generateQuestion(topicId, randomLevel, { mode: 'questionBank' });
