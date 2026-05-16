@@ -544,7 +544,7 @@ const SORU_BANKASI = {
   { id: "s3_kt_007", s: "Aşağıdakilerden hangisi bileşik kesirdir?", c: "9/4", v: {}, z:"kolay", alt:"bilesik_kesir_bulma" },
   { id: "s3_kt_008", s: "Bileşik kesirlerde pay ile payda arasındaki ilişki nedir?", c: "pay>=payda", v: {}, z:"kolay", alt:"bilesik_kesir_iliski" },
   { id: "s3_kt_009", s: "{a}/{b} bileşik kesrini tam sayılı kesre çeviriniz.", c: "{tam} {kalan}/{b}", v: {a:[7,25], b:[2,7], tam:"Math.floor({a}/{b})", kalan:"{a}%{b}", kosul:"{a}>{b}"}, z:"orta", alt:"tam_sayili_kesir" },
-  { id: "s3_kt_010", s: "{tam} {a}/{b} tam sayılı kesrini bileşik kesre çeviriniz.", c: "{tam}*{b}+{a}/{b}", v: {tam:[1,5], a:[1,{b}-1], b:[3,9]}, z:"orta", alt:"tam_sayilidan_bilesige" },
+  { id: "s3_kt_010", s: "{tam} {a}/{b} tam sayılı kesrini bileşik kesre çeviriniz.", c: "{tam}*{b}+{a}/{b}", v: {tam:[1,5], a:[1,"{b}-1"], b:[3,9]}, z:"orta", alt:"tam_sayilidan_bilesige" },
   { id: "s3_kt_011", s: "Tam sayılı kesir nedir?", c: "tam_kisim_ve_basit_kesirden_olusan_kesir", v: {}, z:"kolay", alt:"tam_sayili_kesir_tanimi" },
   { id: "s3_kt_012", s: "{tam} {a}/{b} tam sayılı kesrinde tam kısım, pay ve payda nedir?", c: "tam:{tam}, pay:{a}, payda:{b}", v: {tam:[1,5], a:[1,{b}-1], b:[3,9]}, z:"kolay", alt:"tam_sayili_kesir_terimler" },
   { id: "s3_kt_013", s: "Birim kesir nedir?", c: "payi_1_olan_basit_kesir", v: {}, z:"kolay", alt:"birim_kesir_tanimi" },
