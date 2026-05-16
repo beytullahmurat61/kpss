@@ -20,7 +20,7 @@ let ST = {
     questionBankProgress: {},
     examHistory: [],
     scratchpad: '',
-    phase: 'summary', // summary, question, feedback
+    phase: 'summary',
     currentQuestion: null,
     currentView: 'vHome',
     examMode: false,
@@ -28,14 +28,104 @@ let ST = {
     examCurrentIndex: 0,
     examAnswers: [],
     examTimeLeft: 0,
-    examTimer: null
+    examTimer: null,
+    pendingExamSet: null,
+    pendingCompletionTopic: null
 };
 
 // ========== GROK API ==========
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
 const GROK_MODEL = 'grok-beta';
 
-// ========== SORU HAVUZU ==========
+// ========== YARDIMCI FONKSİYONLAR (ÖNCE TANIMLANMALI) ==========
+
+function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function shuffleArray(arr) {
+    const s = [...arr];
+    for (let i = s.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [s[i], s[j]] = [s[j], s[i]];
+    }
+    return s;
+}
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function normAns(s) {
+    if (!s) return '';
+    let cleaned = String(s).toLowerCase().trim();
+    cleaned = cleaned.replace(/(\d+(?:\.\d+)?)\s*(?:tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)$/i, '$1');
+    cleaned = cleaned.replace(/,/g, '.').replace(/[×x]/g, '*').replace(/\s+/g, '');
+    return cleaned;
+}
+
+function checkEqual(userAns, correctAns) {
+    try {
+        const u = normAns(userAns), c = normAns(correctAns);
+        if (u === c) return true;
+        const uNum = parseFloat(u), cNum = parseFloat(c);
+        if (!isNaN(uNum) && !isNaN(cNum) && Math.abs(uNum - cNum) < 0.001) return true;
+        const uParts = u.split('/'), cParts = c.split('/');
+        if (cParts.length === 2 || uParts.length === 2) {
+            const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : uNum;
+            const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : cNum;
+            if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.001) return true;
+        }
+        return false;
+    } catch(e) { return false; }
+}
+
+// ========== GRAFİK YARDIMCILARI ==========
+function maxKisi(a, b, c) {
+    if (a >= b && a >= c) return "Ali";
+    if (b >= a && b >= c) return "Veli";
+    return "Can";
+}
+
+function medyan(...sayilar) {
+    const sorted = [...sayilar].sort((x, y) => x - y);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid-1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function mod(...sayilar) {
+    const freq = {};
+    sayilar.forEach(s => freq[s] = (freq[s] || 0) + 1);
+    let maxFreq = 0, modVal = sayilar[0];
+    for (let [val, f] of Object.entries(freq)) {
+        if (f > maxFreq) { maxFreq = f; modVal = Number(val); }
+    }
+    return modVal;
+}
+
+function maxArtisAyi(ocak, subat, mart, nisan) {
+    const artis1 = subat - ocak;
+    const artis2 = mart - subat;
+    const artis3 = nisan - mart;
+    const maxArtis = Math.max(artis1, artis2, artis3);
+    if (maxArtis === artis1) return "Şubat";
+    if (maxArtis === artis2) return "Mart";
+    return "Nisan";
+}
+
+function katsayiCikar(sayi) {
+    let disari = 1;
+    for (let i = Math.floor(Math.sqrt(sayi)); i >= 2; i--) {
+        if (sayi % (i*i) === 0) {
+            disari = i;
+            sayi = sayi / (i*i);
+            break;
+        }
+    }
+    return disari === 1 ? `√${sayi}` : `${disari}√${sayi}`;
+}
+
+function eslenikYap(a, b) {
+    return `(√${a} - √${b})/(${a} - ${b})`;
+}
+
+// ========== SORU MOTORU ==========
 let QUESTION_TEMPLATES = {};
 
 function loadQuestions() {
@@ -56,36 +146,6 @@ function loadQuestions() {
         }
     }
     console.log('✅ Sorular yüklendi');
-}
-
-function generateQuestion(topicId, level) {
-    const templates = QUESTION_TEMPLATES[topicId]?.[level];
-    if (!templates || templates.length === 0) return fallbackQuestion();
-    
-    const template = templates[Math.floor(Math.random() * templates.length)];
-    const vars = generateVariables(template.v || {});
-    const questionText = fillTemplate(template.s, vars);
-    let answer = fillTemplate(template.c, vars);
-    
-    try {
-        if (answer.includes('Math.') || answer.includes('maxKisi') || answer.includes('medyan') || answer.includes('mod') || answer.includes('maxArtisAyi') || answer.includes('eslenikYap') || answer.includes('katsayiCikar')) {
-            answer = eval(answer);
-        } else if (/^[\d\s\+\-\*\/\(\)]+$/.test(answer)) {
-            answer = eval(answer);
-        }
-        answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000;
-    } catch(e) { answer = template.c; }
-    
-    return {
-        id: template.id,
-        soru: questionText,
-        cevap: String(answer),
-        cevapRaw: answer,
-        zorluk: template.z || 'orta',
-        alt: template.alt || '',
-        vars: vars,
-        template: template
-    };
 }
 
 function generateVariables(varRanges) {
@@ -114,85 +174,70 @@ function fillTemplate(text, vars) {
     return result;
 }
 
+function generateQuestion(topicId, level) {
+    const templates = QUESTION_TEMPLATES[topicId]?.[level];
+    if (!templates || templates.length === 0) return fallbackQuestion();
+    
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    const vars = generateVariables(template.v || {});
+    const questionText = fillTemplate(template.s, vars);
+    let answer = fillTemplate(template.c, vars);
+    
+    try {
+        if (answer.includes('Math.') || answer.includes('maxKisi') || answer.includes('medyan') || 
+            answer.includes('mod') || answer.includes('maxArtisAyi') || answer.includes('eslenikYap') || 
+            answer.includes('katsayiCikar')) {
+            answer = eval(answer);
+        } else if (/^[\d\s\+\-\*\/\(\)]+$/.test(answer)) {
+            answer = eval(answer);
+        }
+        answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000;
+    } catch(e) { answer = template.c; }
+    
+    return {
+        id: template.id,
+        soru: questionText,
+        cevap: String(answer),
+        cevapRaw: answer,
+        zorluk: template.z || 'orta',
+        alt: template.alt || '',
+        vars: vars,
+        template: template
+    };
+}
+
 function fallbackQuestion() {
     return { id: 'fallback', soru: '1 + 1 = ?', cevap: '2', cevapRaw: 2, zorluk: 'kolay', alt: '' };
 }
 
-// ========== YARDIMCI FONKSİYONLAR ==========
-function normAns(s) {
-    if (!s) return '';
-    let cleaned = String(s).toLowerCase().trim();
-    cleaned = cleaned.replace(/(\d+(?:\.\d+)?)\s*(?:tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)$/i, '$1');
-    cleaned = cleaned.replace(/,/g, '.').replace(/[×x]/g, '*').replace(/\s+/g, '');
-    return cleaned;
-}
-
-function checkEqual(userAns, correctAns) {
-    try {
-        const u = normAns(userAns), c = normAns(correctAns);
-        if (u === c) return true;
-        const uNum = parseFloat(u), cNum = parseFloat(c);
-        if (!isNaN(uNum) && !isNaN(cNum) && Math.abs(uNum - cNum) < 0.01) return true;
-        const uParts = u.split('/'), cParts = c.split('/');
-        if (cParts.length === 2 || uParts.length === 2) {
-            const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : uNum;
-            const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : cNum;
-            if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.01) return true;
-        }
-        return false;
-    } catch(e) { return false; }
-}
-
-function shuffleArray(arr) {
-    const s = [...arr];
-    for (let i = s.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [s[i], s[j]] = [s[j], s[i]];
-    }
-    return s;
-}
-
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-
-function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
-// ========== RENDER SORU (GRAFİKSEL + TABLOLU) ==========
+// ========== RENDER SORU ==========
 function renderQuestionHTML(qData) {
     const text = qData.soru || '';
     const alt = qData.alt || '';
     
-    if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') {
-        return renderTableQuestion(qData);
-    }
-    if (alt === 'sutun_grafik') {
-        return renderBarChart(qData);
-    }
-    if (alt === 'daire_grafik') {
-        return renderPieChart(qData);
-    }
-    if (alt === 'cizgi_grafik') {
-        return renderLineChart(qData);
-    }
-    if (alt === 'sayi_dogrusu') {
-        return renderNumberLine(qData);
-    }
+    if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') return renderTableQuestion(qData);
+    if (alt === 'sutun_grafik') return renderBarChart(qData);
+    if (alt === 'daire_grafik') return renderPieChart(qData);
+    if (alt === 'cizgi_grafik') return renderLineChart(qData);
+    if (alt === 'sayi_dogrusu') return renderNumberLine(qData);
     
     return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`;
 }
 
 function renderTableQuestion(qData) {
     const vars = qData.vars || {};
-    const a = vars.a || 3, b = vars.b || 4;
+    const a = Math.min(vars.a || 3, 10);
+    const b = Math.min(vars.b || 4, 10);
     return `
         <div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div>
         <div class="q-visual" style="overflow-x:auto">
             <table class="q-table">
                 <thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead>
                 <tbody>
-                    ${[...Array(Math.min(a,10)).keys()].map(ri => {
+                    ${[...Array(a).keys()].map(ri => {
                         const row = ri+1;
                         return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => {
-                            const isTarget = (row === a && ci === b) || (row === b && ci === a);
+                            const isTarget = (row === a && ci === b);
                             return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`;
                         }).join('')}</tr>`;
                     }).join('')}
@@ -226,7 +271,7 @@ function renderBarChart(qData) {
 
 function renderPieChart(qData) {
     const vars = qData.vars || {};
-    const p = vars.p || 30;
+    const p = Math.min(vars.p || 30, 100);
     const angle = p * 3.6;
     const rad = angle * Math.PI / 180;
     const cx = 60, cy = 60, r = 50;
@@ -324,8 +369,27 @@ function loadState() {
 
 function saveState() {
     try {
-        const { grokApiKey, examTimer, currentQuestion, ...d } = ST;
-        localStorage.setItem('kpss_mat_v7', JSON.stringify(d));
+        const toSave = {
+            version: ST.version,
+            currentTopic: ST.currentTopic,
+            currentLevel: ST.currentLevel,
+            streak: ST.streak,
+            maxStreak: ST.maxStreak,
+            totalCorrect: ST.totalCorrect,
+            totalSolved: ST.totalSolved,
+            completedTopics: ST.completedTopics,
+            topicProgress: ST.topicProgress,
+            questionBankProgress: ST.questionBankProgress,
+            examHistory: ST.examHistory,
+            phase: ST.phase,
+            currentView: ST.currentView,
+            examMode: ST.examMode,
+            examQuestions: ST.examQuestions,
+            examCurrentIndex: ST.examCurrentIndex,
+            examAnswers: ST.examAnswers,
+            examTimeLeft: ST.examTimeLeft
+        };
+        localStorage.setItem('kpss_mat_v7', JSON.stringify(toSave));
         localStorage.setItem('kpss_scratchpad', ST.scratchpad);
     } catch(e) { console.warn(e); }
 }
@@ -360,12 +424,13 @@ function updateHeader(viewId) {
     document.getElementById('btnBack').style.visibility = viewId === 'vHome' ? 'hidden' : 'visible';
 }
 
-window.goBack = () => history.back();
-window.goHome = () => showView('vHome');
-window.goTopics = () => showView('vTopics');
-window.goQuestionBank = () => showView('vQuestionBank');
-window.goExamList = () => showView('vExamList');
-window.goStats = () => showView('vStats');
+function goBack() { history.back(); }
+function goHome() { showView('vHome'); }
+function goTopics() { showView('vTopics'); }
+function goQuestionBank() { showView('vQuestionBank'); }
+function goExamList() { showView('vExamList'); }
+function goStats() { showView('vStats'); }
+function toggleMenu() { document.getElementById('sideMenu')?.classList.toggle('hidden'); }
 
 // ========== ANA SAYFA ==========
 function updateHomeStats() {
@@ -381,7 +446,7 @@ function updateHomeStats() {
 function renderTopicsList() {
     const el = document.getElementById('topicsList');
     if (!el) return;
-    let html = '', currentPhase = '';
+    let html = '';
     for (let topic of TOPICS) {
         const completed = ST.completedTopics.includes(topic.id);
         const prog = getTopicProgress(topic.id);
@@ -404,17 +469,18 @@ function renderTopicsList() {
                 </div>`;
     }
     el.innerHTML = html;
+    document.getElementById('topicsDoneLabel').textContent = `${ST.completedTopics.length}/20`;
 }
 
-// ========== KONU ÇALIŞ ==========
-window.openTopic = function(topicId) {
+function openTopic(topicId) {
     ST.currentTopic = topicId;
     ST.currentLevel = 0;
     ST.phase = 'summary';
     showView('vLearn');
     saveState();
-};
+}
 
+// ========== KONU ÇALIŞ ==========
 function renderPreStudySummary() {
     const topic = getTopicById(ST.currentTopic);
     if (!topic) return;
@@ -439,11 +505,11 @@ function renderPreStudySummary() {
     `;
 }
 
-window.beginStudy = function() {
+function beginStudy() {
     ST.phase = 'question';
     ST.currentQuestion = null;
     renderNextQuestion();
-};
+}
 
 function renderNextQuestion() {
     const topic = getTopicById(ST.currentTopic);
@@ -482,7 +548,7 @@ function renderNextQuestion() {
     setTimeout(() => document.getElementById('ansInp')?.focus(), 150);
 }
 
-window.checkAnswer = function() {
+function checkAnswer() {
     const inp = document.getElementById('ansInp');
     if (!inp?.value.trim()) return;
     inp.disabled = true;
@@ -502,11 +568,11 @@ window.checkAnswer = function() {
     
     const levelConfig = LEVELS[level];
     const levelProg = prog[`level${level}`];
-    let levelCompleted = false, nextLevel = null, topicCompleted = false;
+    let nextLevel = null;
+    let topicCompleted = false;
     
     if (levelProg.total >= levelConfig.questionCount) {
         if (levelProg.correct >= levelConfig.minCorrect) {
-            levelCompleted = true;
             if (level < 2) {
                 nextLevel = level + 1;
                 ST.currentLevel = nextLevel;
@@ -514,8 +580,6 @@ window.checkAnswer = function() {
                 topicCompleted = true;
                 if (!ST.completedTopics.includes(ST.currentTopic)) {
                     ST.completedTopics.push(ST.currentTopic);
-                    const nextTopic = TOPICS.find(t => t.order === getTopicById(ST.currentTopic).order + 1);
-                    if (nextTopic) nextTopic.locked = false;
                 }
             }
         } else {
@@ -526,7 +590,7 @@ window.checkAnswer = function() {
     saveState();
     
     let nextMsg = '';
-    if (levelCompleted && nextLevel !== null) {
+    if (nextLevel !== null) {
         nextMsg = `<div class="level-complete-msg">🎉 ${levelConfig.name} Seviyesi Geçildi!<br>→ ${LEVELS[nextLevel].name} seviyesine başlıyorsun.</div>`;
     } else if (topicCompleted) {
         nextMsg = `<div class="topic-complete-msg">🏆 KONU TAMAMLANDI! 🏆<br>Soru Bankası'nda pekiştirebilirsin.</div>`;
@@ -543,13 +607,13 @@ window.checkAnswer = function() {
     `;
     document.getElementById('learnContent').insertAdjacentHTML('beforeend', fbHtml);
     if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer);
-};
+}
 
-window.nextQuestion = function() {
+function nextQuestion() {
     ST.phase = 'question';
     ST.currentQuestion = null;
     renderNextQuestion();
-};
+}
 
 function showTopicCompletionPopup(topicId) {
     const topic = getTopicById(topicId);
@@ -568,7 +632,8 @@ function closeCompletionPopup() {
 function goToQuestionBankFromPopup() { closeCompletionPopup(); if (ST.pendingCompletionTopic) startQuestionBank(ST.pendingCompletionTopic); }
 function goToNextTopicFromPopup() {
     closeCompletionPopup();
-    const nextTopic = TOPICS.find(t => t.order === getTopicById(ST.pendingCompletionTopic).order + 1);
+    const currentTopic = getTopicById(ST.pendingCompletionTopic);
+    const nextTopic = TOPICS.find(t => t.order === (currentTopic?.order || 0) + 1);
     if (nextTopic) openTopic(nextTopic.id);
     else alert('🎉 Tüm konuları tamamladın!');
 }
@@ -592,13 +657,13 @@ function renderQuestionBankList() {
     el.innerHTML = html || '<div class="card" style="text-align:center">Henüz tamamladığınız konu yok. Önce konu çalışarak konuları tamamlayın!</div>';
 }
 
-window.startQuestionBank = function(topicId) {
+function startQuestionBank(topicId) {
     ST.currentTopic = topicId;
     ST.currentQuestion = null;
     showView('vQBSolve');
     renderQBSolveHeader();
     renderNextQBQuestion();
-};
+}
 
 function renderQBSolveHeader() {
     const topic = getTopicById(ST.currentTopic);
@@ -634,7 +699,7 @@ function renderNextQBQuestion() {
     setTimeout(() => document.getElementById('qbAnsInp')?.focus(), 150);
 }
 
-window.checkQBAnswer = function() {
+function checkQBAnswer() {
     const inp = document.getElementById('qbAnsInp');
     if (!inp?.value.trim()) return;
     inp.disabled = true;
@@ -657,18 +722,18 @@ window.checkQBAnswer = function() {
         <div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`;
     document.getElementById('qbSolveContent').insertAdjacentHTML('beforeend', fbHtml);
     if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer);
-};
+}
 
-window.skipQBQuestion = function() {
+function skipQBQuestion() {
     const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 };
     prog.solved++;
     ST.questionBankProgress[ST.currentTopic] = prog;
     saveState();
     renderQBSolveHeader();
     nextQBQuestion();
-};
+}
 
-window.nextQBQuestion = function() { ST.currentQuestion = null; renderNextQBQuestion(); };
+function nextQBQuestion() { ST.currentQuestion = null; renderNextQBQuestion(); }
 
 // ========== DENEME SINAVI ==========
 function renderExamList() {
@@ -686,7 +751,8 @@ function renderExamList() {
 
 function showExamOptions(setId) { ST.pendingExamSet = setId; document.getElementById('examOptionsModal').classList.remove('hidden'); }
 function closeExamOptions() { document.getElementById('examOptionsModal').classList.add('hidden'); }
-window.startExam = function(questionCount) {
+
+function startExam(questionCount) {
     closeExamOptions();
     const allQuestions = [];
     for (let topicId = 1; topicId <= 20; topicId++) {
@@ -705,7 +771,7 @@ window.startExam = function(questionCount) {
     showView('vExam');
     startExamTimer();
     renderExamQuestion();
-};
+}
 
 function generateQuestionFromTemplate(template) {
     const vars = generateVariables(template.v || {});
@@ -744,21 +810,21 @@ function renderExamQuestion() {
     setTimeout(() => document.getElementById('examAnsInp')?.focus(), 150);
 }
 
-window.submitExamAnswer = function() {
+function submitExamAnswer() {
     const inp = document.getElementById('examAnsInp');
     const userAnswer = inp?.value?.trim() || '';
     const q = ST.examQuestions[ST.examCurrentIndex];
     ST.examAnswers.push({ question: q.soru, correctAnswer: q.cevap, userAnswer, isCorrect: checkEqual(userAnswer, q.cevap), skipped: false });
     if (ST.examCurrentIndex + 1 < ST.examQuestions.length) { ST.examCurrentIndex++; renderExamQuestion(); }
     else finishExam();
-};
+}
 
-window.skipExamAnswer = function() {
+function skipExamAnswer() {
     const q = ST.examQuestions[ST.examCurrentIndex];
     ST.examAnswers.push({ question: q.soru, correctAnswer: q.cevap, userAnswer: '(boş)', isCorrect: false, skipped: true });
     if (ST.examCurrentIndex + 1 < ST.examQuestions.length) { ST.examCurrentIndex++; renderExamQuestion(); }
     else finishExam();
-};
+}
 
 function finishExam() {
     if (ST.examTimer) clearInterval(ST.examTimer);
@@ -784,7 +850,7 @@ function finishExam() {
     ST.examMode = false;
 }
 
-window.cancelExam = function() { if (confirm('Denemeyi iptal et?')) { if (ST.examTimer) clearInterval(ST.examTimer); ST.examMode = false; goExamList(); } };
+function cancelExam() { if (confirm('Denemeyi iptal et?')) { if (ST.examTimer) clearInterval(ST.examTimer); ST.examMode = false; goExamList(); } }
 
 // ========== İSTATİSTİKLER ==========
 function renderStats() {
@@ -842,7 +908,7 @@ Lütfen:
 
 function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
     const btn = document.createElement('button');
-    btn.className = 'btn btn-grok btn-full';
+    btn.className = 'btn btn-grok';
     btn.innerHTML = '🤖 Grok ile Çözümü Gör';
     btn.onclick = async () => {
         btn.disabled = true; btn.innerHTML = '🤖 Grok düşünüyor...';
@@ -856,22 +922,21 @@ function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
 }
 
 // ========== MÜSVEDDE ==========
-window.toggleScratchpadSize = function() {
+function toggleScratchpadSize() {
     const ta = document.getElementById('scratchpadInput') || document.getElementById('qbScratchpad');
     if (ta) { ta.rows = ta.rows === 3 ? 6 : 3; }
-};
-window.clearScratchpad = function() { ST.scratchpad = ''; if (document.getElementById('scratchpadInput')) document.getElementById('scratchpadInput').value = ''; if (document.getElementById('qbScratchpad')) document.getElementById('qbScratchpad').value = ''; saveState(); };
-window.copyScratchpad = function() { navigator.clipboard.writeText(ST.scratchpad); alert('Müsvedde kopyalandı!'); };
+}
+function clearScratchpad() { ST.scratchpad = ''; if (document.getElementById('scratchpadInput')) document.getElementById('scratchpadInput').value = ''; if (document.getElementById('qbScratchpad')) document.getElementById('qbScratchpad').value = ''; saveState(); }
+function copyScratchpad() { navigator.clipboard.writeText(ST.scratchpad); alert('Müsvedde kopyalandı!'); }
 
 // ========== MODALLAR ==========
-window.openModal = function(id) { document.getElementById(id + 'Modal')?.classList.remove('hidden'); if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; };
-window.closeModal = function(id) { document.getElementById(id + 'Modal')?.classList.add('hidden'); };
-window.saveKey = function() { const k = document.getElementById('apiInp')?.value?.trim(); if (k) { ST.grokApiKey = k; localStorage.setItem('kpss_grok_api_key', k); closeModal('api'); alert('✅ Grok API anahtarı kaydedildi!'); } };
-window.toggleMenu = function() { document.getElementById('sideMenu')?.classList.toggle('hidden'); };
-window.doReset = function(type) {
+function openModal(id) { document.getElementById(id + 'Modal')?.classList.remove('hidden'); if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; }
+function closeModal(id) { document.getElementById(id + 'Modal')?.classList.add('hidden'); }
+function saveKey() { const k = document.getElementById('apiInp')?.value?.trim(); if (k) { ST.grokApiKey = k; localStorage.setItem('kpss_grok_api_key', k); closeModal('api'); alert('✅ Grok API anahtarı kaydedildi!'); } }
+function doReset(type) {
     if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) { localStorage.clear(); location.reload(); }
     else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { ST.topicProgress[ST.currentTopic] = null; ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); saveState(); renderTopicsList(); alert(`✅ Konu sıfırlandı!`); }
-};
+}
 
 // ========== BAŞLANGIÇ ==========
 function startApp() {
@@ -882,5 +947,5 @@ function startApp() {
     showView(targetView, false);
     console.log('✅ Uygulama hazır!');
 }
+
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
-setTimeout(() => { if (typeof SORU_BANKASI !== 'undefined') startApp(); else console.error('questions.js yüklenemedi!'); }, 100);
