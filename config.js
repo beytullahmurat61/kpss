@@ -1,109 +1,171 @@
-// ============================================
+// ============================================================
 // config.js - KPSS MATEMATİK YAPILANDIRMA
-// 205 Konu, 19 Seviye
-// ============================================
+// ÖSYM müfredatına uygun, sadece KPSS'te çıkan konular
+// 13 Level (0-12), 78 Konu
+// ============================================================
 
-// ============================================
-// SEVİYELER (0-18)
-// ============================================
+// ============================================================
+// SEVİYELER (0-12)
+// Her level bir ana konu grubuna karşılık gelir
+// ============================================================
 const LEVELS = {
-    '0':  { name: 'Başlangıç',      icon: '🌱', questionCount: 10, minCorrect: 7 },
-    '1':  { name: 'Temel',          icon: '📗', questionCount: 10, minCorrect: 7 },
-    '2':  { name: 'Kolay',          icon: '📘', questionCount: 10, minCorrect: 7 },
-    '3':  { name: 'Orta-Altı',      icon: '📙', questionCount: 10, minCorrect: 7 },
-    '4':  { name: 'Orta',           icon: '📒', questionCount: 10, minCorrect: 8 },
-    '5':  { name: 'Orta-Üstü',      icon: '📓', questionCount: 10, minCorrect: 8 },
-    '6':  { name: 'Zor',            icon: '🔴', questionCount: 10, minCorrect: 8 },
-    '7':  { name: 'Zor+',           icon: '🔥', questionCount: 10, minCorrect: 8 },
-    '8':  { name: 'İleri',          icon: '⚡', questionCount: 10, minCorrect: 8 },
-    '9':  { name: 'İleri+',         icon: '💡', questionCount: 10, minCorrect: 8 },
-    '10': { name: 'Uzman',          icon: '🏅', questionCount: 10, minCorrect: 8 },
-    '11': { name: 'Uzman+',         icon: '🥈', questionCount: 10, minCorrect: 9 },
-    '12': { name: 'Usta',           icon: '🥇', questionCount: 10, minCorrect: 9 },
-    '13': { name: 'Usta+',          icon: '🏆', questionCount: 10, minCorrect: 9 },
-    '14': { name: 'Şampiyon',       icon: '👑', questionCount: 10, minCorrect: 9 },
-    '15': { name: 'Şampiyon+',      icon: '💎', questionCount: 10, minCorrect: 9 },
-    '16': { name: 'Efsane',         icon: '🌟', questionCount: 10, minCorrect: 9 },
-    '17': { name: 'Efsane+',        icon: '⭐', questionCount: 10, minCorrect: 9 },
-    '18': { name: 'Grandmaster',    icon: '🎓', questionCount: 10, minCorrect: 10 },
+    '0':  { name: 'Temel Aritmetik',          icon: '🌱', questionCount: 10, minCorrect: 7 },
+    '1':  { name: 'Sayılar',                  icon: '🔢', questionCount: 10, minCorrect: 7 },
+    '2':  { name: 'Kesirler',                 icon: '½',  questionCount: 10, minCorrect: 7 },
+    '3':  { name: 'Üslü & Köklü Sayılar',     icon: '√',  questionCount: 10, minCorrect: 7 },
+    '4':  { name: 'Çarpanlara Ayırma',        icon: '🔑', questionCount: 10, minCorrect: 8 },
+    '5':  { name: 'Denklemler',               icon: '🟰', questionCount: 10, minCorrect: 8 },
+    '6':  { name: 'Oran-Orantı & Yüzde',      icon: '💯', questionCount: 10, minCorrect: 8 },
+    '7':  { name: 'Sözel Problemler',         icon: '📝', questionCount: 10, minCorrect: 8 },
+    '8':  { name: 'Kümeler',                  icon: '🔵', questionCount: 10, minCorrect: 8 },
+    '9':  { name: 'Permütasyon & Kombinasyon',icon: '🎲', questionCount: 10, minCorrect: 8 },
+    '10': { name: 'Olasılık',                 icon: '🎯', questionCount: 10, minCorrect: 9 },
+    '11': { name: 'İstatistik',               icon: '📊', questionCount: 10, minCorrect: 9 },
+    '12': { name: 'Geometri',                 icon: '📐', questionCount: 10, minCorrect: 9 },
 };
 
-// ============================================
-// KONULAR (205 Konu)
-// id: 1-205, e: emoji, n: konu adı, p: faz, order: sıra
-// ============================================
+// ============================================================
+// KONULAR (78 Konu - Sadece KPSS'te çıkanlar)
+// id: 1-78, e: emoji, n: konu adı, p: faz, order: sıra, level: ilgili level
+// ============================================================
 const TOPICS = [
-    // ---- FAZ 1: TEMEL ARİTMETİK ----
-    { id: 1,   order: 1,   e: '➕', n: 'Toplama İşlemi',              p: '📐 Temel Aritmetik' },
-    { id: 2,   order: 2,   e: '➖', n: 'Çıkarma İşlemi',              p: '📐 Temel Aritmetik' },
-    { id: 3,   order: 3,   e: '✖️', n: 'Çarpma İşlemi',               p: '📐 Temel Aritmetik' },
-    { id: 4,   order: 4,   e: '➗', n: 'Bölme İşlemi',                p: '📐 Temel Aritmetik' },
-    { id: 5,   order: 5,   e: '🔢', n: 'Dört İşlem Karışık',          p: '📐 Temel Aritmetik' },
-    { id: 6,   order: 6,   e: '🔣', n: 'İşlem Önceliği',              p: '📐 Temel Aritmetik' },
-    { id: 7,   order: 7,   e: '🧮', n: 'Basamak Kavramı',             p: '📐 Temel Aritmetik' },
-    { id: 8,   order: 8,   e: '📊', n: 'Sayı Örüntüleri',             p: '📐 Temel Aritmetik' },
-    { id: 9,   order: 9,   e: '🔁', n: 'Bölünebilme Kuralları',       p: '📐 Temel Aritmetik' },
-    { id: 10,  order: 10,  e: '🔍', n: 'Tek-Çift Sayılar',            p: '📐 Temel Aritmetik' },
 
-    // ---- FAZ 2: SAYILAR ----
-    { id: 11,  order: 11,  e: '🔵', n: 'Doğal Sayılar',               p: '🔢 Sayılar' },
-    { id: 12,  order: 12,  e: '⚫', n: 'Tam Sayılar',                  p: '🔢 Sayılar' },
-    { id: 13,  order: 13,  e: '🔶', n: 'Rasyonel Sayılar',            p: '🔢 Sayılar' },
-    { id: 14,  order: 14,  e: '🔷', n: 'İrrasyonel Sayılar',          p: '🔢 Sayılar' },
+    // ---- FAZ 1: TEMEL ARİTMETİK (Level 0) ----
+    { id: 1,  order: 1,  e: '➕', n: 'Toplama İşlemi',             p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 2,  order: 2,  e: '➖', n: 'Çıkarma İşlemi',             p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 3,  order: 3,  e: '✖️', n: 'Çarpma İşlemi',              p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 4,  order: 4,  e: '➗', n: 'Bölme İşlemi',               p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 5,  order: 5,  e: '🔢', n: 'Dört İşlem & İşlem Önceliği',p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 6,  order: 6,  e: '🧮', n: 'Sayı Basamakları',           p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 7,  order: 7,  e: '🔁', n: 'Tek-Çift & Ardışık Sayılar', p: '🌱 Temel Aritmetik', level: 0 },
+    { id: 8,  order: 8,  e: '📊', n: 'Sayı Örüntüleri',            p: '🌱 Temel Aritmetik', level: 0 },
 
-    // ---- FAZ 3: KESİRLER ----
-    { id: 15,  order: 15,  e: '½', n: 'Kesir Kavramı',                p: '½ Kesirler' },
-    { id: 16,  order: 16,  e: '🔀', n: 'Kesirlerle Toplama',          p: '½ Kesirler' },
-    { id: 17,  order: 17,  e: '🔀', n: 'Kesirlerle Çıkarma',          p: '½ Kesirler' },
-    { id: 18,  order: 18,  e: '🔀', n: 'Kesirlerle Çarpma',           p: '½ Kesirler' },
-    { id: 19,  order: 19,  e: '🔀', n: 'Kesirlerle Bölme',            p: '½ Kesirler' },
-    { id: 20,  order: 20,  e: '📏', n: 'Karışık Sayılar',             p: '½ Kesirler' },
-    { id: 21,  order: 21,  e: '🔃', n: 'Kesirleri Karşılaştırma',     p: '½ Kesirler' },
-    { id: 22,  order: 22,  e: '💯', n: 'Kesir-Ondalık Dönüşüm',      p: '½ Kesirler' },
+    // ---- FAZ 2: SAYILAR (Level 1) ----
+    { id: 9,  order: 9,  e: '🔵', n: 'Doğal & Tam Sayılar',        p: '🔢 Sayılar',          level: 1 },
+    { id: 10, order: 10, e: '🔶', n: 'Rasyonel & İrrasyonel Sayılar',p: '🔢 Sayılar',         level: 1 },
+    { id: 11, order: 11, e: '🔑', n: 'Asal Sayılar',                p: '🔢 Sayılar',          level: 1 },
+    { id: 12, order: 12, e: '🔗', n: 'Bölünebilme Kuralları',       p: '🔢 Sayılar',          level: 1 },
+    { id: 13, order: 13, e: '📌', n: 'EBOB (En Büyük Ortak Bölen)', p: '🔢 Sayılar',          level: 1 },
+    { id: 14, order: 14, e: '📍', n: 'EKOK (En Küçük Ortak Kat)',   p: '🔢 Sayılar',          level: 1 },
+    { id: 15, order: 15, e: '🧩', n: 'Asal Çarpanlara Ayırma',      p: '🔢 Sayılar',          level: 1 },
+    { id: 16, order: 16, e: '🎯', n: 'Faktöriyel',                  p: '🔢 Sayılar',          level: 1 },
+    { id: 17, order: 17, e: '🔢', n: 'EBOB-EKOK Problemleri',       p: '🔢 Sayılar',          level: 1 },
 
-    // ---- FAZ 4: KUVVET VE KÖK ----
-    { id: 23,  order: 23,  e: '²', n: 'Kuvvet (Üs) Kavramı',          p: '² Kuvvet ve Kök' },
-    { id: 24,  order: 24,  e: '³', n: 'Kuvvet Çarpma Kuralı',         p: '² Kuvvet ve Kök' },
-    { id: 25,  order: 25,  e: '🔼', n: 'Kuvvet Bölme Kuralı',         p: '² Kuvvet ve Kök' },
-    { id: 26,  order: 26,  e: '🔽', n: 'Negatif Üslü Sayılar',        p: '² Kuvvet ve Kök' },
-    { id: 27,  order: 27,  e: '√', n: 'Karekök Kavramı',              p: '² Kuvvet ve Kök' },
-    { id: 28,  order: 28,  e: '∛', n: 'Küp Kök',                      p: '² Kuvvet ve Kök' },
-    { id: 29,  order: 29,  e: '🧮', n: 'Kök İşlemleri',               p: '² Kuvvet ve Kök' },
-    { id: 30,  order: 30,  e: '📐', n: 'Üslü İfadeler',               p: '² Kuvvet ve Kök' },
-    { id: 31,  order: 31,  e: '🔢', n: 'Bilimsel Gösterim',           p: '² Kuvvet ve Kök' },
-    { id: 32,  order: 32,  e: '🧊', n: 'Kuvvet ve Kök Karışık',       p: '² Kuvvet ve Kök' },
-    { id: 33,  order: 33,  e: '🏁', n: 'Üslü Denklemler (Temel)',     p: '² Kuvvet ve Kök' },
+    // ---- FAZ 3: KESİRLER (Level 2) ----
+    { id: 18, order: 18, e: '½',  n: 'Kesir Kavramı & Türleri',     p: '½ Kesirler',          level: 2 },
+    { id: 19, order: 19, e: '🔀', n: 'Kesirlerle Dört İşlem',       p: '½ Kesirler',          level: 2 },
+    { id: 20, order: 20, e: '📏', n: 'Karışık Sayılar',             p: '½ Kesirler',          level: 2 },
+    { id: 21, order: 21, e: '🔃', n: 'Kesirleri Karşılaştırma',     p: '½ Kesirler',          level: 2 },
+    { id: 22, order: 22, e: '💯', n: 'Kesir-Ondalık Dönüşüm',       p: '½ Kesirler',          level: 2 },
+    { id: 23, order: 23, e: '📝', n: 'Kesir Problemleri',           p: '½ Kesirler',          level: 2 },
 
-    // ---- FAZ 5: ÇARPANLAR VE KATLAR ----
-    { id: 34,  order: 34,  e: '🔑', n: 'Asal Sayılar',                p: '🔑 Çarpanlar ve Katlar' },
-    { id: 35,  order: 35,  e: '🧩', n: 'Asal Çarpanlara Ayırma',      p: '🔑 Çarpanlar ve Katlar' },
-    { id: 36,  order: 36,  e: '📌', n: 'EBOB (En Büyük Ortak Bölen)', p: '🔑 Çarpanlar ve Katlar' },
-    { id: 37,  order: 37,  e: '📍', n: 'EKOK (En Küçük Ortak Kat)',   p: '🔑 Çarpanlar ve Katlar' },
-    { id: 38,  order: 38,  e: '🔗', n: 'EBOB-EKOK Problemleri',       p: '🔑 Çarpanlar ve Katlar' },
-    { id: 39,  order: 39,  e: '🎯', n: 'Çarpan Sayısı Bulma',         p: '🔑 Çarpanlar ve Katlar' },
-    { id: 40,  order: 40,  e: '🧮', n: 'Ortak Çarpanlar',             p: '🔑 Çarpanlar ve Katlar' },
-    { id: 41,  order: 41,  e: '📊', n: 'Bölme ve Kalan',              p: '🔑 Çarpanlar ve Katlar' },
-    { id: 42,  order: 42,  e: '🔄', n: 'Öklid Bölmesi',               p: '🔑 Çarpanlar ve Katlar' },
-    { id: 43,  order: 43,  e: '💡', n: 'Sayı Teorisi Problemleri',    p: '🔑 Çarpanlar ve Katlar' },
-    { id: 44,  order: 44,  e: '🎲', n: 'Basamaklı Sayı Problemleri',  p: '🔑 Çarpanlar ve Katlar' },
-    { id: 45,  order: 45,  e: '🏆', n: 'Çarpanlar Karışık',           p: '🔑 Çarpanlar ve Katlar' },
+    // ---- FAZ 4: ÜSLÜ & KÖKLÜ SAYILAR (Level 3) ----
+    { id: 24, order: 24, e: '²',  n: 'Üslü Sayılar (Kuvvet)',       p: '√ Üs & Kök',         level: 3 },
+    { id: 25, order: 25, e: '³',  n: 'Üs Alma Kuralları',           p: '√ Üs & Kök',         level: 3 },
+    { id: 26, order: 26, e: '🔽', n: 'Negatif & Sıfır Üs',         p: '√ Üs & Kök',         level: 3 },
+    { id: 27, order: 27, e: '√',  n: 'Karekök Kavramı',             p: '√ Üs & Kök',         level: 3 },
+    { id: 28, order: 28, e: '∛',  n: 'Küp Kök & n. Kök',           p: '√ Üs & Kök',         level: 3 },
+    { id: 29, order: 29, e: '🧮', n: 'Köklü İfadelerle İşlemler',  p: '√ Üs & Kök',         level: 3 },
+    { id: 30, order: 30, e: '🔢', n: 'Üslü-Köklü Karışık',         p: '√ Üs & Kök',         level: 3 },
 
-    // ---- FAZ 6: YÜZDE VE ORAN ----
-    { id: 46,  order: 46,  e: '💯', n: 'Yüzde Kavramı',               p: '💯 Yüzde ve Oran' },
-    { id: 47,  order: 47,  e: '📈', n: 'Yüzde Artış',                 p: '💯 Yüzde ve Oran' },
-    { id: 48,  order: 48,  e: '📉', n: 'Yüzde Azalış',                p: '💯 Yüzde ve Oran' },
-    { id: 49,  order: 49,  e: '🛒', n: 'İndirim ve Zam Problemleri',  p: '💯 Yüzde ve Oran' },
-    { id: 50,  order: 50,  e: '🏦', n: 'Basit Faiz',                  p: '💯 Yüzde ve Oran' },
-    { id: 51,  order: 51,  e: '🏧', n: 'Bileşik Faiz',                p: '💯 Yüzde ve Oran' },
-    { id: 52,  order: 52,  e: '⚖️', n: 'Oran Kavramı',                p: '💯 Yüzde ve Oran' },
-    { id: 53,  order: 53,  e: '🔢', n: 'Orantı (Doğru Orantı)',       p: '💯 Yüzde ve Oran' },
-    { id: 54,  order: 54,  e: '🔄', n: 'Ters Orantı',                 p: '💯 Yüzde ve Oran' },
-    { id: 55,  order: 55,  e: '🧪', n: 'Karışım Problemleri',         p: '💯 Yüzde ve Oran' },
-    { id: 56,  order: 56,  e: '💰', n: 'Kâr-Zarar Problemleri',       p: '💯 Yüzde ve Oran' },
-    { id: 57,  order: 57,  e: '🏪', n: 'Alış-Satış Problemleri',      p: '💯 Yüzde ve Oran' },
-    { id: 58,  order: 58,  e: '👥', n: 'Bölüşme Problemleri',         p: '💯 Yüzde ve Oran' },
-    { id: 59,  order: 59,  e: '🎯', n: 'Yüzde Karışık Problemler',    p: '💯 Yüzde ve Oran' },
-    { id: 60,  order: 60,  e: '📊', n: 'Oran Karışık Problemler',     p: '💯 Yüzde ve Oran' },
+    // ---- FAZ 5: ÇARPANLARA AYIRMA (Level 4) ----
+    { id: 31, order: 31, e: '🔑', n: 'Ortak Çarpan',                p: '🔑 Çarpanlar',        level: 4 },
+    { id: 32, order: 32, e: '🧩', n: 'Gruplama Yöntemi',            p: '🔑 Çarpanlar',        level: 4 },
+    { id: 33, order: 33, e: '📐', n: 'İki Kare Farkı',              p: '🔑 Çarpanlar',        level: 4 },
+    { id: 34, order: 34, e: '🟩', n: 'Tam Kare Üçlü',              p: '🔑 Çarpanlar',        level: 4 },
+    { id: 35, order: 35, e: '📝', n: 'Özdeşlikler',                 p: '🔑 Çarpanlar',        level: 4 },
+    { id: 36, order: 36, e: '🔀', n: 'Üçlü Çarpanlara Ayırma',     p: '🔑 Çarpanlar',        level: 4 },
+    { id: 37, order: 37, e: '➗', n: 'Sadeleştirme',                p: '🔑 Çarpanlar',        level: 4 },
+
+    // ---- FAZ 6: DENKLEMLER (Level 5) ----
+    { id: 38, order: 38, e: '🟰', n: '1. Dereceden Denklem',        p: '🟰 Denklemler',       level: 5 },
+    { id: 39, order: 39, e: '2️⃣', n: 'İki Bilinmeyenli Denklem',   p: '🟰 Denklemler',       level: 5 },
+    { id: 40, order: 40, e: '🔗', n: 'Denklem Sistemleri',          p: '🟰 Denklemler',       level: 5 },
+    { id: 41, order: 41, e: '📝', n: 'Denklem Kurma',               p: '🟰 Denklemler',       level: 5 },
+    { id: 42, order: 42, e: '√',  n: 'Köklü Denklemler (√x=a)',     p: '🟰 Denklemler',       level: 5 },
+    { id: 43, order: 43, e: '📊', n: 'Mutlak Değerli Denklemler',   p: '🟰 Denklemler',       level: 5 },
+
+    // ---- FAZ 7: ORAN-ORANTILAR & YÜZDE (Level 6) ----
+    { id: 44, order: 44, e: '⚖️', n: 'Oran Kavramı',                p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 45, order: 45, e: '🔢', n: 'Doğru Orantı',                p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 46, order: 46, e: '🔄', n: 'Ters Orantı',                 p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 47, order: 47, e: '💯', n: 'Yüzde Kavramı',               p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 48, order: 48, e: '📈', n: 'Yüzde Artış-Azalış',          p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 49, order: 49, e: '💰', n: 'Kâr-Zarar & Faiz',            p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 50, order: 50, e: '🧪', n: 'Karışım Problemleri',         p: '💯 Oran & Yüzde',     level: 6 },
+    { id: 51, order: 51, e: '👥', n: 'Bölüşme & Orantı Problemleri',p: '💯 Oran & Yüzde',     level: 6 },
+
+    // ---- FAZ 8: SÖZEL PROBLEMLER (Level 7) ----
+    { id: 52, order: 52, e: '🔢', n: 'Sayı Problemleri',            p: '📝 Sözel Problemler', level: 7 },
+    { id: 53, order: 53, e: '½',  n: 'Kesir Problemleri',           p: '📝 Sözel Problemler', level: 7 },
+    { id: 54, order: 54, e: '🧑', n: 'Yaş Problemleri',             p: '📝 Sözel Problemler', level: 7 },
+    { id: 55, order: 55, e: '🚶', n: 'Hız-Zaman-Yol Problemleri',   p: '📝 Sözel Problemler', level: 7 },
+    { id: 56, order: 56, e: '⏱️', n: 'İşçi-Havuz Problemleri',      p: '📝 Sözel Problemler', level: 7 },
+    { id: 57, order: 57, e: '🛒', n: 'Alış-Veriş Problemleri',      p: '📝 Sözel Problemler', level: 7 },
+    { id: 58, order: 58, e: '📊', n: 'Grafik-Tablo Problemleri',    p: '📝 Sözel Problemler', level: 7 },
+
+    // ---- FAZ 9: KÜMELER (Level 8) ----
+    { id: 59, order: 59, e: '🔵', n: 'Küme Kavramı & Gösterimi',    p: '🔵 Kümeler',          level: 8 },
+    { id: 60, order: 60, e: '🔗', n: 'Alt Küme & Eleman Sayısı',    p: '🔵 Kümeler',          level: 8 },
+    { id: 61, order: 61, e: '🔀', n: 'Birleşim & Kesişim',          p: '🔵 Kümeler',          level: 8 },
+    { id: 62, order: 62, e: '➖', n: 'Fark & Tümleme Kümesi',       p: '🔵 Kümeler',          level: 8 },
+    { id: 63, order: 63, e: '🔵', n: 'Venn Şeması Problemleri',     p: '🔵 Kümeler',          level: 8 },
+
+    // ---- FAZ 10: PERMÜTASYON & KOMBİNASYON (Level 9) ----
+    { id: 64, order: 64, e: '🔢', n: 'Sayma Yöntemleri (Çarpma Kuralı)',p: '🎲 Perm & Komb', level: 9 },
+    { id: 65, order: 65, e: '🔀', n: 'Permütasyon',                 p: '🎲 Perm & Komb',      level: 9 },
+    { id: 66, order: 66, e: '🎲', n: 'Kombinasyon',                 p: '🎲 Perm & Komb',      level: 9 },
+    { id: 67, order: 67, e: '📐', n: 'Geometrik Sayma (Nokta, Doğru)',p: '🎲 Perm & Komb',    level: 9 },
+    { id: 68, order: 68, e: '👥', n: 'Gruplama & Seçme Problemleri',p: '🎲 Perm & Komb',      level: 9 },
+
+    // ---- FAZ 11: OLASILIK (Level 10) ----
+    { id: 69, order: 69, e: '🎯', n: 'Olasılık Kavramı',            p: '🎯 Olasılık',         level: 10 },
+    { id: 70, order: 70, e: '🎲', n: 'Basit Olasılık Hesabı',       p: '🎯 Olasılık',         level: 10 },
+    { id: 71, order: 71, e: '🔁', n: 'Koşullu Olasılık',            p: '🎯 Olasılık',         level: 10 },
+    { id: 72, order: 72, e: '📊', n: 'Bağımsız & Bağımlı Olaylar',  p: '🎯 Olasılık',         level: 10 },
+    { id: 73, order: 73, e: '🏆', n: 'Olasılık Problemleri',        p: '🎯 Olasılık',         level: 10 },
+
+    // ---- FAZ 12: İSTATİSTİK (Level 11) ----
+    { id: 74, order: 74, e: '📊', n: 'Veri Okuma (Tablo & Grafik)', p: '📊 İstatistik',       level: 11 },
+    { id: 75, order: 75, e: '📈', n: 'Aritmetik Ortalama',          p: '📊 İstatistik',       level: 11 },
+    { id: 76, order: 76, e: '📉', n: 'Medyan & Mod',                p: '📊 İstatistik',       level: 11 },
+    { id: 77, order: 77, e: '🔢', n: 'Açıklık (Ranj)',              p: '📊 İstatistik',       level: 11 },
+
+    // ---- FAZ 13: GEOMETRİ (Level 12) ----
+    { id: 78, order: 78, e: '📐', n: 'Açılar & Temel Kavramlar',    p: '📐 Geometri',         level: 12 },
+    { id: 79, order: 79, e: '🔺', n: 'Üçgenler (Alan, Çevre)',      p: '📐 Geometri',         level: 12 },
+    { id: 80, order: 80, e: '🟥', n: 'Dörtgenler (Kare, Dikdörtgen, Paralelkenar)', p: '📐 Geometri', level: 12 },
+    { id: 81, order: 81, e: '⭕', n: 'Çember & Daire',              p: '📐 Geometri',         level: 12 },
+    { id: 82, order: 82, e: '📏', n: 'Pisagor Teoremi',             p: '📐 Geometri',         level: 12 },
+    { id: 83, order: 83, e: '🏆', n: 'Geometri Problemleri',        p: '📐 Geometri',         level: 12 },
+];
+
+// ============================================================
+// SORU BANKASI - LEVEL EŞLEŞME HARİTASI
+// questions.js'deki her level hangi TOPICS id aralığına karşılık gelir
+// ============================================================
+const LEVEL_TOPIC_MAP = {
+    0:  { ids: [1,2,3,4,5,6,7,8] },          // Temel Aritmetik
+    1:  { ids: [9,10,11,12,13,14,15,16,17] }, // Sayılar
+    2:  { ids: [18,19,20,21,22,23] },          // Kesirler
+    3:  { ids: [24,25,26,27,28,29,30] },       // Üs & Kök
+    4:  { ids: [31,32,33,34,35,36,37] },       // Çarpanlar
+    5:  { ids: [38,39,40,41,42,43] },          // Denklemler
+    6:  { ids: [44,45,46,47,48,49,50,51] },    // Oran & Yüzde
+    7:  { ids: [52,53,54,55,56,57,58] },       // Sözel Problemler
+    8:  { ids: [59,60,61,62,63] },             // Kümeler
+    9:  { ids: [64,65,66,67,68] },             // Perm & Komb
+    10: { ids: [69,70,71,72,73] },             // Olasılık
+    11: { ids: [74,75,76,77] },                // İstatistik
+    12: { ids: [78,79,80,81,82,83] },          // Geometri
+};
+
+// Browser global scope için (window objesi üzerinden erişim)
+if (typeof window !== 'undefined') {
+    window.LEVELS = LEVELS;
+    window.TOPICS = TOPICS;
+    window.LEVEL_TOPIC_MAP = LEVEL_TOPIC_MAP;
+}
 
     // ---- FAZ 7: DENKLEMLER ----
     { id: 61,  order: 61,  e: '🟰', n: 'Denklem Kavramı',             p: '🟰 Denklemler' },
