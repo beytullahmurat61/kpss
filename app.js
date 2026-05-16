@@ -30,14 +30,15 @@ let ST = {
     examTimeLeft: 0,
     examTimer: null,
     pendingExamSet: null,
-    pendingCompletionTopic: null
+    pendingCompletionTopic: null,
+    lastQuestions: {}
 };
 
 // ========== GROK API ==========
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
 const GROK_MODEL = 'grok-beta';
 
-// ========== YARDIMCI FONKSİYONLAR (ÖNCE TANIMLANMALI) ==========
+// ========== YARDIMCI FONKSİYONLAR ==========
 
 function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -174,11 +175,28 @@ function fillTemplate(text, vars) {
     return result;
 }
 
-function generateQuestion(topicId, level) {
+function generateQuestion(topicId, level, preventRepeat = true) {
     const templates = QUESTION_TEMPLATES[topicId]?.[level];
     if (!templates || templates.length === 0) return fallbackQuestion();
     
-    const template = templates[Math.floor(Math.random() * templates.length)];
+    let availableTemplates = [...templates];
+    if (preventRepeat) {
+        const key = `${topicId}_${level}`;
+        const lastId = ST.lastQuestions[key];
+        if (lastId) {
+            availableTemplates = templates.filter(t => t.id !== lastId);
+        }
+        if (availableTemplates.length === 0) {
+            availableTemplates = [...templates];
+            ST.lastQuestions[key] = null;
+        }
+    }
+    
+    const template = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
+    
+    const key = `${topicId}_${level}`;
+    ST.lastQuestions[key] = template.id;
+    
     const vars = generateVariables(template.v || {});
     const questionText = fillTemplate(template.s, vars);
     let answer = fillTemplate(template.c, vars);
@@ -239,7 +257,7 @@ function renderTableQuestion(qData) {
                         return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => {
                             const isTarget = (row === a && ci === b);
                             return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`;
-                        }).join('')}</tr>`;
+                        }).join('')}<tr>`;
                     }).join('')}
                 </tbody>
             </table>
@@ -518,10 +536,16 @@ function renderNextQuestion() {
     const prog = getTopicProgress(ST.currentTopic);
     const levelProg = prog[`level${level}`] || { correct: 0, total: 0 };
     
+    // Seviye tamamlandıysa özet ekranına dön
+    if (levelProg.total >= levelConfig.questionCount) {
+        renderPreStudySummary();
+        return;
+    }
+    
     document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`;
     document.getElementById('learnKademe').textContent = levelConfig.name;
     
-    const qData = generateQuestion(ST.currentTopic, level);
+    const qData = generateQuestion(ST.currentTopic, level, true);
     ST.currentQuestion = { ...qData, level };
     
     const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn');
@@ -543,14 +567,23 @@ function renderNextQuestion() {
             <textarea id="scratchpadInput" rows="3" class="scratchpad-input" placeholder="Ara işlemlerini buraya yaz..."></textarea>
         </div>
     `;
-    document.getElementById('scratchpadInput').value = ST.scratchpad;
-    document.getElementById('scratchpadInput').addEventListener('input', (e) => { ST.scratchpad = e.target.value; saveState(); });
+    
+    const scratchpadInput = document.getElementById('scratchpadInput');
+    if (scratchpadInput) {
+        scratchpadInput.value = ST.scratchpad;
+        scratchpadInput.addEventListener('input', (e) => { ST.scratchpad = e.target.value; saveState(); });
+    }
+    
     setTimeout(() => document.getElementById('ansInp')?.focus(), 150);
 }
 
 function checkAnswer() {
     const inp = document.getElementById('ansInp');
-    if (!inp?.value.trim()) return;
+    if (!inp?.value.trim()) {
+        inp.style.borderColor = 'var(--danger)';
+        setTimeout(() => { if(inp) inp.style.borderColor = ''; }, 1000);
+        return;
+    }
     inp.disabled = true;
     if (!ST.currentQuestion) return;
     
@@ -559,12 +592,18 @@ function checkAnswer() {
     const level = ST.currentQuestion.level;
     const prog = getTopicProgress(ST.currentTopic);
     if (!prog[`level${level}`]) prog[`level${level}`] = { correct: 0, total: 0 };
+    
     prog[`level${level}`].total++;
     if (isCorrect) prog[`level${level}`].correct++;
     
     ST.totalSolved++;
-    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
-    else { ST.streak = 0; }
+    if (isCorrect) { 
+        ST.totalCorrect++; 
+        ST.streak++; 
+        if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; 
+    } else { 
+        ST.streak = 0; 
+    }
     
     const levelConfig = LEVELS[level];
     const levelProg = prog[`level${level}`];
@@ -678,7 +717,7 @@ function renderNextQBQuestion() {
         document.getElementById('qbSolveContent').innerHTML = `<div class="card"><h3>🎉 Tebrikler! 100 soruyu tamamladın.</h3><button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button></div>`;
         return;
     }
-    const qData = generateQuestion(ST.currentTopic, randomInt(0, 2));
+    const qData = generateQuestion(ST.currentTopic, randomInt(0, 2), true);
     ST.currentQuestion = { ...qData, mode: 'questionBank' };
     const topic = getTopicById(ST.currentTopic);
     const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn');
@@ -694,8 +733,11 @@ function renderNextQBQuestion() {
         </div>
         <div class="scratchpad-area"><textarea id="qbScratchpad" rows="2" class="scratchpad-input" placeholder="Ara işlemler..."></textarea></div>
     `;
-    document.getElementById('qbScratchpad').value = ST.scratchpad;
-    document.getElementById('qbScratchpad').addEventListener('input', (e) => { ST.scratchpad = e.target.value; saveState(); });
+    const qbScratchpad = document.getElementById('qbScratchpad');
+    if (qbScratchpad) {
+        qbScratchpad.value = ST.scratchpad;
+        qbScratchpad.addEventListener('input', (e) => { ST.scratchpad = e.target.value; saveState(); });
+    }
     setTimeout(() => document.getElementById('qbAnsInp')?.focus(), 150);
 }
 
@@ -881,9 +923,16 @@ function renderStats() {
     `;
 }
 
-// ========== GROK API ==========
+// ========== GROK API (DÜZELTİLMİŞ) ==========
 async function askGrokForSolution(question, correctAnswer, userAnswer) {
-    if (!ST.grokApiKey) return '⚠️ Grok API anahtarı girilmedi. Ayarlar\'dan ekleyin.';
+    if (!ST.grokApiKey) {
+        return '⚠️ Grok API anahtarı girilmedi. Ayarlar\'dan ekleyin.\n\n🔑 x.ai adresinden ücretsiz API anahtarı alabilirsiniz.';
+    }
+    
+    if (!ST.grokApiKey.startsWith('xai-')) {
+        return '⚠️ Geçersiz API anahtarı formatı. Anahtar "xai-" ile başlamalıdır.\n\nLütfen Ayarlar\'dan doğru anahtarı girin.';
+    }
+    
     const prompt = `Sen bir KPSS matematik öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.
 
 Soru: ${question}
@@ -895,29 +944,85 @@ Lütfen:
 2. Hangi formül/kural kullanıldığını belirt
 3. Öğrencinin hatasını varsa düzelt
 4. Sonucu vurgula`;
+
     try {
-        const res = await fetch(GROK_API_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ST.grokApiKey}` },
-            body: JSON.stringify({ model: GROK_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.3 })
+        const response = await fetch(GROK_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ST.grokApiKey}`
+            },
+            body: JSON.stringify({
+                model: GROK_MODEL,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'Sen bir matematik öğretmenisin. Öğrencilere KPSS matematik sorularını açıklıyorsun. Kısa, net ve anlaşılır ol.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 800,
+                temperature: 0.3
+            })
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        return data.choices?.[0]?.message?.content || 'Açıklama alınamadı.';
-    } catch(e) { return `❌ Grok API hatası: ${e.message}`; }
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Grok API Hatası:', response.status, errorText);
+            
+            if (response.status === 401) {
+                return '❌ API anahtarı geçersiz! Lütfen Ayarlar\'dan doğru anahtarı girin.\n\n🔑 x.ai adresinden yeni anahtar alabilirsiniz.';
+            } else if (response.status === 429) {
+                return '⚠️ API kullanım limiti aşıldı. Lütfen biraz bekleyip tekrar deneyin.';
+            } else if (response.status === 400) {
+                return '⚠️ API isteği hatalı. Lütfen daha sonra tekrar deneyin.';
+            } else {
+                return `❌ API hatası (${response.status}). Lütfen daha sonra tekrar deneyin.`;
+            }
+        }
+        
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || 'Açıklama alınamadı. Lütfen tekrar deneyin.';
+        
+    } catch(e) {
+        console.error('Grok API bağlantı hatası:', e);
+        
+        if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+            return '❌ İnternet bağlantınızı kontrol edin. API sunucusuna bağlanılamıyor.';
+        }
+        
+        return `❌ Bağlantı hatası: ${e.message}\n\nLütfen internet bağlantınızı kontrol edin ve tekrar deneyin.`;
+    }
 }
 
 function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
     const btn = document.createElement('button');
     btn.className = 'btn btn-grok';
     btn.innerHTML = '🤖 Grok ile Çözümü Gör';
+    btn.style.marginTop = '12px';
+    btn.style.width = '100%';
+    
     btn.onclick = async () => {
-        btn.disabled = true; btn.innerHTML = '🤖 Grok düşünüyor...';
+        btn.disabled = true;
+        btn.innerHTML = '🤖 Grok düşünüyor...';
+        btn.style.opacity = '0.7';
+        
         const explanation = await askGrokForSolution(question, correctAnswer, userAnswer);
+        
         const box = document.createElement('div');
         box.className = 'grok-explanation';
-        box.innerHTML = `<div class="grok-header">🤖 <strong>Grok Açıklıyor</strong></div><div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>`;
+        box.style.marginTop = '12px';
+        box.innerHTML = `
+            <div class="grok-header">🤖 <strong>Grok Açıklıyor</strong></div>
+            <div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>
+        `;
+        
         btn.replaceWith(box);
     };
+    
     targetEl.appendChild(btn);
 }
 
@@ -927,7 +1032,7 @@ function toggleScratchpadSize() {
     if (ta) { ta.rows = ta.rows === 3 ? 6 : 3; }
 }
 function clearScratchpad() { ST.scratchpad = ''; if (document.getElementById('scratchpadInput')) document.getElementById('scratchpadInput').value = ''; if (document.getElementById('qbScratchpad')) document.getElementById('qbScratchpad').value = ''; saveState(); }
-function copyScratchpad() { navigator.clipboard.writeText(ST.scratchpad); alert('Müsvedde kopyalandı!'); }
+function copyScratchpad() { navigator.clipboard.writeText(ST.scratchpad); alert('📋 Müsvedde kopyalandı!'); }
 
 // ========== MODALLAR ==========
 function openModal(id) { document.getElementById(id + 'Modal')?.classList.remove('hidden'); if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; }
