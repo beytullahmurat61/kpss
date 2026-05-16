@@ -1,6 +1,6 @@
 // ============================================
 // KPSS MATEMATİK KONFIGÜRASYON DOSYASI
-// 19 Konu | Her konuda 3 level
+// 20 Konu | 3 Seviye
 // ============================================
 
 // ========== KONU LİSTESİ ==========
