@@ -1605,7 +1605,7 @@ const SORU_BANKASI = {
   { id: "s6_rs_005", s: "(x²-{a})/(x-√{a}) = ?", c: "x+√{a}", v: {a:[4,9,16]}, z:"zor", alt:"kare_fark_bolme" },
   { id: "s6_rs_006", s: "(x³-8)/(x²+2x+4) = ?", c: "x-2", v: {}, z:"zor", alt:"kup_fark_sadelestirme" },
   { id: "s6_rs_007", s: "(x⁴-1)/(x²+1) = ?", c: "(x-1)(x+1)", v: {}, z:"cok_zor", alt:"x4_1_x2+1" },
-  { id: "s6_rs_008", s: "({a}x²+{b}x)/({c}x) = ?", c: "({a}x+{b})/{c}", v: {a:[2,6], b:[3,8], c:[2,{a}]}, z:"zor", alt:"ortak_carpan_sade" },
+  { id: "s6_rs_008", s: "({a}x²+{b}x)/({c}x) = ?", c: "({a}x+{b})/{c}", v: {a:[2,6], b:[3,8], c:[2, "{a}"]}, z:"zor", alt:"ortak_carpan_sade" },
   { id: "s6_rs_009", s: "(2x²+6x)/(2x) = ?", c: "x+3", v: {}, z:"zor", alt:"2x2_6x_2x" },
   { id: "s6_rs_010", s: "(x(x+1))/(x+1) = ? (x≠-1)", c: "x", v: {}, z:"orta", alt:"parantez_sadelestirme" },
   { id: "s6_rs_011", s: "(x²-4)/(x-2) ifadesi x=2 için tanımlı mıdır?", c: "hayir_(payda_sifir_olur)", v: {}, z:"orta", alt:"tanimsizlik" },
@@ -2436,7 +2436,7 @@ const SORU_BANKASI = {
   { id: "s13_pt_002", s: "P(n,r) neyi ifade eder?", c: "n_elemanli_kumeden_r_elemanli_sirali_secim_sayisi", v: {}, z:"orta", alt:"P_n_r" },
   { id: "s13_pt_003", s: "Permütasyon ile kombinasyon arasındaki fark nedir?", c: "permutasyonda_siralama_onemli_kombinasyonda_degil", v: {}, z:"orta", alt:"permutasyon_kombinasyon_fark" },
   { id: "s13_pt_004", s: "P(n,r) formülü nedir?", c: "n!/(n-r)!", v: {}, z:"orta", alt:"permutasyon_formul" },
-  { id: "s13_pt_005", s: "P({n},{r}) = ?", c: "{sonuc}", v: {n:[4,8], r:[1,{n}], sonuc:"(()=>{let p=1; for(let i=n-r+1;i<=n;i++) p*=i; return p;})()"}, z:"orta", alt:"permutasyon_hesap" },
+  { id: "s13_pt_005", s: "P({n},{r}) = ?", c: "{sonuc}", v: {n:[4,8], r:[1, "{n}"], sonuc:"(()=>{let p=1; for(let i=n-r+1;i<=n;i++) p*=i; return p;})()"}, z:"orta", alt:"permutasyon_hesap" },
   { id: "s13_pt_006", s: "P(5,2) = ?", c: "20", v: {}, z:"orta", alt:"P_5_2" },
   { id: "s13_pt_007", s: "P(6,3) = ?", c: "120", v: {}, z:"orta", alt:"P_6_3" },
   { id: "s13_pt_008", s: "P(n,n) = ?", c: "n!", v: {}, z:"orta", alt:"P_n_n" },
@@ -2514,7 +2514,7 @@ const SORU_BANKASI = {
   { id: "s13_ka_009", s: "k tane kız e tane erkek için kızların yan yana gelmemesi şartı nedir?", c: "k≤e+1_(erkekler_cogunlukta_veya_esit)", v: {}, z:"cok_zor", alt:"yan_yana_gelmeme_sarti" },
   { id: "s13_ka_010", s: "Aralıklı sıralama hangi durumda imkansızdır?", c: "yan_yana_gelmemesi_istenen_grup_digerinden_2_fazla_ise", v: {}, z:"cok_zor", alt:"imkansiz_aralik" },
   { id: "s13_ka_011", s: "Dairesel permütasyonda aralıklı sıralama nasıl değişir?", c: "bosluk_sayisi_n_olur_(n-1_degil)", v: {}, z:"cok_zor", alt:"dairesel_aralikli" },
-  { id: "s13_ka_012", s: "{e} erkek {k} kız yuvarlak masada kızlar yan yana gelmemek şartıyla kaç oturur?", c: "({e}-1)!×P({e},{k})", v: {e:[3,5], k:[1,{e}], kosul:"k<=e"}, z:"cok_zor", alt:"yuvarlak_aralikli" },
+  { id: "s13_ka_012", s: "{e} erkek {k} kız yuvarlak masada kızlar yan yana gelmemek şartıyla kaç oturur?", c: "({e}-1)!×P({e},{k})", v: {e:[3,5], k:[1, "{e}"], kosul:"k<=e"}, z:"cok_zor", alt:"yuvarlak_aralikli" },
 
   // --- BELİRLİ KONUMDA SIRALAMA (s13_kb_) ---
   { id: "s13_kb_001", s: "Belirli bir kişi başta olmak şartıyla sıralama nasıl hesaplanır?", c: "digerleri_kalan_yerlere_siralanir", v: {}, z:"orta", alt:"basta_mantik" },
@@ -2554,7 +2554,7 @@ const SORU_BANKASI = {
 
   // --- PERMÜTASYON PROBLEMLERİ (s13_pp_) ---
   { id: "s13_pp_001", s: "{n} kişi bir sıraya kaç farklı şekilde oturur?", c: "{n}!", v: {n:[3,8]}, z:"orta", alt:"sira_oturma" },
-  { id: "s13_pp_002", s: "{n} kişi sinemada {r} koltuğa kaç farklı şekilde oturur?", c: "P({n},{r})", v: {n:[5,10], r:[3,{n}]}, z:"zor", alt:"sinema" },
+  { id: "s13_pp_002", s: "{n} kişi sinemada {r} koltuğa kaç farklı şekilde oturur?", c: "P({n},{r})", v: {n:[5,10], r:[3, "{n}"]}, z:"zor", alt:"sinema" },
   { id: "s13_pp_003", s: "A ve B arasında daima {k} kişi olacak şekilde sıralanırlarsa kaç durum olur?", c: "{sonuc}", v: {n:[5,8], k:[1,3]}, z:"cok_zor", alt:"arada_kisi" },
   { id: "s13_pp_004", s: "{n} kişi yan yana fotoğraf çektirecek. Belirli {k} kişi yan yana olursa kaç poz çekilir?", c: "({n}-{k}+1)!×{k}!", v: {n:[4,8], k:[2,3]}, z:"cok_zor", alt:"fotograf" },
   { id: "s13_pp_005", s: "Başkan ve yardımcısı daima yan yana olacak şekilde {n} kişi kaç poz verir?", c: "({n}-1)!×2!", v: {n:[4,8]}, z:"zor", alt:"baskan_fotograf" },
@@ -3074,7 +3074,7 @@ const SORU_BANKASI = {
   { id: "s16_tg_017", s: "Veri analizinde ilk adım nedir?", c: "veriyi_duzenlemek_ve_gorsellestirmek", v: {}, z:"orta", alt:"ilk_adim" },
 
   // ========== VERİ ANALİZİ VE YORUMLAMA (s16_va_, s16_my_) ==========
-  { id: "s16_va_001", s: "{a} sayının ortalaması {o}'tir. Bu sayılardan biri çıkarılınca ortalama {o2} oluyorsa çıkarılan sayı kaçtır?", c: "{a}×{o}-({a}-1)×{o2}", v: {a:[4,8], o:[5,15], o2:[4,{o}], kosul:"o2<o"}, z:"cok_zor", alt:"cikarilan_sayi" },
+  { id: "s16_va_001", s: "{a} sayının ortalaması {o}'tir. Bu sayılardan biri çıkarılınca ortalama {o2} oluyorsa çıkarılan sayı kaçtır?", c: "{a}×{o}-({a}-1)×{o2}", v: {a:[4,8], o:[5,15], o2:[4, "{o}"], kosul:"o2<o"}, z:"cok_zor", alt:"cikarilan_sayi" },
   { id: "s16_va_002", s: "Bir grubun yaş ortalaması {a} kişiyle {o1}, {b} kişiyle {o2} ise tüm grubun ortalaması kaçtır?", c: "({a}×{o1}+{b}×{o2})/({a}+{b})", v: {a:[5,15], o1:[10,30], b:[5,15], o2:[8,25]}, z:"cok_zor", alt:"iki_grup_yas" },
   { id: "s16_va_003", s: "Bir veri grubunun medyanı 8'dir. Veri grubuna 12 eklenirse medyan nasıl değişir?", c: "artabilir_veya_degismez", v: {}, z:"cok_zor", alt:"medyan_degisim" },
   { id: "s16_va_004", s: "{n} sayının medyanı {m}'tir. Tüm sayılara {a} eklenirse yeni medyan kaç olur?", c: "{m}+{a}", v: {n:[5,9], m:[4,12], a:[2,5]}, z:"cok_zor", alt:"medyan_sabit_ekleme" },
