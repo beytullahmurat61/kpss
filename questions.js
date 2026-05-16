@@ -139,14 +139,14 @@ const SORU_BANKASI = {
   { id: "t4_010", s: "Bölünen={a}, Bölen={b}, Bölüm={bolum}, Kalan={kalan} eşitliğini yazınız.", c: "{a}={b}*{bolum}+{kalan}", v: {a:[15,60], b:[2,9], kosul:"{a}%{b}!=0", bolum:"Math.floor({a}/{b})", kalan:"{a}%{b}"}, z:"orta", alt:"terim_esitlik" },
   { id: "t4_011", s: "? ÷ {b} = {bolum}", c: "{b}*{bolum}", v: {b:[2,9], bolum:[3,15]}, z:"orta", alt:"verilmeyen_bolunen" },
   { id: "t4_012", s: "Bir sayıyı {b} ile böldüğümde {bolum} çıkıyor. Bu sayı kaçtır?", c: "{b}*{bolum}", v: {b:[2,9], bolum:[5,20]}, z:"orta", alt:"verilmeyen_bolunen_sozel" },
-  { id: "t4_013", s: "? ÷ {b} = {bolum} (Kalan: {kalan})", c: "{b}*{bolum}+{kalan}", v: {b:[3,9], bolum:[3,10], kalan:[1,{b}-1]}, z:"zor", alt:"verilmeyen_bolunen_kalanli" },
+  { id: "t4_013", s: "? ÷ {b} = {bolum} (Kalan: {kalan})", c: "{b}*{bolum}+{kalan}", v: {b:[3,9], bolum:[3,10], kalan:[1,"{b}-1"]}, z:"zor", alt:"verilmeyen_bolunen_kalanli" },
   { id: "t4_014", s: "{a} ÷ ? = {bolum}", c: "{a}/{bolum}", v: {a:[20,100], bolum:[2,10], kosul:"{a}%{bolum}==0"}, z:"orta", alt:"verilmeyen_bolen" },
   { id: "t4_015", s: "{a} sayısını kaça bölersem {bolum} çıkar?", c: "{a}/{bolum}", v: {a:[20,100], bolum:[2,10], kosul:"{a}%{bolum}==0"}, z:"orta", alt:"verilmeyen_bolen_sozel" },
   { id: "t4_016", s: "{a} ÷ ? = {bolum} (Kalan: {kalan})", c: "({a}-{kalan})/{bolum}", v: {a:[25,80], bolum:[2,8], kalan:[1,3], kosul:"({a}-{kalan})%{bolum}==0"}, z:"zor", alt:"verilmeyen_bolen_kalanli" },
   { id: "t4_017", s: "Bir bölme işleminde bölen {b} ise kalan en fazla kaç olabilir?", c: "{b}-1", v: {b:[3,20]}, z:"orta", alt:"kalan_max" },
   { id: "t4_018", s: "Bir bölme işleminde kalan {k} ise bölen en az kaç olabilir?", c: "{k}+1", v: {k:[1,9]}, z:"orta", alt:"bolen_min" },
   { id: "t4_019", s: "Bir bölme işleminde bölüm {bolum}, bölen {b} ise bölünen en az kaç olabilir?", c: "{b}*{bolum}", v: {b:[3,10], bolum:[2,10]}, z:"zor", alt:"bolunen_min" },
-  { id: "t4_020", s: "Bir bölme işleminde bölüm {bolum}, bölen {b}, kalan {k} ise bölünen en az kaçtır?", c: "{b}*{bolum}+{k}", v: {b:[4,10], bolum:[2,8], k:[1,{b}-1]}, z:"zor", alt:"bolunen_kalanli" },
+  { id: "t4_020", s: "Bir bölme işleminde bölüm {bolum}, bölen {b}, kalan {k} ise bölünen en az kaçtır?", c: "{b}*{bolum}+{k}", v: {b:[4,10], bolum:[2,8], k:[1,"{b}-1"]}, z:"zor", alt:"bolunen_kalanli" },
   { id: "t4_021", s: "{a} ÷ {b} işleminde kalan 0 ise {a} sayısı {b} ile ne olur?", c: "tam_bolunur", v: {a:[20,100], b:[2,10], kosul:"{a}%{b}==0"}, z:"orta", alt:"tam_bolunme" },
   { id: "t4_022", s: "{a} sayısı {b} ile tam bölünür mü?", c: "{a}%{b}==0?'evet':'hayir'", v: {a:[10,50], b:[2,9]}, z:"orta", alt:"tam_bolunme_soru" },
   { id: "t4_023", s: "{a} ÷ {b} = {bolum} işleminin sağlaması nasıl yapılır?", c: "{b}*{bolum}={a}", v: {a:[20,80], b:[2,9], kosul:"{a}%{b}==0", bolum:"{a}/{b}"}, z:"orta", alt:"saglama" },
@@ -3102,6 +3102,15 @@ const SORU_BANKASI = {
   { id: "s16_my_014", s: "Bir veri grubunu tam olarak tanımlamak için hangi ölçülere ihtiyaç vardır?", c: "hem_merkezi_egilim_hem_yayilma_olculerine", v: {}, z:"orta", alt:"tam_tanimlama" },
 
 ],
+
+
+
+
+
+  // ============================================================
+  // DEVAM EDECEK: LEVEL 1, LEVEL 2, ... LEVEL 12, LEVEL 13
+  // Her bir Level ayrı bir mesajda gönderilecektir.
+  // ============================================================
 
 };
 
