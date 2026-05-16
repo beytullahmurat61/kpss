@@ -2657,7 +2657,7 @@ const SORU_BANKASI = {
   { id: "s14_sp_002", s: "{n} kişiden {r} kişilik ekipte belirli {k} kişi daima bulunacaksa kaç seçim?", c: "C({n}-{k},{r}-{k})", v: {n:[6,12], r:[3,6], k:[1,3], kosul:"r>=k"}, z:"cok_zor", alt:"k_kisi_daima" },
   { id: "s14_sp_003", s: "Belirli eleman daima varsa neden n-1 ve r-1 kullanılır?", c: "o_eleman_kesin_secildigi_icin_kalan_secim_yapilir", v: {}, z:"orta", alt:"daima_mantik" },
   { id: "s14_sp_004", s: "{n} kişiden {r} kişilik ekip seçilecek. A kişisi ekipte OLMAYACAKSA kaç seçim yapılır?", c: "C({n}-1,{r})", v: {n:[5,12], r:[1, "{n}-2"]}, z:"zor", alt:"hic_yok" },
-  { id: "s14_sp_005", s: "{n} kişiden {r} kişilik ekipte belirli {k} kişi hiç bulunmayacaksa kaç seçim?", c: "C({n}-{k},{r})", v: {n:[6,12], r:[1,{n}-{k}-1], k:[1,3]}, z:"cok_zor", alt:"k_kisi_hic_yok" },
+  { id: "s14_sp_005", s: "{n} kişiden {r} kişilik ekipte belirli {k} kişi hiç bulunmayacaksa kaç seçim?", c: "C({n}-{k},{r})", v: {n:[6,12], r:[1, "{n}-{k}-1"], k:[1,3]}, z:"cok_zor", alt:"k_kisi_hic_yok" },
   { id: "s14_sp_006", s: "Belirli eleman hiç yoksa neden n-1 ve r kullanılır?", c: "o_eleman_cikarilir_kalan_havuzdan_secim_yapilir", v: {}, z:"orta", alt:"hic_yok_mantik" },
   { id: "s14_sp_007", s: "{n} kişiden {r} kişilik ekipte A ve B'den EN AZ BİRİ bulunacaksa kaç seçim?", c: "C({n},{r})-C({n}-2,{r})", v: {n:[5,12], r:[1, "{n}-2"]}, z:"cok_zor", alt:"en_az_biri" },
   { id: "s14_sp_008", s: "{n} kişiden {r} kişilik ekipte A ve B'den SADECE BİRİ bulunacaksa kaç seçim?", c: "2×C({n}-2,{r}-1)", v: {n:[5,12], r:[2, "{n}-2"]}, z:"cok_zor", alt:"sadece_biri" },
@@ -2692,7 +2692,7 @@ const SORU_BANKASI = {
   { id: "s14_ea_016", s: "\"En az 1\" = Tüm durumlar - ?", c: "hic_olmama_durumu", v: {}, z:"orta", alt:"en_az_1_esit" },
 
   // --- GRUPLARA AYIRMA (s14_gd_) ---
-  { id: "s14_gd_001", s: "{n} kişi {a} ve {b} kişilik iki gruba kaç farklı şekilde ayrılır? (a+b=n)", c: "C({n},{a})", v: {n:[6,12], a:[2,{n}/2], b:"{n}-{a}"}, z:"orta", alt:"iki_gruba_ayirma" },
+  { id: "s14_gd_001", s: "{n} kişi {a} ve {b} kişilik iki gruba kaç farklı şekilde ayrılır? (a+b=n)", c: "C({n},{a})", v: {n:[6,12], a:[2, "{n}/2"], b:"{n}-{a}"}, z:"orta", alt:"iki_gruba_ayirma" },
   { id: "s14_gd_002", s: "{n} kişi eşit iki gruba kaç farklı şekilde ayrılır?", c: "C({n},{n}/2)/2", v: {n:[6,12,2]}, z:"cok_zor", alt:"esit_iki_grup" },
   { id: "s14_gd_003", s: "Eşit gruplarda neden 2!'e bölünür?", c: "gruplarin_yer_degistirmesi_ayni_durumu_verir", v: {}, z:"cok_zor", alt:"esit_bolme_nedeni" },
   { id: "s14_gd_004", s: "{n} kişi {a}, {b}, {c} kişilik üç gruba kaç farklı şekilde ayrılır?", c: "C({n},{a})×C({n}-{a},{b})", v: {n:[8,15], a:[2,4], b:[2,4], c:"{n}-{a}-{b}"}, z:"cok_zor", alt:"uc_gruba_ayirma" },
@@ -3113,4 +3113,3 @@ const SORU_BANKASI = {
   // ============================================================
 
 };
-
