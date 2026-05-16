@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f0f23">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>KPSS Matematik | Konu Çalış + Soru Bankası + Deneme</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,21 +19,9 @@
     
     <!-- HEADER -->
     <header id="mainHeader">
-        <button class="btn-icon" id="btnBack" onclick="goBack()" aria-label="Geri">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
+        <button class="btn-icon" id="btnBack" onclick="goBack()" aria-label="Geri">←</button>
         <span id="headerTitle">KPSS Matematik</span>
-        <div style="display: flex; gap: 4px;">
-            <button class="btn-icon" id="btnMenu" onclick="toggleMenu()" aria-label="Menü">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-        </div>
+        <button class="btn-icon" id="btnMenu" onclick="toggleMenu()" aria-label="Menü">☰</button>
     </header>
 
     <!-- YAN MENÜ -->
@@ -44,12 +30,7 @@
         <div class="overlay-panel">
             <div class="side-menu-header">
                 <span>📚 Menü</span>
-                <button class="btn-icon" onclick="toggleMenu()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+                <button class="btn-icon" onclick="toggleMenu()">✕</button>
             </div>
             <div class="side-menu-actions">
                 <button class="btn btn-ghost btn-full" onclick="goHome(); toggleMenu();">🏠 Ana Sayfa</button>
@@ -65,7 +46,7 @@
         </div>
     </div>
 
-    <!-- ANA İÇERİK -->
+    <!-- MAIN CONTENT -->
     <main id="mainContent">
         
         <!-- ANA SAYFA -->
@@ -74,26 +55,13 @@
                 <div class="hero-icon">🧮</div>
                 <h1>KPSS Matematik</h1>
                 <p class="hero-sub">20 Konu • 3 Seviye • Binlerce Soru</p>
-                <p class="hero-sub" style="font-size: 12px; margin-top: 4px;">Sırayla öğren, pekiştir, dene!</p>
             </div>
 
             <div class="stats-row" id="homeStatsRow">
-                <div class="stat-mini" onclick="goStats()">
-                    <span class="stat-mini-val" id="statTopics">0</span>
-                    <span class="stat-mini-lbl">Konu</span>
-                </div>
-                <div class="stat-mini" onclick="goStats()">
-                    <span class="stat-mini-val" id="statQuestions">0</span>
-                    <span class="stat-mini-lbl">Soru</span>
-                </div>
-                <div class="stat-mini" onclick="goStats()">
-                    <span class="stat-mini-val" id="statAccuracy">%0</span>
-                    <span class="stat-mini-lbl">Doğruluk</span>
-                </div>
-                <div class="stat-mini" onclick="goStats()">
-                    <span class="stat-mini-val" id="statStreak">0</span>
-                    <span class="stat-mini-lbl">Seri</span>
-                </div>
+                <div class="stat-mini" onclick="goStats()"><span class="stat-mini-val" id="statTopics">0</span><span class="stat-mini-lbl">Konu</span></div>
+                <div class="stat-mini" onclick="goStats()"><span class="stat-mini-val" id="statQuestions">0</span><span class="stat-mini-lbl">Soru</span></div>
+                <div class="stat-mini" onclick="goStats()"><span class="stat-mini-val" id="statAccuracy">%0</span><span class="stat-mini-lbl">Doğruluk</span></div>
+                <div class="stat-mini" onclick="goStats()"><span class="stat-mini-val" id="statStreak">0</span><span class="stat-mini-lbl">Seri</span></div>
             </div>
 
             <div class="btn-group-vertical">
@@ -106,60 +74,38 @@
 
         <!-- KONU LİSTESİ -->
         <div id="vTopics" class="view">
-            <div class="section-header">
-                <h2>📚 Konular</h2>
-                <span class="badge" id="topicsDoneLabel">0/20</span>
-            </div>
-            <div id="topicsList" class="topics-list">
-                <div class="loading">Yükleniyor...</div>
-            </div>
+            <div class="section-header"><h2>📚 Konular</h2><span class="badge" id="topicsDoneLabel">0/20</span></div>
+            <div id="topicsList" class="topics-list"><div class="loading">Yükleniyor...</div></div>
         </div>
 
-        <!-- KONU ÇALIŞ (Öğrenme) -->
+        <!-- KONU ÇALIŞ -->
         <div id="vLearn" class="view">
-            <div id="learnHeader" class="learn-header">
-                <h2 id="learnTitle">Konu</h2>
-                <span class="badge badge-acc" id="learnKademe">Başlangıç</span>
-            </div>
+            <div class="learn-header"><h2 id="learnTitle">Konu</h2><span class="badge badge-acc" id="learnKademe">Başlangıç</span></div>
             <div id="learnContent" class="learn-content"></div>
         </div>
 
         <!-- SORU BANKASI LİSTESİ -->
         <div id="vQuestionBank" class="view">
-            <div class="section-header">
-                <h2>📝 Soru Bankası</h2>
-                <span>Tamamladığın konular</span>
-            </div>
-            <div id="qbTopicsList" class="topics-list">
-                <div class="loading">Yükleniyor...</div>
-            </div>
+            <div class="section-header"><h2>📝 Soru Bankası</h2><span>Tamamladığın konular</span></div>
+            <div id="qbTopicsList" class="topics-list"><div class="loading">Yükleniyor...</div></div>
         </div>
 
         <!-- SORU BANKASI ÇÖZME -->
         <div id="vQBSolve" class="view">
-            <div id="qbSolveHeader" class="learn-header">
-                <h2 id="qbSolveTitle">Soru Bankası</h2>
-                <span class="badge badge-acc" id="qbSolveProgress">0/100</span>
-            </div>
+            <div class="learn-header"><h2 id="qbSolveTitle">Soru Bankası</h2><span class="badge badge-acc" id="qbSolveProgress">0/100</span></div>
             <div id="qbSolveContent" class="learn-content"></div>
         </div>
 
         <!-- DENEME LİSTESİ -->
         <div id="vExamList" class="view">
-            <div class="section-header">
-                <h2>📋 Deneme Sınavları</h2>
-                <span>20 veya 30 soru</span>
-            </div>
+            <div class="section-header"><h2>📋 Deneme Sınavları</h2><span>20 veya 30 soru</span></div>
             <div id="examListContent"></div>
         </div>
 
         <!-- DENEME SINAVI -->
         <div id="vExam" class="view">
-            <div id="examHeader" class="exam-header">
-                <div class="exam-info">
-                    <h2 id="examTitle">Deneme Sınavı</h2>
-                    <span class="badge badge-warn" id="examTimer">20:00</span>
-                </div>
+            <div class="exam-header">
+                <div class="exam-info"><h2>Deneme Sınavı</h2><span class="badge badge-warn" id="examTimer">20:00</span></div>
                 <button class="btn btn-ghost btn-sm" onclick="cancelExam()">Vazgeç</button>
             </div>
             <div id="examContent" class="learn-content"></div>
@@ -167,12 +113,8 @@
 
         <!-- İSTATİSTİKLER -->
         <div id="vStats" class="view">
-            <div class="section-header">
-                <h2>📊 İstatistikler</h2>
-            </div>
-            <div id="statsContent">
-                <div class="loading">Yükleniyor...</div>
-            </div>
+            <div class="section-header"><h2>📊 İstatistikler</h2></div>
+            <div id="statsContent"><div class="loading">Yükleniyor...</div></div>
         </div>
 
     </main>
@@ -180,36 +122,29 @@
 
 <!-- ==================== MODALLAR ==================== -->
 
-<!-- API Anahtarı Modal -->
+<!-- API Modal -->
 <div id="apiModal" class="modal hidden">
     <div class="modal-bg" onclick="closeModal('api')"></div>
     <div class="modal-card">
         <h3>🔑 Grok API Anahtarı</h3>
-        <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">
-            🤖 Grok ile çözüm açıklaması almak için gereklidir.<br>
-            <a href="https://console.x.ai" target="_blank" style="color: #6c63ff;">x.ai/keys</a> adresinden alabilirsiniz.
-        </p>
+        <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">🤖 x.ai/keys adresinden alabilirsiniz.</p>
         <input id="apiInp" class="input" type="password" placeholder="xai-...">
-        <div class="btn-row">
-            <button class="btn btn-ghost btn-full" onclick="closeModal('api')">Vazgeç</button>
-            <button class="btn btn-primary btn-full" onclick="saveKey()">Kaydet</button>
-        </div>
+        <div class="btn-row"><button class="btn btn-ghost btn-full" onclick="closeModal('api')">Vazgeç</button><button class="btn btn-primary btn-full" onclick="saveKey()">Kaydet</button></div>
     </div>
 </div>
 
-<!-- Sıfırlama Modal -->
+<!-- Reset Modal -->
 <div id="resetModal" class="modal hidden">
     <div class="modal-bg" onclick="closeModal('reset')"></div>
     <div class="modal-card">
         <h3>🔄 Sıfırla</h3>
-        <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">Neyi sıfırlamak istersiniz?</p>
         <button class="btn btn-ghost btn-full" onclick="doReset('topic')">📘 Sadece Bu Konuyu Sıfırla</button>
         <button class="btn btn-danger btn-full" onclick="doReset('all')">🗑️ Tüm İlerlemeyi Sıfırla</button>
         <button class="btn btn-ghost btn-full" onclick="closeModal('reset')">Vazgeç</button>
     </div>
 </div>
 
-<!-- Deneme Seçenek Modalı -->
+<!-- Deneme Seçenek Modal -->
 <div id="examOptionsModal" class="modal hidden">
     <div class="modal-bg" onclick="closeExamOptions()"></div>
     <div class="modal-card" style="text-align: center;">
@@ -223,10 +158,10 @@
     </div>
 </div>
 
-<!-- Konu Tamamlama Popup'ı -->
+<!-- Konu Tamamlama Popup -->
 <div id="completionPopup" class="modal hidden">
     <div class="modal-bg" onclick="closeCompletionPopup()"></div>
-    <div class="modal-card" style="text-align: center; max-width: 350px;">
+    <div class="modal-card" style="text-align: center;">
         <div style="font-size: 48px;">🏆</div>
         <h3 id="completionTopicTitle">Tebrikler!</h3>
         <p id="completionMessage" style="margin: 12px 0;">Konuyu başarıyla tamamladın!</p>
@@ -238,27 +173,19 @@
     </div>
 </div>
 
-<!-- Kutlama Animasyonu -->
-<div id="celWrap" class="celebrate hidden">
-    <div class="cel-box">
-        <span class="cel-icon">🎉</span>
-        <span id="celTxt">Tebrikler!</span>
-    </div>
-</div>
-
 <!-- ==================== SCRIPTLER ==================== -->
 <script src="config.js"></script>
 <script src="questions.js"></script>
 <script src="app.js"></script>
 
 <script>
-    // Müsvedde için yardımcı (popup modal değil, artık soru ekranında entegre)
-    function openNotepadModal() {
-        alert('📝 Müsvedde artık her soru ekranının altında! Ara işlemlerini oraya yazabilirsin.');
-    }
-    function closeNotepadModal() {}
-    function clearNotepad() {}
-    function copyNotepad() {}
+    window.addEventListener('DOMContentLoaded', function() {
+        if (typeof SORU_BANKASI !== 'undefined' && typeof startApp === 'function') {
+            startApp();
+        } else {
+            console.error('Dosyalar yüklenemedi!');
+        }
+    });
 </script>
 
 </body>
