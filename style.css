@@ -1,6 +1,6 @@
 /* ============================================
    KPSS MATEMATİK - ANA STİL DOSYASI
-   Versiyon: 8.0 (Groq API + Konu Özetleri)
+   Versiyon: 8.1 (Çizim Destekli Müsvedde)
    20 Konu • 3 Seviye • Mobil Uyumlu
    ============================================ */
 
@@ -448,7 +448,7 @@ body {
 .ans-inp::placeholder { color: var(--text-muted); }
 .ans-hint { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
 
-/* ==================== MÜSVEDDE ==================== */
+/* ==================== MÜSVEDDE (ÇİZİM ALANI) ==================== */
 .scratchpad-area {
     margin-top: 16px;
     background: var(--bg-card);
@@ -461,24 +461,18 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-muted);
 }
-.scratchpad-input {
+.drawing-pad {
+    display: block;
     width: 100%;
-    padding: 10px 12px;
-    background: var(--bg-input);
+    touch-action: none;      /* Dokunmatikte kaydırmayı engeller */
+    cursor: crosshair;
+    background: #fefefe;
+    border-radius: 8px;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-primary);
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    resize: vertical;
-}
-.scratchpad-input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-glow);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* ==================== FEEDBACK ==================== */
