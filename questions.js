@@ -83,37 +83,37 @@ const SORU_BANKASI = {
         ]
     },
 
-    // ========== 3. KONU: ÇARPMA ==========
-    3: {
-        0: [
-            { id: "3_0_001", s: "Tanesi {a} TL olan kalemlerden {b} tane alan kaç TL öder?", c: "{a}*{b}", v: { a: [3, 15], b: [2, 10] }, z: "kolay", alt: "problem_para", konu: 3, level: 0 },
-            { id: "3_0_002", s: "Her gün {a} sayfa kitap okuyan biri {b} günde kaç sayfa okur?", c: "{a}*{b}", v: { a: [10, 40], b: [3, 10] }, z: "kolay", alt: "problem_gunluk", konu: 3, level: 0 },
-            { id: "3_0_003", s: "Bir kutuda {a} yumurta varsa {b} kutuda kaç yumurta olur?", c: "{a}*{b}", v: { a: [6, 30], b: [2, 8] }, z: "kolay", alt: "problem_carpma", konu: 3, level: 0 },
-            { id: "3_0_004", s: "Bir sınıfta {a} sıra ve her sırada {b} öğrenci varsa toplam öğrenci sayısı kaçtır?", c: "{a}*{b}", v: { a: [4, 10], b: [2, 5] }, z: "kolay", alt: "problem_gunluk", konu: 3, level: 0 },
-            { id: "3_0_005", s: "{a} sayısının {k} katı kaçtır?", c: "{a}*{k}", v: { a: [3, 15], k: [2, 5] }, z: "kolay", alt: "kat_alma", konu: 3, level: 0 },
-            { id: "3_0_006", s: "Hangi sayının {k} katı {s} eder?", c: "{s}/{k}", v: { k: [2, 6], s: [4, 120] }, z: "kolay", alt: "verilmeyen_bulma", konu: 3, level: 0 }
-        ],
-        1: [
-            { id: "3_1_001", s: "{a} × 5 = ? (İpucu: 10 ile çarpıp 2'ye böl)", c: "{a}*5", v: { a: [2, 30] }, z: "orta", alt: "zihinden_5", konu: 3, level: 1 },
-            { id: "3_1_002", s: "{a} × 9 = ? (İpucu: 10 ile çarpıp kendini çıkar)", c: "{a}*9", v: { a: [3, 25] }, z: "orta", alt: "zihinden_9", konu: 3, level: 1 },
-            { id: "3_1_003", s: "{a} × 11 = ? (İpucu: 10 ile çarpıp kendini ekle)", c: "{a}*11", v: { a: [3, 25] }, z: "orta", alt: "zihinden_11", konu: 3, level: 1 },
-            { id: "3_1_004", s: "{a} × 25 = ? (İpucu: 100 ile çarpıp 4'e böl)", c: "{a}*25", v: { a: [4, 40] }, z: "orta", alt: "zihinden_25", konu: 3, level: 1 },
-            { id: "3_1_005", s: "{a} sayısının {k} katının {f} fazlası kaçtır?", c: "{a}*{k}+{f}", v: { a: [3, 15], k: [2, 5], f: [2, 20] }, z: "orta", alt: "kat_alma", konu: 3, level: 1 },
-            { id: "3_1_006", s: "Bir sayının {k} katı {s} ise bu sayının {k2} katı kaçtır?", c: "({s}/{k})*{k2}", v: { k: [2, 5], s: [6, 150], k2: [2, 6] }, z: "orta", alt: "oranti", konu: 3, level: 1 },
-            { id: "3_1_007", s: "{a} TL'ye alınan {b} ürünün tanesi kaç TL'dir?", c: "{a}/{b}", v: { b: [2, 8], a: [10, 800] }, z: "orta", alt: "problem_bolme", konu: 3, level: 1 },
-            { id: "3_1_008", s: "Bir çiftlikte {a} koyun ve {b} tavuk var. Toplam ayak sayısı kaçtır?", c: "{a}*4+{b}*2", v: { a: [3, 15], b: [5, 25] }, z: "orta", alt: "yeni_nesil", konu: 3, level: 1 }
-        ],
-        2: [
-            { id: "3_2_001", s: "{a} × 99 = ? (İpucu: 100 ile çarpıp kendini çıkar)", c: "{a}*99", v: { a: [5, 50] }, z: "zor", alt: "zihinden_99", konu: 3, level: 2 },
-            { id: "3_2_002", s: "Bir sayının {k1} katı ile {k2} katının toplamı {s} ise bu sayı kaçtır?", c: "{s}/({k1}+{k2})", v: { k1: [2, 4], k2: [3, 5], s: [5, 60] }, z: "zor", alt: "verilmeyen_bulma", konu: 3, level: 2 },
-            { id: "3_2_003", s: "Tanesi {a} TL olan {b} ürün ve tanesi {c} TL olan {d} ürün alan toplam kaç TL öder?", c: "{a}*{b}+{c}*{d}", v: { a: [5, 30], b: [1, 5], c: [10, 60], d: [1, 5] }, z: "zor", alt: "problem_para", konu: 3, level: 2 },
-            { id: "3_2_004", s: "Bir sayıyı {a} ile çarpıp {b} ekleyince {c} oluyor. Bu sayı kaçtır?", c: "({c}-{b})/{a}", v: { a: [2, 6], b: [3, 15], c: [11, 165] }, z: "zor", alt: "denklem_kurma", konu: 3, level: 2 },
-            { id: "3_2_005", s: "{a} × {b} hesabını kullanarak {a} × ({b}+2) kaçtır?", c: "{a}*{b}+2*{a}", v: { a: [3, 12], b: [2, 9] }, z: "zor", alt: "mantik", konu: 3, level: 2 },
-            { id: "3_2_006", s: "Bir işçi bir işi {a} günde bitiriyor. Günde {b} saat çalışırsa iş kaç saatte biter?", c: "{a}*{b}", v: { a: [5, 20], b: [6, 10] }, z: "zor", alt: "isci_problemi", konu: 3, level: 2 },
-            { id: "3_2_007", s: "Bir terzi {a} metre kumaştan {b} gömlek dikiyor. {c} gömlek için kaç metre kumaş gerekir?", c: "({a}/{b})*{c}", v: { b: [2, 6], a: [4, 60], c: [1, 8] }, z: "zor", alt: "yeni_nesil", konu: 3, level: 2 },
-            { id: "3_2_008", s: "Bir otobüs {v} km/sa hızla {t} saat gidiyor. Aynı yolu {t2} saatte gitmek için hızı kaç km/sa olmalıdır?", c: "({v}*{t})/{t2}", v: { v: [60, 100], t: [2, 5], t2: [3, 8] }, z: "zor", alt: "problem_hareket", konu: 3, level: 2 }
-        ]
-    },
+    // 3. KONU: ÇARPMA
+3: {
+    // LEVEL 0: BAŞLANGIÇ
+    0: [
+        { id: "3_0_001", s: "Tanesi {a} TL olan kalemlerden {b} tane alan kaç TL öder?", c: "{a}*{b}", v: { a:[3,15], b:[2,10] }, z: "kolay", alt: "problem_para" },
+        { id: "3_0_002", s: "Her gün {a} sayfa kitap okuyan biri {b} günde kaç sayfa okur?", c: "{a}*{b}", v: { a:[10,40], b:[3,10] }, z: "kolay", alt: "problem_gunluk" },
+        { id: "3_0_003", s: "Bir kutuda {a} yumurta varsa {b} kutuda kaç yumurta olur?", c: "{a}*{b}", v: { a:[6,30], b:[2,8] }, z: "kolay", alt: "problem_carpma" },
+        { id: "3_0_004", s: "Bir sınıfta {a} sıra ve her sırada {b} öğrenci varsa toplam öğrenci sayısı kaçtır?", c: "{a}*{b}", v: { a:[4,10], b:[2,5] }, z: "kolay", alt: "problem_gunluk" },
+        { id: "3_0_005", s: "{a} sayısının {k} katı kaçtır?", c: "{a}*{k}", v: { a:[3,15], k:[2,5] }, z: "kolay", alt: "kat_alma" },
+        { id: "3_0_006", s: "Hangi sayının {k} katı {s} eder?", c: "{s}/{k}", v: { k:[2,6], s:["{k}*2","{k}*20"] }, z: "kolay", alt: "verilmeyen_bulma" }
+    ],
+
+    // LEVEL 1: ORTA
+    1: [
+        { id: "3_1_001", s: "{a} × 5 = ? (İpucu: 10 ile çarpıp 2'ye böl)", c: "{a}*5", v: { a:[2,30] }, z: "orta", alt: "zihinden_5" },
+        { id: "3_1_002", s: "{a} × 9 = ? (İpucu: 10 ile çarpıp kendini çıkar)", c: "{a}*9", v: { a:[3,25] }, z: "orta", alt: "zihinden_9" },
+        { id: "3_1_003", s: "{a} × 11 = ? (İpucu: 10 ile çarpıp kendini ekle)", c: "{a}*11", v: { a:[3,25] }, z: "orta", alt: "zihinden_11" },
+        { id: "3_1_004", s: "{a} × 25 = ? (İpucu: 100 ile çarpıp 4'e böl)", c: "{a}*25", v: { a:[4,40] }, z: "orta", alt: "zihinden_25" },
+        { id: "3_1_005", s: "{a} sayısının {k} katının {f} fazlası kaçtır?", c: "{a}*{k}+{f}", v: { a:[3,15], k:[2,5], f:[2,20] }, z: "orta", alt: "kat_alma" },
+        { id: "3_1_006", s: "Bir sayının {k} katı {s} ise bu sayının {k2} katı kaçtır?", c: "({s}/{k})*{k2}", v: { k:[2,5], s:["{k}*3","{k}*30"], k2:[2,6] }, z: "orta", alt: "oranti" }
+    ],
+
+    // LEVEL 2: İLERİ
+    2: [
+        { id: "3_2_001", s: "{a} × 99 = ?", c: "{a}*99", v: { a:[5,50] }, z: "zor", alt: "zihinden_99" },
+        { id: "3_2_002", s: "Bir sayının {k1} katı ile {k2} katının toplamı {s} ise bu sayı kaçtır?", c: "{s}/({k1}+{k2})", v: { k1:[2,4], k2:[3,5], s:["{k1}+{k2}*3"] }, z: "zor", alt: "verilmeyen_bulma" },
+        { id: "3_2_003", s: "Tanesi {a} TL olan {b} ürün ve tanesi {c} TL olan {d} ürün alan toplam kaç TL öder?", c: "{a}*{b}+{c}*{d}", v: { a:[5,30], b:[1,5], c:[10,60], d:[1,5] }, z: "zor", alt: "problem_para" },
+        { id: "3_2_004", s: "Bir sayıyı {a} ile çarpıp {b} ekleyince {c} oluyor. Bu sayı kaçtır?", c: "({c}-{b})/{a}", v: { a:[2,6], b:[3,15], c:["{a}*4+{b}","{a}*25+{b}"] }, z: "zor", alt: "denklem_kurma" },
+        { id: "3_2_005", s: "{a} × {b} = {c} ise {a} × ({b}+2) kaçtır?", c: "{c}+2*{a}", v: { a:[3,12], b:[2,9], c:"{a}*{b}" }, z: "zor", alt: "mantik" }
+    ]
+},
 
     // ========== 4. KONU: BÖLME ==========
     4: {
