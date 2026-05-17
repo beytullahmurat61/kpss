@@ -1,6 +1,6 @@
 // ============================================
 // KPSS MATEMATİK ANA UYGULAMA
-// 20 Konu | 3 Level | Grafiksel Soru Motoru | Grok API
+// 20 Konu | 3 Level | Grafiksel Soru Motoru | Groq API
 // ============================================
 
 console.log('🚀 KPSS Matematik Uygulaması başlıyor...');
@@ -34,9 +34,9 @@ let ST = {
     lastQuestions: {}
 };
 
-// ========== GROK API ==========
-const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
-const GROK_MODEL = 'grok-beta';
+// ========== GROQ API (gsk_ ile başlayan anahtarlar için) ==========
+const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROK_MODEL = 'llama-3.3-70b-versatile';  // veya 'mixtral-8x7b-32768' da kullanılabilir
 
 // ========== YARDIMCI FONKSİYONLAR ==========
 
@@ -941,15 +941,14 @@ function renderStats() {
     `;
 }
 
-// ========== GROK API (DÜZELTİLMİŞ) ==========
+// ========== GROQ API (GROK YERİNE) ==========
 async function askGrokForSolution(question, correctAnswer, userAnswer) {
     if (!ST.grokApiKey) {
-        return '⚠️ Grok API anahtarı girilmedi. Ayarlar\'dan ekleyin.\n\n🔑 x.ai adresinden ücretsiz API anahtarı alabilirsiniz.';
+        return '⚠️ Groq API anahtarı girilmedi. Ayarlar\'dan ekleyin.\n\n🔗 console.groq.com adresinden ücretsiz API anahtarı (gsk_...) alabilirsiniz.';
     }
     
-    if (!ST.grokApiKey.startsWith('xai-')) {
-        return '⚠️ Geçersiz API anahtarı formatı. Anahtar "xai-" ile başlamalıdır.\n\nLütfen Ayarlar\'dan doğru anahtarı girin.';
-    }
+    // Groq anahtarları 'gsk_' ile başlar, herhangi bir ön ek şartı yoktur.
+    // Sadece varlığını kontrol ediyoruz.
     
     const prompt = `Sen bir KPSS matematik öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.
 
@@ -989,10 +988,10 @@ Lütfen:
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Grok API Hatası:', response.status, errorText);
+            console.error('Groq API Hatası:', response.status, errorText);
             
             if (response.status === 401) {
-                return '❌ API anahtarı geçersiz! Lütfen Ayarlar\'dan doğru anahtarı girin.\n\n🔑 x.ai adresinden yeni anahtar alabilirsiniz.';
+                return '❌ API anahtarı geçersiz! Lütfen Ayarlar\'dan doğru anahtarı girin.\n\n🔑 console.groq.com adresinden yeni anahtar alabilirsiniz.';
             } else if (response.status === 429) {
                 return '⚠️ API kullanım limiti aşıldı. Lütfen biraz bekleyip tekrar deneyin.';
             } else if (response.status === 400) {
@@ -1006,7 +1005,7 @@ Lütfen:
         return data.choices?.[0]?.message?.content || 'Açıklama alınamadı. Lütfen tekrar deneyin.';
         
     } catch(e) {
-        console.error('Grok API bağlantı hatası:', e);
+        console.error('Groq API bağlantı hatası:', e);
         
         if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
             return '❌ İnternet bağlantınızı kontrol edin. API sunucusuna bağlanılamıyor.';
@@ -1019,13 +1018,13 @@ Lütfen:
 function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
     const btn = document.createElement('button');
     btn.className = 'btn btn-grok';
-    btn.innerHTML = '🤖 Grok ile Çözümü Gör';
+    btn.innerHTML = '🤖 Groq ile Çözümü Gör';
     btn.style.marginTop = '12px';
     btn.style.width = '100%';
     
     btn.onclick = async () => {
         btn.disabled = true;
-        btn.innerHTML = '🤖 Grok düşünüyor...';
+        btn.innerHTML = '🤖 Groq düşünüyor...';
         btn.style.opacity = '0.7';
         
         const explanation = await askGrokForSolution(question, correctAnswer, userAnswer);
@@ -1034,7 +1033,7 @@ function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
         box.className = 'grok-explanation';
         box.style.marginTop = '12px';
         box.innerHTML = `
-            <div class="grok-header">🤖 <strong>Grok Açıklıyor</strong></div>
+            <div class="grok-header">🤖 <strong>Groq Açıklıyor</strong></div>
             <div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>
         `;
         
@@ -1055,22 +1054,22 @@ function copyScratchpad() { navigator.clipboard.writeText(ST.scratchpad); alert(
 // ========== MODALLAR ==========
 function openModal(id) { document.getElementById(id + 'Modal')?.classList.remove('hidden'); if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; }
 function closeModal(id) { document.getElementById(id + 'Modal')?.classList.add('hidden'); }
-function saveKey() { const k = document.getElementById('apiInp')?.value?.trim(); if (k) { ST.grokApiKey = k; localStorage.setItem('kpss_grok_api_key', k); closeModal('api'); alert('✅ Grok API anahtarı kaydedildi!'); } }
+function saveKey() { const k = document.getElementById('apiInp')?.value?.trim(); if (k) { ST.grokApiKey = k; localStorage.setItem('kpss_grok_api_key', k); closeModal('api'); alert('✅ Groq API anahtarı kaydedildi!'); } }
 function doReset(type) {
     if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) { localStorage.clear(); location.reload(); }
     else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { ST.topicProgress[ST.currentTopic] = null; ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); saveState(); renderTopicsList(); alert(`✅ Konu sıfırlandı!`); }
 }
 
-// ========== BAŞLANGIÇ (DÜZENLENDİ - ANA SAYFAYA YÖNLENDİRME) ==========
+// ========== BAŞLANGIÇ (ANA SAYFAYA YÖNLENDİRME) ==========
 function startApp() {
     loadState();
     loadQuestions();
-    // Her zaman ana sayfadan başla, kaydedilen view'u ignore et
+    // Her zaman ana sayfadan başla
     ST.currentView = 'vHome';
     // URL hash'ini temizle
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Uygulama hazır! (Ana sayfadan başlatıldı)');
+    console.log('✅ Uygulama hazır! (Ana sayfadan başlatıldı, Groq API entegre)');
 }
 
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
