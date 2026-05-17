@@ -1,6 +1,6 @@
 /* ============================================
    KPSS MATEMATİK - ANA STİL DOSYASI
-   Versiyon: 7.0
+   Versiyon: 8.0 (Groq API + Konu Özetleri)
    20 Konu • 3 Seviye • Mobil Uyumlu
    ============================================ */
 
@@ -217,7 +217,7 @@ body {
 
 /* ==================== BUTONLAR ==================== */
 .btn-group-vertical { display: flex; flex-direction: column; gap: 10px; }
-.btn-row { display: flex; gap: 10px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn {
     display: inline-flex;
     align-items: center;
@@ -263,7 +263,7 @@ body {
 }
 .btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); }
 .btn-danger { background: var(--danger); color: #fff; }
-.btn-grok {
+.btn-groq {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #e2e8f0;
     border: 1px solid #4a5568;
@@ -374,6 +374,35 @@ body {
 }
 .accent-top { border-top: 3px solid var(--accent); }
 .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+
+/* ==================== KONU ÖZETİ KARTI ==================== */
+.summary-card {
+    background: linear-gradient(135deg, var(--bg-card), #1f1f47);
+    border-left: 4px solid var(--accent);
+    padding: 18px;
+}
+.summary-card h3 { color: var(--accent-light); margin-bottom: 8px; }
+.summary-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.7; }
+.formulas { margin-top: 12px; }
+.formulas h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-light);
+    margin-bottom: 8px;
+}
+.formulas ul {
+    list-style: none;
+    padding: 0;
+}
+.formulas li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
 
 /* ==================== SORU ==================== */
 .q-header {
@@ -545,7 +574,24 @@ body {
 .stat-num { font-size: 22px; font-weight: 700; }
 .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-/* ==================== GROK ==================== */
+/* ==================== YANLIŞ LİSTESİ ==================== */
+.wrong-item {
+    background: var(--danger-bg);
+    border: 1px solid rgba(255, 101, 132, 0.2);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+}
+.wrong-question {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+.wrong-item strong { color: var(--success); }
+.wrong-item em { color: var(--danger); font-style: normal; }
+
+/* ==================== GROQ / GROK AÇIKLAMA ==================== */
 .grok-explanation {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border: 1px solid #4a5568;
