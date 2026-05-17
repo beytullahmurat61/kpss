@@ -258,7 +258,7 @@ function renderTableQuestion(qData) {
         <div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div>
         <div class="q-visual" style="overflow-x:auto">
             <table class="q-table">
-                <thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead>
+                <thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</thead>
                 <tbody>
                     ${[...Array(a).keys()].map(ri => {
                         const row = ri+1;
@@ -1061,14 +1061,16 @@ function doReset(type) {
     else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { ST.topicProgress[ST.currentTopic] = null; ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); saveState(); renderTopicsList(); alert(`✅ Konu sıfırlandı!`); }
 }
 
-// ========== BAŞLANGIÇ ==========
+// ========== BAŞLANGIÇ (DÜZENLENDİ - ANA SAYFAYA YÖNLENDİRME) ==========
 function startApp() {
     loadState();
     loadQuestions();
-    const targetView = ST.currentView || 'vHome';
-    history.replaceState({ view: targetView }, '', '#/' + targetView);
-    showView(targetView, false);
-    console.log('✅ Uygulama hazır!');
+    // Her zaman ana sayfadan başla, kaydedilen view'u ignore et
+    ST.currentView = 'vHome';
+    // URL hash'ini temizle
+    history.replaceState({ view: 'vHome' }, '', '#/vHome');
+    showView('vHome', false);
+    console.log('✅ Uygulama hazır! (Ana sayfadan başlatıldı)');
 }
 
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
