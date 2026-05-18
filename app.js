@@ -2,6 +2,7 @@
 // KPSS MATEMATİK ANA UYGULAMA
 // 20 Konu | 3 Level | Grafiksel Soru Motoru | Groq API
 // Düzenlenmiş: generateVariables bileşik kısıtları destekler
+// + Feedback alanı müsveddenin üstünde
 // ============================================
 
 console.log('🚀 KPSS Matematik Uygulaması başlıyor...');
@@ -71,7 +72,6 @@ function generateVariables(varRanges) {
             let val = Math.floor(Math.random() * (max - min + 1)) + min;
             
             if (constraint) {
-                // Kısıtları alt çizgiye göre ayır (örn: 'cift_3kati' → ['cift','3kati'])
                 const constraints = String(constraint).split('_');
                 for (let c of constraints) {
                     if (c === 'tek') {
@@ -105,25 +105,24 @@ function fallbackQuestion() { return { id: 'fallback', soru: '1 + 1 = ?', cevap:
 
 // ========== RENDER SORU ==========
 function renderQuestionHTML(qData) { const text = qData.soru || ''; const alt = qData.alt || ''; if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') return renderTableQuestion(qData); if (alt === 'sutun_grafik') return renderBarChart(qData); if (alt === 'daire_grafik') return renderPieChart(qData); if (alt === 'cizgi_grafik') return renderLineChart(qData); if (alt === 'sayi_dogrusu') return renderNumberLine(qData); return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; }
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
+function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</table>`; }).join('')}</tbody></table></div>`; }
 function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
 function renderPieChart(qData) { const vars = qData.vars || {}; const p = Math.min(vars.p || 30, 100); const angle = p * 3.6; const rad = angle * Math.PI / 180; const cx = 60, cy = 60, r = 50; const x1 = cx + r * Math.cos(-Math.PI/2); const y1 = cy + r * Math.sin(-Math.PI/2); const x2 = cx + r * Math.cos(-Math.PI/2 + rad); const y2 = cy + r * Math.sin(-Math.PI/2 + rad); const large = angle > 180 ? 1 : 0; return `<div class="q-text">Daire grafiğinde %${p}'lik dilimin değeri kaçtır?</div><div class="q-visual"><svg viewBox="0 0 120 120" width="120" height="120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/><path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="var(--accent)" opacity="0.85"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="11">%${p}</text></svg></div>`; }
 function renderLineChart(qData) { const vars = qData.vars || {}; const a = vars.a || 20, b = vars.b || 45, c = vars.c || 35, d = vars.d || 60; const maxVal = Math.max(a, b, c, d, 10); const W = 280, H = 120; const xPoints = [40, 100, 160, 220]; const yPoints = [H-25-(a/maxVal)*80, H-25-(b/maxVal)*80, H-25-(c/maxVal)*80, H-25-(d/maxVal)*80]; const linePoints = yPoints.map((y,i) => `${xPoints[i]},${y}`).join(' '); return `<div class="q-text">Çizgi grafiğine göre en yüksek değer kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:300px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W-10}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><polyline points="${linePoints}" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="${xPoints[0]}" cy="${yPoints[0]}" r="4" fill="var(--accent)"/><text x="${xPoints[0]}" y="${yPoints[0]-5}" text-anchor="middle" font-size="9">${a}</text><circle cx="${xPoints[1]}" cy="${yPoints[1]}" r="4" fill="var(--accent)"/><text x="${xPoints[1]}" y="${yPoints[1]-5}" text-anchor="middle" font-size="9">${b}</text><circle cx="${xPoints[2]}" cy="${yPoints[2]}" r="4" fill="var(--accent)"/><text x="${xPoints[2]}" y="${yPoints[2]-5}" text-anchor="middle" font-size="9">${c}</text><circle cx="${xPoints[3]}" cy="${yPoints[3]}" r="4" fill="var(--accent)"/><text x="${xPoints[3]}" y="${yPoints[3]-5}" text-anchor="middle" font-size="9">${d}</text><text x="40" y="${H-8}" text-anchor="middle" font-size="9">Ocak</text><text x="100" y="${H-8}" text-anchor="middle" font-size="9">Şubat</text><text x="160" y="${H-8}" text-anchor="middle" font-size="9">Mart</text><text x="220" y="${H-8}" text-anchor="middle" font-size="9">Nisan</text></svg></div>`; }
 function renderNumberLine(qData) { const vars = qData.vars || {}; const start = vars.start || 0, end = vars.end || 10, point = vars.point || 5; const W = 280, H = 50; const step = (end - start) / 10; const marks = []; for (let i = start; i <= end; i += step) marks.push(i); return `<div class="q-text">Sayı doğrusunda ${point} noktası işaretlenmiştir.</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="10" y1="25" x2="${W-10}" y2="25" stroke="var(--text-muted)" stroke-width="2"/>${marks.map(m => { const x = 10 + (m-start)/(end-start)*(W-20); return `<line x1="${x}" y1="20" x2="${x}" y2="30" stroke="var(--text-muted)" stroke-width="1.5"/><text x="${x}" y="44" text-anchor="middle" font-size="9" fill="var(--text-muted)">${Math.round(m)}</text>`; }).join('')}<circle cx="${10 + (point-start)/(end-start)*(W-20)}" cy="25" r="5" fill="var(--accent)"/><text x="${10 + (point-start)/(end-start)*(W-20)}" y="15" text-anchor="middle" font-size="10" fill="var(--accent)">${point}</text></svg></div>`; }
 
 // ========== ÇİZİM PAD YARDIMCILARI (Silgi + Geri Al) ==========
-let drawingStates = {}; // her canvas için { ctx, history, historyIndex, drawing, lastX, lastY, color, isErasing }
+let drawingStates = {};
 
 function setupDrawingPad(canvasId, loadImageData = null) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return null;
     const ctx = canvas.getContext('2d');
     
-    // State
     if (!drawingStates[canvasId]) {
         drawingStates[canvasId] = {
             ctx: ctx,
-            history: [],      // imageData geçmişi
+            history: [],
             historyIndex: -1,
             drawing: false,
             lastX: 0, lastY: 0,
@@ -328,8 +327,6 @@ function toggleDrawingPadSize(canvasId) {
         canvas.style.height = '150px';
     }
     const rect = canvas.getBoundingClientRect();
-    const oldWidth = canvas.width;
-    const oldHeight = canvas.height;
     canvas.width = rect.width;
     canvas.height = rect.height;
     const ctx = canvas.getContext('2d');
@@ -429,6 +426,7 @@ function openTopic(topicId) { ST.currentTopic = topicId; ST.currentLevel = 0; ST
 function renderPreStudySummary() { const topic = getTopicById(ST.currentTopic); if (!topic) return; document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`; document.getElementById('learnKademe').textContent = LEVELS[ST.currentLevel].name; const prog = getTopicProgress(ST.currentTopic); const levelProg = prog[`level${ST.currentLevel}`] || { correct: 0, total: 0 }; const level = LEVELS[ST.currentLevel]; document.getElementById('learnContent').innerHTML = `<div class="card accent-top"><h3>📖 ${topic.n}</h3><p style="color:var(--text-muted)">${level.name} seviyesinde ${level.questionCount} soru çözeceksin. ${level.minCorrect} doğru yaparak seviyeyi geçebilirsin.</p></div><div class="card"><div class="prog-bar-wrap"><div class="prog-bar-label"><span>İlerleme</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(levelProg.total/level.questionCount)*100}%"></div></div></div><p style="font-size:12px;color:var(--text-muted);margin-top:8px">🎯 Geçmek için ${level.minCorrect} doğru</p></div><button class="btn btn-primary btn-full" onclick="beginStudy()">✍️ Çalışmaya Başla</button>`; }
 function beginStudy() { ST.phase = 'question'; ST.currentQuestion = null; renderNextQuestion(); }
 
+// ========== DÜZENLENMİŞ RENDER NEXT QUESTION (feedback alanı eklendi) ==========
 function renderNextQuestion() {
     const topic = getTopicById(ST.currentTopic);
     const level = ST.currentLevel;
@@ -453,6 +451,8 @@ function renderNextQuestion() {
             <button class="btn btn-primary" onclick="checkAnswer()">✓</button></div>
             <div class="ans-hint">Sayı veya kesir (ör: 3/4) olarak yaz</div>
         </div>
+        <!-- FEEDBACK ALANI (müsveddenin üstünde) -->
+        <div id="feedbackArea"></div>
         <div class="scratchpad-area">
             <div class="scratchpad-header">
                 <span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span>
@@ -474,7 +474,72 @@ function renderNextQuestion() {
     }, 50);
 }
 
-function checkAnswer() { const inp = document.getElementById('ansInp'); if (!inp?.value.trim()) { inp.style.borderColor = 'var(--danger)'; setTimeout(() => { if(inp) inp.style.borderColor = ''; }, 1000); return; } inp.disabled = true; if (!ST.currentQuestion) return; const userAnswer = inp.value.trim(); const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); const level = ST.currentQuestion.level; const prog = getTopicProgress(ST.currentTopic); if (!prog[`level${level}`]) prog[`level${level}`] = { correct: 0, total: 0 }; prog[`level${level}`].total++; if (isCorrect) prog[`level${level}`].correct++; ST.totalSolved++; if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; } else { ST.streak = 0; } const levelConfig = LEVELS[level]; const levelProg = prog[`level${level}`]; let nextLevel = null; let topicCompleted = false; if (levelProg.total >= levelConfig.questionCount) { if (levelProg.correct >= levelConfig.minCorrect) { if (level < 2) { nextLevel = level + 1; ST.currentLevel = nextLevel; } else { topicCompleted = true; if (!ST.completedTopics.includes(ST.currentTopic)) { ST.completedTopics.push(ST.currentTopic); } } } else { prog[`level${level}`] = { correct: 0, total: 0 }; } } saveState(); let nextMsg = ''; if (nextLevel !== null) { nextMsg = `<div class="level-complete-msg">🎉 ${levelConfig.name} Seviyesi Geçildi!<br>→ ${LEVELS[nextLevel].name} seviyesine başlıyorsun.</div>`; } else if (topicCompleted) { nextMsg = `<div class="topic-complete-msg">🏆 KONU TAMAMLANDI! 🏆<br>Soru Bankası'nda pekiştirebilirsin.</div>`; showTopicCompletionPopup(ST.currentTopic); } const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru cevap: <strong>${ST.currentQuestion.cevap}</strong><br>Senin cevabın: <em>${userAnswer}</em>`}</div>${nextMsg}${!topicCompleted ? '<div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQuestion()">Sonraki Soru →</button></div>' : ''}</div>`; document.getElementById('learnContent').insertAdjacentHTML('beforeend', fbHtml); if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); }
+// ========== DÜZENLENMİŞ CHECK ANSWER (feedback'i #feedbackArea'ya yönlendirir) ==========
+function checkAnswer() { 
+    const inp = document.getElementById('ansInp'); 
+    if (!inp?.value.trim()) { 
+        inp.style.borderColor = 'var(--danger)'; 
+        setTimeout(() => { if(inp) inp.style.borderColor = ''; }, 1000); 
+        return; 
+    } 
+    inp.disabled = true; 
+    if (!ST.currentQuestion) return; 
+    const userAnswer = inp.value.trim(); 
+    const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); 
+    const level = ST.currentQuestion.level; 
+    const prog = getTopicProgress(ST.currentTopic); 
+    if (!prog[`level${level}`]) prog[`level${level}`] = { correct: 0, total: 0 }; 
+    prog[`level${level}`].total++; 
+    if (isCorrect) prog[`level${level}`].correct++; 
+    ST.totalSolved++; 
+    if (isCorrect) { 
+        ST.totalCorrect++; 
+        ST.streak++; 
+        if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; 
+    } else { 
+        ST.streak = 0; 
+    } 
+    const levelConfig = LEVELS[level]; 
+    const levelProg = prog[`level${level}`]; 
+    let nextLevel = null; 
+    let topicCompleted = false; 
+    if (levelProg.total >= levelConfig.questionCount) { 
+        if (levelProg.correct >= levelConfig.minCorrect) { 
+            if (level < 2) { 
+                nextLevel = level + 1; 
+                ST.currentLevel = nextLevel; 
+            } else { 
+                topicCompleted = true; 
+                if (!ST.completedTopics.includes(ST.currentTopic)) { 
+                    ST.completedTopics.push(ST.currentTopic); 
+                } 
+            } 
+        } else { 
+            prog[`level${level}`] = { correct: 0, total: 0 }; 
+        } 
+    } 
+    saveState(); 
+    let nextMsg = ''; 
+    if (nextLevel !== null) { 
+        nextMsg = `<div class="level-complete-msg">🎉 ${levelConfig.name} Seviyesi Geçildi!<br>→ ${LEVELS[nextLevel].name} seviyesine başlıyorsun.</div>`; 
+    } else if (topicCompleted) { 
+        nextMsg = `<div class="topic-complete-msg">🏆 KONU TAMAMLANDI! 🏆<br>Soru Bankası'nda pekiştirebilirsin.</div>`; 
+        showTopicCompletionPopup(ST.currentTopic); 
+    } 
+    const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru cevap: <strong>${ST.currentQuestion.cevap}</strong><br>Senin cevabın: <em>${userAnswer}</em>`}</div>${nextMsg}${!topicCompleted ? '<div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQuestion()">Sonraki Soru →</button></div>' : ''}</div>`;
+    
+    // Feedback'i müsveddenin üstündeki #feedbackArea'ya yerleştir
+    const feedbackArea = document.getElementById('feedbackArea');
+    if (feedbackArea) {
+        feedbackArea.innerHTML = fbHtml;
+    } else {
+        // Eğer #feedbackArea yoksa (eski yapıda) yine de sona ekle
+        document.getElementById('learnContent').insertAdjacentHTML('beforeend', fbHtml);
+    }
+    
+    if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); 
+}
+
 function nextQuestion() { ST.phase = 'question'; ST.currentQuestion = null; renderNextQuestion(); }
 function showTopicCompletionPopup(topicId) { const topic = getTopicById(topicId); const popup = document.getElementById('completionPopup'); document.getElementById('completionTopicTitle').textContent = `🏆 ${topic.e} ${topic.n} Tamamlandı!`; document.getElementById('completionMessage').innerHTML = `Harikasın! Şimdi Soru Bankası'nda bol bol soru çözerek konuyu pekiştirebilirsin.`; ST.pendingCompletionTopic = topicId; popup.classList.remove('hidden'); }
 function closeCompletionPopup() { document.getElementById('completionPopup').classList.add('hidden'); ST.pendingCompletionTopic = null; }
@@ -485,8 +550,79 @@ function goToNextTopicFromPopup() { closeCompletionPopup(); const currentTopic =
 function renderQuestionBankList() { const el = document.getElementById('qbTopicsList'); if (!el) return; let html = ''; for (let topic of TOPICS) { if (!ST.completedTopics.includes(topic.id)) continue; const prog = ST.questionBankProgress[topic.id] || { solved: 0, correct: 0 }; const pct = Math.min(100, Math.round((prog.solved / 100) * 100)); html += `<div class="topic-row" onclick="startQuestionBank(${topic.id})"><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>📝</span></div>`; } el.innerHTML = html || '<div class="card" style="text-align:center">Henüz tamamladığınız konu yok. Önce konu çalışarak konuları tamamlayın!</div>'; }
 function startQuestionBank(topicId) { ST.currentTopic = topicId; ST.currentQuestion = null; showView('vQBSolve'); renderQBSolveHeader(); renderNextQBQuestion(); }
 function renderQBSolveHeader() { const topic = getTopicById(ST.currentTopic); const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; document.getElementById('qbSolveTitle').textContent = `📝 ${topic?.n || ''}`; document.getElementById('qbSolveProgress').textContent = `${prog.solved}/100 soru`; }
-function renderNextQBQuestion() { const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; if (prog.solved >= 100) { document.getElementById('qbSolveContent').innerHTML = `<div class="card"><h3>🎉 Tebrikler! 100 soruyu tamamladın.</h3><button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button></div>`; return; } const qData = generateQuestion(ST.currentTopic, randomInt(0, 2), true); ST.currentQuestion = { ...qData, mode: 'questionBank' }; const topic = getTopicById(ST.currentTopic); const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); document.getElementById('qbSolveContent').innerHTML = `<div class="prog-bar-wrap"><div class="prog-bar-label"><span>${topic?.n || ''}</span><span>${prog.solved}/100</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(prog.solved/100)*100}%"></div></div></div><div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${prog.solved+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span></div></div>${renderQuestionHTML(qData)}<div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div><button class="btn btn-ghost btn-full" onclick="skipQBQuestion()">Boş Bırak →</button></div><div class="scratchpad-area"><div class="scratchpad-header"><span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span><div><button class="btn-icon-small" onclick="undoDrawing('qbScratchpadCanvas')" title="Geri Al">↩️</button><button class="btn-icon-small" id="eraserBtn_qbScratchpadCanvas" onclick="toggleEraser('qbScratchpadCanvas', this)" title="Silgi/Kalem">🧽</button><button class="btn-icon-small" onclick="toggleDrawingPadSize('qbScratchpadCanvas')">[+]</button><button class="btn-icon-small" onclick="clearDrawingPad('qbScratchpadCanvas')">🗑️</button><button class="btn-icon-small" onclick="copyDrawingPad('qbScratchpadCanvas')">📋</button></div></div><canvas id="qbScratchpadCanvas" class="drawing-pad" style="width:100%; height:150px; background:#fefefe; border-radius:8px;"></canvas></div>`; setTimeout(() => { setupDrawingPad('qbScratchpadCanvas', ST.scratchpad || null); document.getElementById('qbAnsInp')?.focus(); }, 50); }
-function checkQBAnswer() { const inp = document.getElementById('qbAnsInp'); if (!inp?.value.trim()) return; inp.disabled = true; if (!ST.currentQuestion) return; const userAnswer = inp.value.trim(); const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; prog.solved++; if (isCorrect) prog.correct++; ST.questionBankProgress[ST.currentTopic] = prog; ST.totalSolved++; if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; } else { ST.streak = 0; } saveState(); renderQBSolveHeader(); const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru: <strong>${ST.currentQuestion.cevap}</strong><br>Senin: <em>${userAnswer}</em>`}</div><div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`; document.getElementById('qbSolveContent').insertAdjacentHTML('beforeend', fbHtml); if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); }
+
+// ========== DÜZENLENMİŞ RENDER NEXT QB QUESTION (feedback alanı eklendi) ==========
+function renderNextQBQuestion() { 
+    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
+    if (prog.solved >= 100) { 
+        document.getElementById('qbSolveContent').innerHTML = `<div class="card"><h3>🎉 Tebrikler! 100 soruyu tamamladın.</h3><button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button></div>`; 
+        return; 
+    } 
+    const qData = generateQuestion(ST.currentTopic, randomInt(0, 2), true); 
+    ST.currentQuestion = { ...qData, mode: 'questionBank' }; 
+    const topic = getTopicById(ST.currentTopic); 
+    const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); 
+    document.getElementById('qbSolveContent').innerHTML = `
+        <div class="prog-bar-wrap"><div class="prog-bar-label"><span>${topic?.n || ''}</span><span>${prog.solved}/100</span></div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(prog.solved/100)*100}%"></div></div></div>
+        <div class="card accent-top">
+            <div class="q-header"><span class="q-counter">Soru ${prog.solved+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span></div></div>
+            ${renderQuestionHTML(qData)}
+            <div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div>
+            <button class="btn btn-ghost btn-full" onclick="skipQBQuestion()">Boş Bırak →</button>
+        </div>
+        <!-- FEEDBACK ALANI (müsveddenin üstünde) -->
+        <div id="feedbackAreaQB"></div>
+        <div class="scratchpad-area">
+            <div class="scratchpad-header"><span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span>
+            <div><button class="btn-icon-small" onclick="undoDrawing('qbScratchpadCanvas')" title="Geri Al">↩️</button>
+            <button class="btn-icon-small" id="eraserBtn_qbScratchpadCanvas" onclick="toggleEraser('qbScratchpadCanvas', this)" title="Silgi/Kalem">🧽</button>
+            <button class="btn-icon-small" onclick="toggleDrawingPadSize('qbScratchpadCanvas')">[+]</button>
+            <button class="btn-icon-small" onclick="clearDrawingPad('qbScratchpadCanvas')">🗑️</button>
+            <button class="btn-icon-small" onclick="copyDrawingPad('qbScratchpadCanvas')">📋</button></div></div>
+            <canvas id="qbScratchpadCanvas" class="drawing-pad" style="width:100%; height:150px; background:#fefefe; border-radius:8px;"></canvas>
+        </div>
+    `; 
+    setTimeout(() => { 
+        setupDrawingPad('qbScratchpadCanvas', ST.scratchpad || null); 
+        document.getElementById('qbAnsInp')?.focus(); 
+    }, 50); 
+}
+
+// ========== DÜZENLENMİŞ CHECK QB ANSWER (feedback'i #feedbackAreaQB'ya yönlendirir) ==========
+function checkQBAnswer() { 
+    const inp = document.getElementById('qbAnsInp'); 
+    if (!inp?.value.trim()) return; 
+    inp.disabled = true; 
+    if (!ST.currentQuestion) return; 
+    const userAnswer = inp.value.trim(); 
+    const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); 
+    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
+    prog.solved++; 
+    if (isCorrect) prog.correct++; 
+    ST.questionBankProgress[ST.currentTopic] = prog; 
+    ST.totalSolved++; 
+    if (isCorrect) { 
+        ST.totalCorrect++; 
+        ST.streak++; 
+        if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; 
+    } else { 
+        ST.streak = 0; 
+    } 
+    saveState(); 
+    renderQBSolveHeader(); 
+    const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru: <strong>${ST.currentQuestion.cevap}</strong><br>Senin: <em>${userAnswer}</em>`}</div><div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`;
+    
+    const feedbackArea = document.getElementById('feedbackAreaQB');
+    if (feedbackArea) {
+        feedbackArea.innerHTML = fbHtml;
+    } else {
+        document.getElementById('qbSolveContent').insertAdjacentHTML('beforeend', fbHtml);
+    }
+    
+    if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); 
+}
+
 function skipQBQuestion() { const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; prog.solved++; ST.questionBankProgress[ST.currentTopic] = prog; saveState(); renderQBSolveHeader(); nextQBQuestion(); }
 function nextQBQuestion() { ST.currentQuestion = null; renderNextQBQuestion(); }
 
@@ -529,6 +665,6 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Uygulama hazır! (Çizim + Silgi + Geri Al + Düzenlenmiş soru motoru)');
+    console.log('✅ Uygulama hazır! (Çizim + Silgi + Geri Al + Düzenlenmiş soru motoru + Feedback üstte)');
 }
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
