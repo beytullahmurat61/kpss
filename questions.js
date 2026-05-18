@@ -20,9 +20,7 @@ const SORU_BANKASI = {
         ],
         1: [
             { id: "1_1_001", s: "Bir tabloda Ocak ayı satışı {a} bin TL, Şubat ayı satışı {b} bin TL'dir. İki aylık toplam satış kaç bin TL'dir?", c: "{a}+{b}", v: { a: [50, 300], b: [50, 300] }, z: "orta", alt: "tablo", konu: 1, level: 1 },
-            // Düzeltme: Ardışık üç sayının toplamı 3'ün katı olacak şekilde sabit soruya çevrildi (değişken kısıtı app.js'de '3kati' gerektirir, onun yerine bu soru kaldırıldı)
-            // Yerine yeni bir soru eklendi:
-            { id: "1_1_002", s: "Ardışık üç çift sayının toplamı {s} ise ortanca sayı kaçtır?", c: "{s}/3", v: { s: [6, 30, 'cift_3kati'] }, z: "orta", alt: "ardisik", konu: 1, level: 1, not: "app.js'de 'cift_3kati' kısıtı gerektirir. Varsayılan olarak çalışmazsa sabit soruya dönüşür." },
+            { id: "1_1_002", s: "Ardışık üç tek sayının toplamı 15 ise ortanca sayı kaçtır?", c: "5", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
             { id: "1_1_003", s: "Bir sayının 7 fazlası ile 3 eksiğinin toplamı 40'tır. Bu sayı kaçtır?", c: "(40-7+3)/2", v: {}, z: "orta", alt: "denklem_kurma", konu: 1, level: 1 },
             { id: "1_1_004", s: "Ali {a}, Veli {b} yaşındadır. {c} yıl sonra yaşları toplamı kaç olur?", c: "{a}+{b}+2*{c}", v: { a: [10, 30], b: [8, 25], c: [2, 8] }, z: "orta", alt: "yas_problemi", konu: 1, level: 1 },
             { id: "1_1_005", s: "Bir mağazada tanesi {a} TL olan üründen {b} tane alınırsa kaç TL ödenir?", c: "{a}*{b}", v: { a: [10, 50], b: [2, 5] }, z: "orta", alt: "carpimli_toplam", konu: 1, level: 1 }
