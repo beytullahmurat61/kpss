@@ -1,14 +1,14 @@
 // ============================================
 // KPSS MATEMATİK ANA UYGULAMA
 // 20 Konu | 3 Level | Grafiksel Soru Motoru | Groq API
-// Düzenlenmiş: Feedback her zaman müsveddenin ÜSTÜNDE
+// Düzenlenmiş: normAns birim temizler, feedback her zaman üstte
 // ============================================
 
 console.log('🚀 KPSS Matematik Uygulaması başlıyor...');
 
 // ========== STATE ==========
 let ST = {
-    version: 7.4,
+    version: 7.5,
     grokApiKey: '',
     currentTopic: 1,
     currentLevel: 0,
@@ -43,7 +43,22 @@ const GROK_MODEL = 'llama-3.3-70b-versatile';
 function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function shuffleArray(arr) { const s = [...arr]; for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; } return s; }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
-function normAns(s) { if (!s) return ''; let cleaned = String(s).toLowerCase().trim(); cleaned = cleaned.replace(/(\d+(?:\.\d+)?)\s*(?:tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)$/i, '$1'); cleaned = cleaned.replace(/,/g, '.').replace(/[×x]/g, '*').replace(/\s+/g, ''); return cleaned; }
+
+// DÜZENLENMİŞ normAns - "bin TL", "bin" gibi ifadeleri temizler
+function normAns(s) { 
+    if (!s) return ''; 
+    let cleaned = String(s).toLowerCase().trim(); 
+    cleaned = cleaned.replace(/\s*(bin|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)\b/gi, ''); 
+    cleaned = cleaned.replace(/[.,](\d{3})\b/g, '$1'); 
+    cleaned = cleaned.replace(/,/g, '.'); 
+    cleaned = cleaned.replace(/[×x]/g, '*'); 
+    cleaned = cleaned.replace(/\s+/g, ''); 
+    if (!isNaN(parseFloat(cleaned)) && isFinite(cleaned)) {
+        cleaned = parseFloat(cleaned).toString();
+    }
+    return cleaned; 
+}
+
 function checkEqual(userAns, correctAns) { try { const u = normAns(userAns), c = normAns(correctAns); if (u === c) return true; const uNum = parseFloat(u), cNum = parseFloat(c); if (!isNaN(uNum) && !isNaN(cNum) && Math.abs(uNum - cNum) < 0.001) return true; const uParts = u.split('/'), cParts = c.split('/'); if (cParts.length === 2 || uParts.length === 2) { const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : uNum; const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : cNum; if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.001) return true; } return false; } catch(e) { return false; } }
 
 // ========== GRAFİK YARDIMCILARI ==========
@@ -58,7 +73,6 @@ function eslenikYap(a, b) { return `(√${a} - √${b})/(${a} - ${b})`; }
 let QUESTION_TEMPLATES = {};
 function loadQuestions() { for (let topicId = 1; topicId <= 20; topicId++) { QUESTION_TEMPLATES[topicId] = {}; for (let level = 0; level <= 2; level++) { QUESTION_TEMPLATES[topicId][level] = []; } } for (let topicId in SORU_BANKASI) { const tId = parseInt(topicId); for (let level in SORU_BANKASI[topicId]) { const lvl = parseInt(level); if (QUESTION_TEMPLATES[tId] && QUESTION_TEMPLATES[tId][lvl]) { QUESTION_TEMPLATES[tId][lvl] = SORU_BANKASI[topicId][level]; } } } console.log('✅ Sorular yüklendi'); }
 
-// ========== DÜZENLENMİŞ GENERATE VARIABLES (Bileşik kısıtları destekler) ==========
 function generateVariables(varRanges) {
     if (!varRanges || Object.keys(varRanges).length === 0) return {};
     const vars = {};
@@ -104,13 +118,13 @@ function fallbackQuestion() { return { id: 'fallback', soru: '1 + 1 = ?', cevap:
 
 // ========== RENDER SORU ==========
 function renderQuestionHTML(qData) { const text = qData.soru || ''; const alt = qData.alt || ''; if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') return renderTableQuestion(qData); if (alt === 'sutun_grafik') return renderBarChart(qData); if (alt === 'daire_grafik') return renderPieChart(qData); if (alt === 'cizgi_grafik') return renderLineChart(qData); if (alt === 'sayi_dogrusu') return renderNumberLine(qData); return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; }
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<td><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
+function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}<tr>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
 function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
 function renderPieChart(qData) { const vars = qData.vars || {}; const p = Math.min(vars.p || 30, 100); const angle = p * 3.6; const rad = angle * Math.PI / 180; const cx = 60, cy = 60, r = 50; const x1 = cx + r * Math.cos(-Math.PI/2); const y1 = cy + r * Math.sin(-Math.PI/2); const x2 = cx + r * Math.cos(-Math.PI/2 + rad); const y2 = cy + r * Math.sin(-Math.PI/2 + rad); const large = angle > 180 ? 1 : 0; return `<div class="q-text">Daire grafiğinde %${p}'lik dilimin değeri kaçtır?</div><div class="q-visual"><svg viewBox="0 0 120 120" width="120" height="120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/><path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="var(--accent)" opacity="0.85"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="11">%${p}</text></svg></div>`; }
 function renderLineChart(qData) { const vars = qData.vars || {}; const a = vars.a || 20, b = vars.b || 45, c = vars.c || 35, d = vars.d || 60; const maxVal = Math.max(a, b, c, d, 10); const W = 280, H = 120; const xPoints = [40, 100, 160, 220]; const yPoints = [H-25-(a/maxVal)*80, H-25-(b/maxVal)*80, H-25-(c/maxVal)*80, H-25-(d/maxVal)*80]; const linePoints = yPoints.map((y,i) => `${xPoints[i]},${y}`).join(' '); return `<div class="q-text">Çizgi grafiğine göre en yüksek değer kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:300px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W-10}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><polyline points="${linePoints}" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="${xPoints[0]}" cy="${yPoints[0]}" r="4" fill="var(--accent)"/><text x="${xPoints[0]}" y="${yPoints[0]-5}" text-anchor="middle" font-size="9">${a}</text><circle cx="${xPoints[1]}" cy="${yPoints[1]}" r="4" fill="var(--accent)"/><text x="${xPoints[1]}" y="${yPoints[1]-5}" text-anchor="middle" font-size="9">${b}</text><circle cx="${xPoints[2]}" cy="${yPoints[2]}" r="4" fill="var(--accent)"/><text x="${xPoints[2]}" y="${yPoints[2]-5}" text-anchor="middle" font-size="9">${c}</text><circle cx="${xPoints[3]}" cy="${yPoints[3]}" r="4" fill="var(--accent)"/><text x="${xPoints[3]}" y="${yPoints[3]-5}" text-anchor="middle" font-size="9">${d}</text><text x="40" y="${H-8}" text-anchor="middle" font-size="9">Ocak</text><text x="100" y="${H-8}" text-anchor="middle" font-size="9">Şubat</text><text x="160" y="${H-8}" text-anchor="middle" font-size="9">Mart</text><text x="220" y="${H-8}" text-anchor="middle" font-size="9">Nisan</text></svg></div>`; }
 function renderNumberLine(qData) { const vars = qData.vars || {}; const start = vars.start || 0, end = vars.end || 10, point = vars.point || 5; const W = 280, H = 50; const step = (end - start) / 10; const marks = []; for (let i = start; i <= end; i += step) marks.push(i); return `<div class="q-text">Sayı doğrusunda ${point} noktası işaretlenmiştir.</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="10" y1="25" x2="${W-10}" y2="25" stroke="var(--text-muted)" stroke-width="2"/>${marks.map(m => { const x = 10 + (m-start)/(end-start)*(W-20); return `<line x1="${x}" y1="20" x2="${x}" y2="30" stroke="var(--text-muted)" stroke-width="1.5"/><text x="${x}" y="44" text-anchor="middle" font-size="9" fill="var(--text-muted)">${Math.round(m)}</text>`; }).join('')}<circle cx="${10 + (point-start)/(end-start)*(W-20)}" cy="25" r="5" fill="var(--accent)"/><text x="${10 + (point-start)/(end-start)*(W-20)}" y="15" text-anchor="middle" font-size="10" fill="var(--accent)">${point}</text></svg></div>`; }
 
-// ========== ÇİZİM PAD YARDIMCILARI (Silgi + Geri Al) ==========
+// ========== ÇİZİM PAD YARDIMCILARI ==========
 let drawingStates = {};
 
 function setupDrawingPad(canvasId, loadImageData = null) {
@@ -343,7 +357,7 @@ function toggleDrawingPadSize(canvasId) {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem('kpss_mat_v7') || '{}');
-        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4) {
+        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5) {
             Object.assign(ST, saved);
         }
     } catch(e) { console.warn(e); }
@@ -360,7 +374,7 @@ function loadState() {
 function saveState() {
     try {
         const toSave = {
-            version: 7.4,
+            version: 7.5,
             currentTopic: ST.currentTopic,
             currentLevel: ST.currentLevel,
             streak: ST.streak,
@@ -425,7 +439,6 @@ function openTopic(topicId) { ST.currentTopic = topicId; ST.currentLevel = 0; ST
 function renderPreStudySummary() { const topic = getTopicById(ST.currentTopic); if (!topic) return; document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`; document.getElementById('learnKademe').textContent = LEVELS[ST.currentLevel].name; const prog = getTopicProgress(ST.currentTopic); const levelProg = prog[`level${ST.currentLevel}`] || { correct: 0, total: 0 }; const level = LEVELS[ST.currentLevel]; document.getElementById('learnContent').innerHTML = `<div class="card accent-top"><h3>📖 ${topic.n}</h3><p style="color:var(--text-muted)">${level.name} seviyesinde ${level.questionCount} soru çözeceksin. ${level.minCorrect} doğru yaparak seviyeyi geçebilirsin.</p></div><div class="card"><div class="prog-bar-wrap"><div class="prog-bar-label"><span>İlerleme</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(levelProg.total/level.questionCount)*100}%"></div></div></div><p style="font-size:12px;color:var(--text-muted);margin-top:8px">🎯 Geçmek için ${level.minCorrect} doğru</p></div><button class="btn btn-primary btn-full" onclick="beginStudy()">✍️ Çalışmaya Başla</button>`; }
 function beginStudy() { ST.phase = 'question'; ST.currentQuestion = null; renderNextQuestion(); }
 
-// ========== RENDER NEXT QUESTION (Feedback müsveddenin ÜSTÜNDE) ==========
 function renderNextQuestion() {
     const topic = getTopicById(ST.currentTopic);
     const level = ST.currentLevel;
@@ -450,7 +463,6 @@ function renderNextQuestion() {
             <button class="btn btn-primary" onclick="checkAnswer()">✓</button></div>
             <div class="ans-hint">Sayı veya kesir (ör: 3/4) olarak yaz</div>
         </div>
-        <!-- FEEDBACK ALANI - müsveddenin hemen ÜSTÜNDE -->
         <div id="feedbackArea"></div>
         <div class="scratchpad-area">
             <div class="scratchpad-header">
@@ -473,7 +485,6 @@ function renderNextQuestion() {
     }, 50);
 }
 
-// ========== CHECK ANSWER (Feedback'i #feedbackArea'ya yönlendir) ==========
 function checkAnswer() { 
     const inp = document.getElementById('ansInp'); 
     if (!inp?.value.trim()) { 
@@ -531,7 +542,6 @@ function checkAnswer() {
     if (feedbackArea) {
         feedbackArea.innerHTML = fbHtml;
     } else {
-        // Yedek: eğer feedbackArea yoksa sona ekle (eski davranış)
         document.getElementById('learnContent').insertAdjacentHTML('beforeend', fbHtml);
     }
     
@@ -549,7 +559,6 @@ function renderQuestionBankList() { const el = document.getElementById('qbTopics
 function startQuestionBank(topicId) { ST.currentTopic = topicId; ST.currentQuestion = null; showView('vQBSolve'); renderQBSolveHeader(); renderNextQBQuestion(); }
 function renderQBSolveHeader() { const topic = getTopicById(ST.currentTopic); const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; document.getElementById('qbSolveTitle').textContent = `📝 ${topic?.n || ''}`; document.getElementById('qbSolveProgress').textContent = `${prog.solved}/100 soru`; }
 
-// ========== RENDER NEXT QB QUESTION (Feedback müsveddenin ÜSTÜNDE) ==========
 function renderNextQBQuestion() { 
     const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
     if (prog.solved >= 100) { 
@@ -569,7 +578,6 @@ function renderNextQBQuestion() {
             <div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div>
             <button class="btn btn-ghost btn-full" onclick="skipQBQuestion()">Boş Bırak →</button>
         </div>
-        <!-- FEEDBACK ALANI - müsveddenin hemen ÜSTÜNDE -->
         <div id="feedbackAreaQB"></div>
         <div class="scratchpad-area">
             <div class="scratchpad-header"><span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span>
@@ -587,7 +595,6 @@ function renderNextQBQuestion() {
     }, 50); 
 }
 
-// ========== CHECK QB ANSWER (Feedback'i #feedbackAreaQB'ya yönlendir) ==========
 function checkQBAnswer() { 
     const inp = document.getElementById('qbAnsInp'); 
     if (!inp?.value.trim()) return; 
@@ -663,6 +670,6 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Uygulama hazır! (Feedback artık müsveddenin ÜSTÜNDE)');
+    console.log('✅ Uygulama hazır! (Tüm sorular KPSS uyumlu, feedback üstte)');
 }
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
