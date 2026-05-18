@@ -6,7 +6,7 @@
 
 const SORU_BANKASI = {
 
-     // ========== 1. KONU: TOPLAMA (KPSS Uyumlu) ==========
+    // ========== 1. KONU: TOPLAMA ==========
     1: {
         0: [
             { id: "1_0_001", s: "Bir sayının {a} fazlası {b} ise bu sayı kaçtır?", c: "{b}-{a}", v: { a: [5, 25], b: [15, 70] }, z: "kolay", alt: "verilmeyen_bulma", konu: 1, level: 0 },
@@ -19,7 +19,6 @@ const SORU_BANKASI = {
         ],
         1: [
             { id: "1_1_001", s: "Bir tabloda Ocak ayı satışı {a} bin TL, Şubat ayı satışı {b} bin TL'dir. İki aylık toplam satış kaç bin TL'dir? (Sadece sayıyı yazın)", c: "{a}+{b}", v: { a: [50, 300], b: [50, 300] }, z: "orta", alt: "tablo", konu: 1, level: 1 },
-            // DÜZELTİLDİ: Ardışık çift sayı sorusu sabit değerlerle değiştirildi
             { id: "1_1_002", s: "Ardışık üç çift sayının toplamı 18 ise ortanca sayı kaçtır?", c: "6", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
             { id: "1_1_003", s: "Ardışık üç çift sayının toplamı 24 ise ortanca sayı kaçtır?", c: "8", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
             { id: "1_1_004", s: "Bir sayının 7 fazlası ile 3 eksiğinin toplamı 40'tır. Bu sayı kaçtır?", c: "(40-7+3)/2", v: {}, z: "orta", alt: "denklem_kurma", konu: 1, level: 1 },
@@ -33,7 +32,6 @@ const SORU_BANKASI = {
             { id: "1_2_004", s: "{a} kişilik bir grupta herkes birbiriyle tokalaşırsa toplam tokalaşma sayısı kaç olur?", c: "{a}*({a}-1)/2", v: { a: [5, 15] }, z: "zor", alt: "kombinasyon_temeli", konu: 1, level: 2 },
             { id: "1_2_005", s: "Bir sinema salonunda {a} sıra ve her sırada {b} koltuk var. {c} koltuk boş ise dolu koltuk sayısı kaçtır?", c: "{a}*{b}-{c}", v: { a: [5, 15], b: [10, 25], c: [10, 80] }, z: "zor", alt: "tablo", konu: 1, level: 2 },
             { id: "1_2_006", s: "Bir otobüs {v1} km/sa hızla {t1} saat, {v2} km/sa hızla {t2} saat gidiyor. Toplam yol kaç km'dir?", c: "{v1}*{t1}+{v2}*{t2}", v: { v1: [60, 100], t1: [1, 3], v2: [40, 80], t2: [1, 3] }, z: "zor", alt: "hareket", konu: 1, level: 2 },
-            // DÜZELTİLDİ: Ardışık sayı sorusu sabit değerle değiştirildi
             { id: "1_2_007", s: "Ardışık üç sayının toplamı 30 ise en büyük sayı kaçtır?", c: "11", v: {}, z: "zor", alt: "ardisik", konu: 1, level: 2 }
         ]
     },
@@ -72,7 +70,7 @@ const SORU_BANKASI = {
         ]
     },
 
-    // ========== 3. KONU: ÇARPMA (TAMAMEN SABİT VE DOĞRU) ==========
+    // ========== 3. KONU: ÇARPMA ==========
     3: {
         0: [
             { id: "3_0_001", s: "Tanesi {a} TL olan kalemlerden {b} tane alan kaç TL öder?", c: "{a}*{b}", v: { a:[3,15], b:[2,10] }, z: "kolay", alt: "problem_para" },
@@ -123,7 +121,7 @@ const SORU_BANKASI = {
             { id: "4_2_004", s: "Bir kumbarada {a} TL ve {b} TL'lik paralar var. Toplam {t} TL olması için {a} TL'liklerden en az kaç tane olmalıdır?", c: "Math.ceil({t}/{a})", v: { a: [5, 20], b: [10, 50], t: [30, 200] }, z: "zor", alt: "problem_mantik", konu: 4, level: 2 },
             { id: "4_2_005", s: "Bir sayının 5 ile bölümünden kalan 3, 7 ile bölümünden kalan 2 ise bu sayı 35'ten küçük kaç farklı değer alır?", c: "1", v: {}, z: "zor", alt: "bolme_mantik", konu: 4, level: 2 }
         ]
-    }
+    },
 
     // ========== 5. KONU: KESİRLER ==========
     5: {
@@ -218,7 +216,6 @@ const SORU_BANKASI = {
         2: [
             { id: "7_2_001", s: "Bir bakteri her saat 2 katına çıkıyor. Başlangıçta {a} bakteri varsa {n} saat sonra kaç bakteri olur?", c: "{a}*Math.pow(2,{n})", v: { a: [1, 10], n: [2, 6] }, z: "zor", alt: "problem_bakteri", konu: 7, level: 2 },
             { id: "7_2_002", s: "Bir hücre her gün 3 katına çıkıyor. {n} gün sonra başlangıçtaki hücre sayısının kaç katı olur?", c: "Math.pow(3,{n})", v: { n: [2, 5] }, z: "zor", alt: "problem_hucre", konu: 7, level: 2 },
-            // Düzeltme: Radyoaktif bozunma için a değeri 2'nin kuvveti olacak şekilde sınırlandırıldı
             { id: "7_2_003", s: "Bir radyoaktif madde her yıl yarıya düşüyor. Başlangıçta {a} gram olan madde {n} yıl sonra kaç gram kalır?", c: "{a}/Math.pow(2,{n})", v: { a: [16, 32, 64, 128], n: [1, 4] }, z: "zor", alt: "problem_radyoaktif", konu: 7, level: 2 },
             { id: "7_2_004", s: "2ˣ = 32 ise 2ˣ⁺² kaçtır?", c: "128", v: {}, z: "zor", alt: "denklem", konu: 7, level: 2 },
             { id: "7_2_005", s: "3ˣ = 81 ise 3ˣ⁻¹ kaçtır?", c: "27", v: {}, z: "zor", alt: "denklem", konu: 7, level: 2 },
@@ -259,7 +256,6 @@ const SORU_BANKASI = {
             { id: "8_2_005", s: "√x + {a} = {b} ise x kaçtır?", c: "({b}-{a})*({b}-{a})", v: { a: [1, 5], b: [4, 10] }, z: "orta", alt: "kok_denklem", konu: 8, level: 2 },
             { id: "8_2_006", s: "1/(√{a}+√{b}) ifadesinin paydasını rasyonel yapınız.", c: "eslenikYap({a},{b})", v: { a: [3, 8], b: [2, 6] }, z: "zor", alt: "eslenik", konu: 8, level: 2 },
             { id: "8_2_007", s: "√{a} ile √{b} sayılarından hangisi daha büyüktür?", c: "{a}>{b}?'Birincisi':'İkincisi'", v: { a: [2, 15], b: [2, 15] }, z: "orta", alt: "karsilastirma", konu: 8, level: 2 },
-            // Düzeltme: Daire alanı için a değeri 3*k^2 olacak şekilde seçildi
             { id: "8_2_008", s: "Alanı {a} cm² olan dairenin yarıçapı kaç cm'dir? (π=3 alınız)", c: "Math.sqrt({a}/3)", v: { a: [12, 27, 48, 75, 108] }, z: "zor", alt: "daire_alani", konu: 8, level: 2 },
             { id: "8_2_009", s: "√(√{a}) işleminin sonucu nedir?", c: "Math.pow({a},1/4)", v: { a: [16, 625] }, z: "zor", alt: "ic_ice_kok", konu: 8, level: 2 },
             { id: "8_2_010", s: "√{a} sayısını a√b şeklinde yazınız.", c: "katsayiCikar({a})", v: { a: [108, 500] }, z: "zor", alt: "kok_disi", konu: 8, level: 2 }
@@ -596,7 +592,7 @@ const SORU_BANKASI = {
         ]
     },
 
-   // ========== 20. KONU: GEOMETRİ (TEMEL) ==========
+    // ========== 20. KONU: GEOMETRİ (TEMEL) ==========
     20: {
         0: [
             { id: "20_0_001", s: "Bir üçgenin iki açısı {a}° ve {b}° ise üçüncü açı kaç derecedir?", c: "180-{a}-{b}", v: { a: [30, 70], b: [30, 70] }, z: "kolay", alt: "ucgen_aci", konu: 20, level: 0 },
@@ -624,6 +620,7 @@ const SORU_BANKASI = {
             { id: "20_2_006", s: "Bir dikdörtgenin uzun kenarı kısa kenarının {k} katıdır. Çevresi {c} cm ise alanı kaç cm²'dir?", c: "({c}/(2*({k}+1)))*({c}*{k}/(2*({k}+1)))", v: { k: [2, 4], c: [24, 60] }, z: "zor", alt: "dikdortgen_problem", konu: 20, level: 2 }
         ]
     }
+
 };
 
 console.log("✅ Soru bankası başarıyla yüklendi (düzenlenmiş).");
