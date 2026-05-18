@@ -1,7 +1,7 @@
 // ============================================
 // KPSS MATEMATİK ANA UYGULAMA
 // 20 Konu | 3 Level | Grafiksel Soru Motoru | Groq API
-// Düzenlenmiş: normAns birim temizler, feedback her zaman üstte
+// Düzenlenmiş: Tüm sorunlar giderildi
 // ============================================
 
 console.log('🚀 KPSS Matematik Uygulaması başlıyor...');
@@ -44,11 +44,16 @@ function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)
 function shuffleArray(arr) { const s = [...arr]; for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; } return s; }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
-// DÜZENLENMİŞ normAns - "bin TL", "bin" gibi ifadeleri temizler
+// DÜZENLENMİŞ normAns - "bin TL", "bin", "000" gibi ifadeleri temizler
 function normAns(s) { 
     if (!s) return ''; 
     let cleaned = String(s).toLowerCase().trim(); 
+    // "464 bin" → "464", "464000" → "464" (eğer 000 ile bitiyorsa)
     cleaned = cleaned.replace(/\s*(bin|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)\b/gi, ''); 
+    // 464000 → 464 (sadece 000 ile biten sayılar için)
+    if (/^\d+000$/.test(cleaned)) {
+        cleaned = cleaned.replace(/000$/, '');
+    }
     cleaned = cleaned.replace(/[.,](\d{3})\b/g, '$1'); 
     cleaned = cleaned.replace(/,/g, '.'); 
     cleaned = cleaned.replace(/[×x]/g, '*'); 
@@ -118,7 +123,7 @@ function fallbackQuestion() { return { id: 'fallback', soru: '1 + 1 = ?', cevap:
 
 // ========== RENDER SORU ==========
 function renderQuestionHTML(qData) { const text = qData.soru || ''; const alt = qData.alt || ''; if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') return renderTableQuestion(qData); if (alt === 'sutun_grafik') return renderBarChart(qData); if (alt === 'daire_grafik') return renderPieChart(qData); if (alt === 'cizgi_grafik') return renderLineChart(qData); if (alt === 'sayi_dogrusu') return renderNumberLine(qData); return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; }
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}<tr>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
+function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
 function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
 function renderPieChart(qData) { const vars = qData.vars || {}; const p = Math.min(vars.p || 30, 100); const angle = p * 3.6; const rad = angle * Math.PI / 180; const cx = 60, cy = 60, r = 50; const x1 = cx + r * Math.cos(-Math.PI/2); const y1 = cy + r * Math.sin(-Math.PI/2); const x2 = cx + r * Math.cos(-Math.PI/2 + rad); const y2 = cy + r * Math.sin(-Math.PI/2 + rad); const large = angle > 180 ? 1 : 0; return `<div class="q-text">Daire grafiğinde %${p}'lik dilimin değeri kaçtır?</div><div class="q-visual"><svg viewBox="0 0 120 120" width="120" height="120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/><path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="var(--accent)" opacity="0.85"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="11">%${p}</text></svg></div>`; }
 function renderLineChart(qData) { const vars = qData.vars || {}; const a = vars.a || 20, b = vars.b || 45, c = vars.c || 35, d = vars.d || 60; const maxVal = Math.max(a, b, c, d, 10); const W = 280, H = 120; const xPoints = [40, 100, 160, 220]; const yPoints = [H-25-(a/maxVal)*80, H-25-(b/maxVal)*80, H-25-(c/maxVal)*80, H-25-(d/maxVal)*80]; const linePoints = yPoints.map((y,i) => `${xPoints[i]},${y}`).join(' '); return `<div class="q-text">Çizgi grafiğine göre en yüksek değer kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:300px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W-10}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><polyline points="${linePoints}" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="${xPoints[0]}" cy="${yPoints[0]}" r="4" fill="var(--accent)"/><text x="${xPoints[0]}" y="${yPoints[0]-5}" text-anchor="middle" font-size="9">${a}</text><circle cx="${xPoints[1]}" cy="${yPoints[1]}" r="4" fill="var(--accent)"/><text x="${xPoints[1]}" y="${yPoints[1]-5}" text-anchor="middle" font-size="9">${b}</text><circle cx="${xPoints[2]}" cy="${yPoints[2]}" r="4" fill="var(--accent)"/><text x="${xPoints[2]}" y="${yPoints[2]-5}" text-anchor="middle" font-size="9">${c}</text><circle cx="${xPoints[3]}" cy="${yPoints[3]}" r="4" fill="var(--accent)"/><text x="${xPoints[3]}" y="${yPoints[3]-5}" text-anchor="middle" font-size="9">${d}</text><text x="40" y="${H-8}" text-anchor="middle" font-size="9">Ocak</text><text x="100" y="${H-8}" text-anchor="middle" font-size="9">Şubat</text><text x="160" y="${H-8}" text-anchor="middle" font-size="9">Mart</text><text x="220" y="${H-8}" text-anchor="middle" font-size="9">Nisan</text></svg></div>`; }
@@ -433,7 +438,20 @@ function updateHomeStats() { const done = ST.completedTopics.length; const acc =
 
 // ========== KONU LİSTESİ ==========
 function renderTopicsList() { const el = document.getElementById('topicsList'); if (!el) return; let html = ''; for (let topic of TOPICS) { const completed = ST.completedTopics.includes(topic.id); const prog = getTopicProgress(topic.id); const totalSolved = (prog.level0?.total || 0) + (prog.level1?.total || 0) + (prog.level2?.total || 0); const pct = Math.min(100, Math.round((totalSolved / 90) * 100)); const locked = topic.locked && !completed && ST.completedTopics.length < topic.order - 1; let cls = 'topic-row'; if (completed) cls += ' t-done'; else if (topic.id === ST.currentTopic && ST.phase !== 'summary') cls += ' t-current'; else if (locked) cls += ' t-locked'; html += `<div class="${cls}" ${locked ? '' : `onclick="openTopic(${topic.id})"`}><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>${completed ? '✅' : (locked ? '🔒' : '📘')}</span></div>`; } el.innerHTML = html; document.getElementById('topicsDoneLabel').textContent = `${ST.completedTopics.length}/20`; }
-function openTopic(topicId) { ST.currentTopic = topicId; ST.currentLevel = 0; ST.phase = 'summary'; showView('vLearn'); saveState(); }
+
+// DÜZENLENMİŞ openTopic - kilitli konuları açmaya çalışınca uyarı verir
+function openTopic(topicId) { 
+    const topic = getTopicById(topicId);
+    if (topic.locked && !ST.completedTopics.includes(topicId) && ST.completedTopics.length < topic.order - 1) {
+        alert('🔒 Bu konuya ulaşmak için önceki konuları tamamlamalısınız!');
+        return;
+    }
+    ST.currentTopic = topicId; 
+    ST.currentLevel = 0; 
+    ST.phase = 'summary'; 
+    showView('vLearn'); 
+    saveState(); 
+}
 
 // ========== KONU ÇALIŞ ==========
 function renderPreStudySummary() { const topic = getTopicById(ST.currentTopic); if (!topic) return; document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`; document.getElementById('learnKademe').textContent = LEVELS[ST.currentLevel].name; const prog = getTopicProgress(ST.currentTopic); const levelProg = prog[`level${ST.currentLevel}`] || { correct: 0, total: 0 }; const level = LEVELS[ST.currentLevel]; document.getElementById('learnContent').innerHTML = `<div class="card accent-top"><h3>📖 ${topic.n}</h3><p style="color:var(--text-muted)">${level.name} seviyesinde ${level.questionCount} soru çözeceksin. ${level.minCorrect} doğru yaparak seviyeyi geçebilirsin.</p></div><div class="card"><div class="prog-bar-wrap"><div class="prog-bar-label"><span>İlerleme</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div><div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(levelProg.total/level.questionCount)*100}%"></div></div></div><p style="font-size:12px;color:var(--text-muted);margin-top:8px">🎯 Geçmek için ${level.minCorrect} doğru</p></div><button class="btn btn-primary btn-full" onclick="beginStudy()">✍️ Çalışmaya Başla</button>`; }
@@ -552,7 +570,22 @@ function nextQuestion() { ST.phase = 'question'; ST.currentQuestion = null; rend
 function showTopicCompletionPopup(topicId) { const topic = getTopicById(topicId); const popup = document.getElementById('completionPopup'); document.getElementById('completionTopicTitle').textContent = `🏆 ${topic.e} ${topic.n} Tamamlandı!`; document.getElementById('completionMessage').innerHTML = `Harikasın! Şimdi Soru Bankası'nda bol bol soru çözerek konuyu pekiştirebilirsin.`; ST.pendingCompletionTopic = topicId; popup.classList.remove('hidden'); }
 function closeCompletionPopup() { document.getElementById('completionPopup').classList.add('hidden'); ST.pendingCompletionTopic = null; }
 function goToQuestionBankFromPopup() { closeCompletionPopup(); if (ST.pendingCompletionTopic) startQuestionBank(ST.pendingCompletionTopic); }
-function goToNextTopicFromPopup() { closeCompletionPopup(); const currentTopic = getTopicById(ST.pendingCompletionTopic); const nextTopic = TOPICS.find(t => t.order === (currentTopic?.order || 0) + 1); if (nextTopic) openTopic(nextTopic.id); else alert('🎉 Tüm konuları tamamladın!'); }
+
+// DÜZENLENMİŞ goToNextTopicFromPopup - sonraki konuyu doğru bulur ve açar
+function goToNextTopicFromPopup() { 
+    closeCompletionPopup(); 
+    const currentTopic = getTopicById(ST.pendingCompletionTopic); 
+    const nextTopic = TOPICS.find(t => t.order === (currentTopic?.order || 0) + 1);
+    if (nextTopic) {
+        ST.currentTopic = nextTopic.id;
+        ST.currentLevel = 0;
+        ST.phase = 'summary';
+        showView('vLearn');
+        saveState();
+    } else { 
+        alert('🎉 Tüm konuları tamamladın!'); 
+    } 
+}
 
 // ========== SORU BANKASI ==========
 function renderQuestionBankList() { const el = document.getElementById('qbTopicsList'); if (!el) return; let html = ''; for (let topic of TOPICS) { if (!ST.completedTopics.includes(topic.id)) continue; const prog = ST.questionBankProgress[topic.id] || { solved: 0, correct: 0 }; const pct = Math.min(100, Math.round((prog.solved / 100) * 100)); html += `<div class="topic-row" onclick="startQuestionBank(${topic.id})"><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>📝</span></div>`; } el.innerHTML = html || '<div class="card" style="text-align:center">Henüz tamamladığınız konu yok. Önce konu çalışarak konuları tamamlayın!</div>'; }
@@ -661,7 +694,25 @@ function toggleScratchpadSize() { const canvas = document.getElementById('scratc
 function openModal(id) { document.getElementById(id + 'Modal')?.classList.remove('hidden'); if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; }
 function closeModal(id) { document.getElementById(id + 'Modal')?.classList.add('hidden'); }
 function saveKey() { const k = document.getElementById('apiInp')?.value?.trim(); if (k) { ST.grokApiKey = k; localStorage.setItem('kpss_grok_api_key', k); closeModal('api'); alert('✅ Groq API anahtarı kaydedildi!'); } }
-function doReset(type) { if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) { localStorage.clear(); location.reload(); } else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { ST.topicProgress[ST.currentTopic] = null; ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); saveState(); renderTopicsList(); alert(`✅ Konu sıfırlandı!`); } }
+
+// DÜZENLENMİŞ doReset - API anahtarını korur
+function doReset(type) { 
+    if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) { 
+        const savedApiKey = ST.grokApiKey;
+        localStorage.clear();
+        if (savedApiKey) {
+            localStorage.setItem('kpss_grok_api_key', savedApiKey);
+            ST.grokApiKey = savedApiKey;
+        }
+        location.reload(); 
+    } else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { 
+        ST.topicProgress[ST.currentTopic] = null; 
+        ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); 
+        saveState(); 
+        renderTopicsList(); 
+        alert(`✅ Konu sıfırlandı!`); 
+    } 
+}
 
 // ========== BAŞLANGIÇ ==========
 function startApp() {
@@ -670,6 +721,6 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Uygulama hazır! (Tüm sorular KPSS uyumlu, feedback üstte)');
+    console.log('✅ Uygulama hazır! (Tüm sorunlar giderildi)');
 }
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
