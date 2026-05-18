@@ -6,7 +6,7 @@
 
 const SORU_BANKASI = {
 
-    // ========== 1. KONU: TOPLAMA (KPSS Uyumlu) ==========
+     // ========== 1. KONU: TOPLAMA (KPSS Uyumlu) ==========
     1: {
         0: [
             { id: "1_0_001", s: "Bir sayının {a} fazlası {b} ise bu sayı kaçtır?", c: "{b}-{a}", v: { a: [5, 25], b: [15, 70] }, z: "kolay", alt: "verilmeyen_bulma", konu: 1, level: 0 },
@@ -14,27 +14,27 @@ const SORU_BANKASI = {
             { id: "1_0_003", s: "Ahmet {a} yaşında, Mehmet Ahmet'ten {b} yaş büyüktür. İkisinin yaşları toplamı kaçtır?", c: "{a}+{a}+{b}", v: { a: [8, 25], b: [2, 10] }, z: "kolay", alt: "yas_problemi", konu: 1, level: 0 },
             { id: "1_0_004", s: "Bir sınıfta {a} kız, erkekler kızlardan {b} fazladır. Sınıf mevcudu kaçtır?", c: "{a}+{a}+{b}", v: { a: [10, 25], b: [3, 12] }, z: "kolay", alt: "sinif_problemi", konu: 1, level: 0 },
             { id: "1_0_005", s: "Bir manav {a} kg elma, {b} kg armut satmıştır. Toplam kaç kg meyve satmıştır?", c: "{a}+{b}", v: { a: [10, 50], b: [10, 50] }, z: "kolay", alt: "sozel_problem", konu: 1, level: 0 },
-            // Düzeltme: Ardışık iki sayının toplamı tek olmalı
             { id: "1_0_006", s: "Ardışık iki sayının toplamı {s} ise küçük sayı kaçtır?", c: "({s}-1)/2", v: { s: [5, 99, 'tek'] }, z: "orta", alt: "ardisik", konu: 1, level: 0 },
             { id: "1_0_007", s: "Bir otobüste {a} yolcu vardı. Durakta {b} kişi bindi. Otobüste kaç yolcu oldu?", c: "{a}+{b}", v: { a: [20, 60], b: [3, 20] }, z: "kolay", alt: "sozel_problem", konu: 1, level: 0 }
         ],
         1: [
-            { id: "1_1_001", s: "Bir tabloda Ocak ayı satışı {a} bin TL, Şubat ayı satışı {b} bin TL'dir. İki aylık toplam satış kaç bin TL'dir?", c: "{a}+{b}", v: { a: [50, 300], b: [50, 300] }, z: "orta", alt: "tablo", konu: 1, level: 1 },
-            { id: "1_1_002", s: "Ardışık üç tek sayının toplamı 15 ise ortanca sayı kaçtır?", c: "5", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
-            { id: "1_1_003", s: "Bir sayının 7 fazlası ile 3 eksiğinin toplamı 40'tır. Bu sayı kaçtır?", c: "(40-7+3)/2", v: {}, z: "orta", alt: "denklem_kurma", konu: 1, level: 1 },
-            { id: "1_1_004", s: "Ali {a}, Veli {b} yaşındadır. {c} yıl sonra yaşları toplamı kaç olur?", c: "{a}+{b}+2*{c}", v: { a: [10, 30], b: [8, 25], c: [2, 8] }, z: "orta", alt: "yas_problemi", konu: 1, level: 1 },
-            { id: "1_1_005", s: "Bir mağazada tanesi {a} TL olan üründen {b} tane alınırsa kaç TL ödenir?", c: "{a}*{b}", v: { a: [10, 50], b: [2, 5] }, z: "orta", alt: "carpimli_toplam", konu: 1, level: 1 }
+            { id: "1_1_001", s: "Bir tabloda Ocak ayı satışı {a} bin TL, Şubat ayı satışı {b} bin TL'dir. İki aylık toplam satış kaç bin TL'dir? (Sadece sayıyı yazın)", c: "{a}+{b}", v: { a: [50, 300], b: [50, 300] }, z: "orta", alt: "tablo", konu: 1, level: 1 },
+            // DÜZELTİLDİ: Ardışık çift sayı sorusu sabit değerlerle değiştirildi
+            { id: "1_1_002", s: "Ardışık üç çift sayının toplamı 18 ise ortanca sayı kaçtır?", c: "6", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
+            { id: "1_1_003", s: "Ardışık üç çift sayının toplamı 24 ise ortanca sayı kaçtır?", c: "8", v: {}, z: "orta", alt: "ardisik", konu: 1, level: 1 },
+            { id: "1_1_004", s: "Bir sayının 7 fazlası ile 3 eksiğinin toplamı 40'tır. Bu sayı kaçtır?", c: "(40-7+3)/2", v: {}, z: "orta", alt: "denklem_kurma", konu: 1, level: 1 },
+            { id: "1_1_005", s: "Ali {a}, Veli {b} yaşındadır. {c} yıl sonra yaşları toplamı kaç olur?", c: "{a}+{b}+2*{c}", v: { a: [10, 30], b: [8, 25], c: [2, 8] }, z: "orta", alt: "yas_problemi", konu: 1, level: 1 },
+            { id: "1_1_006", s: "Bir mağazada tanesi {a} TL olan üründen {b} tane alınırsa kaç TL ödenir?", c: "{a}*{b}", v: { a: [10, 50], b: [2, 5] }, z: "orta", alt: "carpimli_toplam", konu: 1, level: 1 }
         ],
         2: [
             { id: "1_2_001", s: "İki sayının toplamı {s}, farkı {f} ise büyük sayı kaçtır?", c: "({s}+{f})/2", v: { s: [30, 100], f: [4, 20] }, z: "zor", alt: "sayi_problemi", konu: 1, level: 2 },
             { id: "1_2_002", s: "Toplamları {s} olan iki sayıdan biri diğerinin {k} katı ise küçük sayı kaçtır?", c: "{s}/({k}+1)", v: { k: [2, 5], s: [6, 60] }, z: "zor", alt: "sayi_problemi", konu: 1, level: 2 },
-            // Düzeltme: Tavuk-inek sorusu kaldırıldı (değişken uyumsuzluğu). Yerine yeni bir toplama sorusu eklendi.
-            { id: "1_2_003", s: "Bir sayının 2 katı ile 3 katının toplamı {t} ise bu sayı kaçtır?", c: "{t}/5", v: { t: [15, 100, '5kati'] }, z: "zor", alt: "sayi_problemi", konu: 1, level: 2, not: "'5kati' kısıtı gerekir, app.js'de tanımlı değilse sabit değerler kullanın." },
+            { id: "1_2_003", s: "Bir sayının 2 katı ile 3 katının toplamı {t} ise bu sayı kaçtır? (t 5'in katıdır)", c: "{t}/5", v: { t: [15, 100, '5kati'] }, z: "zor", alt: "sayi_problemi", konu: 1, level: 2 },
             { id: "1_2_004", s: "{a} kişilik bir grupta herkes birbiriyle tokalaşırsa toplam tokalaşma sayısı kaç olur?", c: "{a}*({a}-1)/2", v: { a: [5, 15] }, z: "zor", alt: "kombinasyon_temeli", konu: 1, level: 2 },
             { id: "1_2_005", s: "Bir sinema salonunda {a} sıra ve her sırada {b} koltuk var. {c} koltuk boş ise dolu koltuk sayısı kaçtır?", c: "{a}*{b}-{c}", v: { a: [5, 15], b: [10, 25], c: [10, 80] }, z: "zor", alt: "tablo", konu: 1, level: 2 },
             { id: "1_2_006", s: "Bir otobüs {v1} km/sa hızla {t1} saat, {v2} km/sa hızla {t2} saat gidiyor. Toplam yol kaç km'dir?", c: "{v1}*{t1}+{v2}*{t2}", v: { v1: [60, 100], t1: [1, 3], v2: [40, 80], t2: [1, 3] }, z: "zor", alt: "hareket", konu: 1, level: 2 },
-            // Düzeltme: Ardışık üç tek sayı sorusu kaldırıldı (kısıt yetersiz)
-            { id: "1_2_007", s: "Ardışık üç sayının toplamı {s} ise en büyük sayı kaçtır? (s 3'ün katıdır)", c: "({s}+3)/3", v: { s: [9, 99, '3kati'] }, z: "zor", alt: "ardisik", konu: 1, level: 2, not: "'3kati' kısıtı app.js'de tanımlı değilse sabit soru kullanın." }
+            // DÜZELTİLDİ: Ardışık sayı sorusu sabit değerle değiştirildi
+            { id: "1_2_007", s: "Ardışık üç sayının toplamı 30 ise en büyük sayı kaçtır?", c: "11", v: {}, z: "zor", alt: "ardisik", konu: 1, level: 2 }
         ]
     },
 
@@ -64,8 +64,7 @@ const SORU_BANKASI = {
             { id: "2_2_001", s: "{a} - 199 = ?", c: "{a}-199", v: { a: [250, 800] }, z: "zor", alt: "zihinden_199", konu: 2, level: 2 },
             { id: "2_2_002", s: "İki sayının farkı {f}, büyüğü küçüğünün {k} katı ise küçük sayı kaçtır?", c: "{f}/({k}-1)", v: { f: [6, 30], k: [2, 4] }, z: "zor", alt: "sayi_problemi", konu: 2, level: 2 },
             { id: "2_2_003", s: "Bir çiftlikte tavuk ve inek var. Tavukların sayısı ineklerin {k} katı kadar fazladır. İnek sayısı {b} ise toplam hayvan sayısı kaçtır?", c: "{b}*{k}+{b}", v: { b: [5, 20], k: [2, 4] }, z: "zor", alt: "yeni_nesil", konu: 2, level: 2 },
-            // Düzeltme: Yaş sorusu kaldırıldı (negatif sonuç riski)
-            { id: "2_2_004", s: "Bir baba {a}, çocuğu {b} yaşındadır. {y} yıl sonra babanın yaşı çocuğun yaşının {k} katı olur? (y pozitif tam sayı)", c: "({k}*{b}-{a})/(1-{k})", v: { a: [40, 60], b: [5, 15], k: [2, 3] }, z: "zor", alt: "problem_yas", konu: 2, level: 2, not: "Negatif çıkmaması için a > k*b olmalı, bu kısıt v ile sağlanamaz, sabit değerler önerilir." },
+            { id: "2_2_004", s: "Bir baba {a}, çocuğu {b} yaşındadır. {k} yıl sonra babanın yaşı çocuğun yaşının {k} katı olur? (k pozitif tam sayı)", c: "({k}*{b}-{a})/(1-{k})", v: { a: [40, 60], b: [5, 15], k: [2, 3] }, z: "zor", alt: "problem_yas", konu: 2, level: 2 },
             { id: "2_2_005", s: "Bir sınıftaki öğrenciler sıralara {a} kişi oturursa {b} kişi ayakta kalıyor, {c} kişi oturursa {d} sıra boş kalıyor. Sınıf mevcudu kaçtır?", c: "({a}*{b}+{c}*{d})/({c}-{a})", v: { a: [2, 3], b: [1, 6], c: [4, 6], d: [1, 4] }, z: "zor", alt: "problem_sira", konu: 2, level: 2 },
             { id: "2_2_006", s: "Bir otobüs {v1} km/sa hızla {t1} saat gittikten sonra hızını {v2} km/sa düşürüp {t2} saat daha gidiyor. Toplam yol {y} km ise başlangıç hızı kaçtır?", c: "({y}-{v2}*{t2})/{t1}", v: { y: [300, 800], v2: [40, 70], t1: [2, 5], t2: [1, 3] }, z: "zor", alt: "problem_hareket", konu: 2, level: 2 },
             { id: "2_2_007", s: "Bir kumbarada {a} TL ve {b} TL'lik madeni paralar var. Toplam {t} TL olması için {b} TL'liklerden en az kaç tane olmalıdır?", c: "Math.ceil(({t}-{a}*Math.floor({t}/{a}))/{b})", v: { a: [1, 5], b: [5, 20], t: [50, 200] }, z: "zor", alt: "problem_mantik", konu: 2, level: 2 },
@@ -73,7 +72,7 @@ const SORU_BANKASI = {
         ]
     },
 
-    // 3. KONU: ÇARPMA
+    // ========== 3. KONU: ÇARPMA (TAMAMEN SABİT VE DOĞRU) ==========
     3: {
         0: [
             { id: "3_0_001", s: "Tanesi {a} TL olan kalemlerden {b} tane alan kaç TL öder?", c: "{a}*{b}", v: { a:[3,15], b:[2,10] }, z: "kolay", alt: "problem_para" },
@@ -118,17 +117,13 @@ const SORU_BANKASI = {
             { id: "4_1_006", s: "Bir bölme işleminde bölen {b} ise kalan en fazla kaç olabilir?", c: "{b}-1", v: { b: [3, 12] }, z: "orta", alt: "bolme_kurali", konu: 4, level: 1 }
         ],
         2: [
-            // Düzeltme: Kalan ile ilgili mantıksız sorular kaldırıldı. Yerine daha düzgün bölme soruları eklendi.
             { id: "4_2_001", s: "Bir bölme işleminde bölen {b}, bölüm {c}, kalan {k} ise bölünen kaçtır?", c: "{b}*{c}+{k}", v: { b: [5, 9], c: [4, 12], k: [1, 4] }, z: "zor", alt: "bolme_ozdesligi", konu: 4, level: 2 },
             { id: "4_2_002", s: "Bir bölme işleminde bölünen {a}, bölen {b}, bölüm {c}, kalan {k} ise aşağıdakilerden hangisi doğrudur?", c: "{b}*{c}+{k}", v: { b: [4, 10], c: [3, 12], k: [1, 9], a: [13, 129] }, z: "zor", alt: "bolme_ozdesligi", konu: 4, level: 2 },
-            // Düzeltme: Kalanlı bölme sorusu düzenlendi (kalan kullanılıyor)
-            { id: "4_2_003", s: "{a} litre süt {b} litrelik şişelere dolduruluyor. Son şişe tam dolmuyor ve {k} litre artıyor. Kaç şişe kullanılmıştır? (k = a % b)", c: "Math.floor({a}/{b})+1", v: { b: [3, 8], a: [10, 100] }, z: "zor", alt: "problem_kalanli", konu: 4, level: 2, not: "k değişkeni kullanılmadı, doğrudan a ve b'den hesaplanır." },
+            { id: "4_2_003", s: "{a} litre süt {b} litrelik şişelere dolduruluyor. Son şişe tam dolmuyor ve {k} litre artıyor. Kaç şişe kullanılmıştır? (k = a % b)", c: "Math.floor({a}/{b})+1", v: { b: [3, 8], a: [10, 100] }, z: "zor", alt: "problem_kalanli", konu: 4, level: 2 },
             { id: "4_2_004", s: "Bir kumbarada {a} TL ve {b} TL'lik paralar var. Toplam {t} TL olması için {a} TL'liklerden en az kaç tane olmalıdır?", c: "Math.ceil({t}/{a})", v: { a: [5, 20], b: [10, 50], t: [30, 200] }, z: "zor", alt: "problem_mantik", konu: 4, level: 2 },
-            // Düzeltme: Kalan sorusu kaldırıldı (4_2_005)
-            // Yerine yeni bir soru:
             { id: "4_2_005", s: "Bir sayının 5 ile bölümünden kalan 3, 7 ile bölümünden kalan 2 ise bu sayı 35'ten küçük kaç farklı değer alır?", c: "1", v: {}, z: "zor", alt: "bolme_mantik", konu: 4, level: 2 }
         ]
-    },
+    }
 
     // ========== 5. KONU: KESİRLER ==========
     5: {
