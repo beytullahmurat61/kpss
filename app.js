@@ -1,14 +1,14 @@
 // ============================================
-// KPSS MATEMATİK ANA UYGULAMA
+// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ SORU MOTORU V2
 // 20 Konu | 3 Level | Grafiksel Soru Motoru | Groq API
-// Tüm sorunlar giderildi, kullanıcı deneyimi iyileştirildi.
+// LRU Cache + Akıllı Kısıtlar + AI Varyasyon
 // ============================================
 
-console.log('🚀 KPSS Matematik Uygulaması başlıyor...');
+console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V2)');
 
 // ========== STATE ==========
 let ST = {
-    version: 7.6,
+    version: 7.7,
     grokApiKey: '',
     currentTopic: 1,
     currentLevel: 0,
@@ -32,7 +32,7 @@ let ST = {
     examTimer: null,
     pendingExamSet: null,
     pendingCompletionTopic: null,
-    lastQuestions: {}
+    lastQuestions: {} // legacy, artık kullanılmıyor
 };
 
 // ========== GROQ API ==========
@@ -44,21 +44,17 @@ function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)
 function shuffleArray(arr) { const s = [...arr]; for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; } return s; }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
-// DÜZENLENMİŞ normAns - "bin", "000", birimleri temizler
+// normAns - birim ve bin temizliği
 function normAns(s) { 
     if (!s) return ''; 
     let cleaned = String(s).toLowerCase().trim(); 
     cleaned = cleaned.replace(/\s*(bin|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)\b/gi, ''); 
-    if (/^\d+000$/.test(cleaned)) {
-        cleaned = cleaned.replace(/000$/, '');
-    }
+    if (/^\d+000$/.test(cleaned)) cleaned = cleaned.replace(/000$/, '');
     cleaned = cleaned.replace(/[.,](\d{3})\b/g, '$1'); 
     cleaned = cleaned.replace(/,/g, '.'); 
     cleaned = cleaned.replace(/[×x]/g, '*'); 
     cleaned = cleaned.replace(/\s+/g, ''); 
-    if (!isNaN(parseFloat(cleaned)) && isFinite(cleaned)) {
-        cleaned = parseFloat(cleaned).toString();
-    }
+    if (!isNaN(parseFloat(cleaned)) && isFinite(cleaned)) cleaned = parseFloat(cleaned).toString();
     return cleaned; 
 }
 
@@ -86,7 +82,7 @@ function maxArtisAyi(ocak, subat, mart, nisan) { const artis1 = subat - ocak; co
 function katsayiCikar(sayi) { let disari = 1; for (let i = Math.floor(Math.sqrt(sayi)); i >= 2; i--) { if (sayi % (i*i) === 0) { disari = i; sayi = sayi / (i*i); break; } } return disari === 1 ? `√${sayi}` : `${disari}√${sayi}`; }
 function eslenikYap(a, b) { return `(√${a} - √${b})/(${a} - ${b})`; }
 
-// ========== SORU MOTORU ==========
+// ========== SORU BANKASI YÜKLEME ==========
 let QUESTION_TEMPLATES = {};
 function loadQuestions() { 
     for (let topicId = 1; topicId <= 20; topicId++) { 
@@ -107,36 +103,119 @@ function loadQuestions() {
     console.log('✅ Sorular yüklendi'); 
 }
 
-function generateVariables(varRanges) {
+// ========== 1. LRU GEÇMİŞ CACHE ==========
+class LRUQuestionCache {
+    constructor(maxSize = 60) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+    }
+    has(fp) { return this.cache.has(fp); }
+    add(fp) {
+        if (this.cache.has(fp)) this.cache.delete(fp);
+        this.cache.set(fp, Date.now());
+        if (this.cache.size > this.maxSize) {
+            this.cache.delete(this.cache.keys().next().value);
+        }
+    }
+    clear() { this.cache.clear(); }
+}
+
+const QE_HISTORIES = {};
+function getQEHistory(topicId, level) {
+    const k = `${topicId}_${level}`;
+    if (!QE_HISTORIES[k]) QE_HISTORIES[k] = new LRUQuestionCache(60);
+    return QE_HISTORIES[k];
+}
+
+function makeFingerprint(templateId, answer) {
+    const num = parseFloat(String(answer));
+    const rounded = isNaN(num) ? String(answer).trim() : Math.round(num * 10) / 10;
+    return `${templateId}|${rounded}`;
+}
+
+// ========== 2. GELİŞMİŞ PARAMETRE ÜRETME ==========
+function advancedGenerateVariables(varRanges, template) {
     if (!varRanges || Object.keys(varRanges).length === 0) return {};
+    const alt = template?.alt || '';
+
+    for (let attempt = 0; attempt < 150; attempt++) {
+        const vars = {};
+
+        for (let [key, range] of Object.entries(varRanges)) {
+            if (key === 'kosul') continue;
+            if (Array.isArray(range)) {
+                let [min, max, constraint] = range;
+                min = Number(min); max = Number(max);
+                let val = Math.floor(Math.random() * (max - min + 1)) + min;
+                if (constraint) {
+                    const cs = String(constraint).split('_');
+                    for (let c of cs) {
+                        if (c === 'tek' && val % 2 === 0) val = val > min ? val - 1 : val + 1;
+                        else if (c === 'cift' && val % 2 !== 0) val = val > min ? val - 1 : val + 1;
+                        else if (/^\d+kati$/.test(c)) {
+                            const k = parseInt(c);
+                            val = Math.round(val / k) * k;
+                            if (val < min) val += k;
+                            if (val > max) val -= k;
+                        }
+                    }
+                }
+                vars[key] = val;
+            } else if (typeof range === 'string') {
+                vars[key] = range;
+            } else {
+                vars[key] = range;
+            }
+        }
+
+        // Ardışık iki sayı toplamı tek olmalı
+        if (alt === 'ardisik' && template?.s?.includes('Ardışık iki') && vars.s !== undefined) {
+            if (vars.s % 2 === 0) continue;
+        }
+        // Ardışık üç çift sayı toplamı 6'nın katı olmalı
+        if (alt === 'ardisik' && template?.s?.includes('üç çift') && vars.s !== undefined) {
+            if (vars.s % 6 !== 0) continue;
+        }
+        // Ardışık üç tek sayı toplamı 6k+3 olmalı
+        if (alt === 'ardisik' && template?.s?.includes('üç tek') && vars.s !== undefined) {
+            if (vars.s % 6 !== 3) continue;
+        }
+        // Tam bölme gerektiren şablonlar
+        if ((alt === 'bolme' || alt === 'problem_bolme') && vars.a !== undefined && vars.b !== undefined) {
+            if (vars.b === 0 || vars.a % vars.b !== 0) continue;
+        }
+        // Yaş problemi: çözüm pozitif tam sayı olmalı
+        if (alt === 'problem_yas' && vars.a !== undefined && vars.b !== undefined && vars.k !== undefined) {
+            if (vars.k === 1) continue;
+            const cozum = (vars.k * vars.b - vars.a) / (1 - vars.k);
+            if (cozum <= 0 || !Number.isInteger(cozum) || cozum > 100) continue;
+        }
+        // Oran problemi: sonuç tam sayı olmalı
+        if ((alt === 'oran' || alt === 'problem_oran') && vars.a !== undefined && vars.b !== undefined && vars.t !== undefined) {
+            if ((vars.t * vars.a) % (vars.a + vars.b) !== 0) continue;
+        }
+        // Kesir sadeleştirme: pay ve payda ortak çarpan içermeli
+        if (alt === 'kesir_sadele' && vars.a !== undefined && vars.b !== undefined) {
+            const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
+            if (gcd(Math.abs(vars.a), Math.abs(vars.b)) < 2) continue;
+        }
+        // Genel: a > b kısıtı
+        if (vars.a !== undefined && vars.b !== undefined) {
+            const templateStr = JSON.stringify(template?.s || '');
+            if (templateStr.includes('{a} - {b}') && vars.a <= vars.b) continue;
+            if (templateStr.includes('{b} - {a}') && vars.b <= vars.a) continue;
+        }
+
+        return vars;
+    }
+
+    // Fallback: basit üret
     const vars = {};
     for (let [key, range] of Object.entries(varRanges)) {
         if (key === 'kosul') continue;
         if (Array.isArray(range)) {
-            let [min, max, constraint] = range;
-            min = Number(min);
-            max = Number(max);
-            let val = Math.floor(Math.random() * (max - min + 1)) + min;
-            
-            if (constraint) {
-                const constraints = String(constraint).split('_');
-                for (let c of constraints) {
-                    if (c === 'tek') {
-                        if (val % 2 === 0) val = (val > min ? val - 1 : val + 1);
-                    } else if (c === 'cift') {
-                        if (val % 2 !== 0) val = (val > min ? val - 1 : val + 1);
-                    } else if (c.endsWith('kati')) {
-                        const k = parseInt(c);
-                        if (!isNaN(k) && k > 0) {
-                            val = Math.round(val / k) * k;
-                            if (val < min) val += k;
-                            if (val > max) val -= k;
-                            if (val < min || val > max) val = min;
-                        }
-                    }
-                }
-            }
-            vars[key] = val;
+            let [min, max] = range;
+            vars[key] = Math.floor(Math.random() * (max - min + 1)) + min;
         } else if (typeof range === 'string') {
             vars[key] = range;
         } else {
@@ -146,6 +225,174 @@ function generateVariables(varRanges) {
     return vars;
 }
 
+// ========== 3. CEVAP MANTIK KONTROLÜ ==========
+function isAnswerSane(answer, template) {
+    const num = parseFloat(String(answer));
+    if (isNaN(num)) return String(answer).trim().length > 0 && String(answer).trim().length < 30;
+    if (!isFinite(num)) return false;
+    if (Math.abs(num) > 1_000_000) return false;
+    if (template?.z !== 'kolay' && Math.abs(num) < 0.0001 && num !== 0) return false;
+    if (template?.z === 'kolay' && !Number.isInteger(num) && !String(answer).includes('/')) return false;
+    return true;
+}
+
+// ========== 4. GROQ VARYASYON Kuyruğu ==========
+const groqVariationQueue = {};
+const GROQ_QUEUE_FILL_RATE = 5;
+let _questionCounter = 0;
+
+async function generateGroqVariation(template, vars, exampleAnswer, groqApiKey) {
+    if (!groqApiKey) return null;
+    const exampleQuestion = fillTemplate(template.s, vars);
+    const prompt = `Sen bir KPSS matematik soru üreticisisin. Aşağıdaki ÖRNEK soruyu incele ve aynı KONU ve ZORLUK seviyesinde, farklı sayılarla YENİ bir soru üret.
+
+KURALLAR:
+1. Sayıları değiştir ama soru TİPİNİ koru
+2. Cevap tam sayı veya basit kesir (ör: 3/4)
+3. Büyük sayılar kullanma
+4. Soruyu Türkçe yaz
+5. JSON formatında: {"soru": "...", "cevap": "..."}
+
+ÖRNEK SORU: ${exampleQuestion}
+DOĞRU CEVABI: ${exampleAnswer}
+ZORLUK: ${template.z || 'orta'}
+
+SADECE JSON dön, başka şey yazma.`;
+
+    try {
+        const response = await fetch(GROK_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqApiKey}` },
+            body: JSON.stringify({
+                model: GROK_MODEL,
+                messages: [
+                    { role: 'system', content: 'Sen bir KPSS matematik soru üreticisisin. Sadece JSON formatında yanıt verirsin.' },
+                    { role: 'user', content: prompt }
+                ],
+                max_tokens: 300,
+                temperature: 0.7
+            })
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content?.trim();
+        if (!content) return null;
+        let parsed;
+        try {
+            const cleaned = content.replace(/```json|```/g, '').trim();
+            parsed = JSON.parse(cleaned);
+        } catch(e) { return null; }
+        if (!parsed?.soru || parsed?.cevap === undefined) return null;
+        const groqAnswer = String(parsed.cevap).trim();
+        const num = parseFloat(groqAnswer);
+        if (isNaN(num) && !/^\d+\/\d+$/.test(groqAnswer)) return null;
+        if (!isNaN(num) && (Math.abs(num) > 100000 || !isFinite(num))) return null;
+        return { soru: parsed.soru, cevap: groqAnswer };
+    } catch(e) {
+        console.warn('[Groq Variation] Hata:', e.message);
+        return null;
+    }
+}
+
+async function prefetchGroqVariation(topicId, level) {
+    if (!ST.grokApiKey) return;
+    const templates = QUESTION_TEMPLATES[topicId]?.[level];
+    if (!templates || templates.length === 0) return;
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    const vars = advancedGenerateVariables(template.v || {}, template);
+    let exampleAnswer = fillTemplate(template.c, vars);
+    try {
+        if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(exampleAnswer)) exampleAnswer = eval(exampleAnswer);
+        exampleAnswer = Number.isInteger(exampleAnswer) ? exampleAnswer : Math.round(exampleAnswer * 100) / 100;
+    } catch(e) {}
+    const variation = await generateGroqVariation(template, vars, String(exampleAnswer), ST.grokApiKey);
+    if (variation) {
+        const key = `${topicId}_${level}`;
+        if (!groqVariationQueue[key]) groqVariationQueue[key] = [];
+        if (groqVariationQueue[key].length < 3) {
+            groqVariationQueue[key].push({ ...variation, template, zorluk: template.z || 'orta', alt: template.alt || '' });
+        }
+    }
+}
+
+function dequeueGroqVariation(topicId, level) {
+    const key = `${topicId}_${level}`;
+    const queue = groqVariationQueue[key];
+    if (!queue || queue.length === 0) return null;
+    const item = queue.shift();
+    const history = getQEHistory(topicId, level);
+    const fp = makeFingerprint('groq_' + item.template.id, item.cevap);
+    if (history.has(fp)) return null;
+    history.add(fp);
+    return {
+        id: 'groq_' + item.template.id,
+        soru: item.soru,
+        cevap: item.cevap,
+        cevapRaw: parseFloat(item.cevap) || item.cevap,
+        zorluk: item.zorluk,
+        alt: item.alt,
+        vars: {},
+        template: item.template,
+        source: 'groq'
+    };
+}
+
+// ========== 5. GELİŞMİŞ SORU ÜRETME ==========
+function generateQuestion(topicId, level, preventRepeat = true) {
+    _questionCounter++;
+    if (_questionCounter % GROQ_QUEUE_FILL_RATE === 0 && ST.grokApiKey) {
+        prefetchGroqVariation(topicId, level).catch(() => {});
+    }
+    if (_questionCounter % 3 === 0) {
+        const groqQ = dequeueGroqVariation(topicId, level);
+        if (groqQ) return groqQ;
+    }
+    return generateQuestionFromTemplate(topicId, level, preventRepeat);
+}
+
+function generateQuestionFromTemplate(topicId, level, preventRepeat = true) {
+    const templates = QUESTION_TEMPLATES[topicId]?.[level];
+    if (!templates || templates.length === 0) return fallbackQuestion();
+    const history = getQEHistory(topicId, level);
+    const shuffled = shuffleArray([...templates]);
+
+    for (let ti = 0; ti < shuffled.length; ti++) {
+        const template = shuffled[ti];
+        for (let va = 0; va < 40; va++) {
+            const vars = advancedGenerateVariables(template.v || {}, template);
+            let questionText = fillTemplate(template.s, vars);
+            let answer = fillTemplate(template.c, vars);
+            try {
+                if (/maxKisi|medyan|mod|maxArtisAyi|eslenikYap|katsayiCikar|Math\./.test(answer)) {
+                    answer = eval(answer);
+                } else if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(answer)) {
+                    answer = eval(answer);
+                }
+                answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000;
+            } catch(e) { answer = template.c; }
+            if (!isAnswerSane(answer, template)) continue;
+            const fp = makeFingerprint(template.id, answer);
+            if (preventRepeat && history.has(fp)) continue;
+            history.add(fp);
+            return {
+                id: template.id,
+                soru: questionText,
+                cevap: String(answer),
+                cevapRaw: answer,
+                zorluk: template.z || 'orta',
+                alt: template.alt || '',
+                vars: vars,
+                template: template,
+                source: 'template'
+            };
+        }
+    }
+    // Cache temizle ve tekrar dene
+    history.clear();
+    console.warn(`[QE] Cache temizlendi: konu ${topicId} level ${level}`);
+    return generateQuestionFromTemplate(topicId, level, false);
+}
+
 function fillTemplate(text, vars) { 
     if (!text) return ''; 
     let result = String(text); 
@@ -153,87 +400,6 @@ function fillTemplate(text, vars) {
         result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val); 
     } 
     return result; 
-}
-
-// Geçerlilik kontrolü yardımcısı
-function isQuestionValid(template, vars, answer) {
-    // Ardışık iki sayı toplamı tek olmalı
-    if (template.alt === 'ardisik' && template.s.includes('Ardışık iki')) {
-        return (vars.s % 2 === 1);
-    }
-    // Ardışık üç çift sayı toplamı 6'nın katı olmalı
-    if (template.alt === 'ardisik' && template.s.includes('üç çift')) {
-        return (vars.s % 6 === 0);
-    }
-    // Ardışık üç tek sayı toplamı 3'ün katı ve tek (yani 3'ün tek katı) -> 3,9,15,... ama 3'ün tek katı aslında 3*(2k+1) = 6k+3
-    if (template.alt === 'ardisik' && template.s.includes('üç tek')) {
-        return (vars.s % 6 === 3);
-    }
-    // Yaş problemi: çözüm pozitif tam sayı olmalı (template.c'yi eval etmek zor, basitçe vars kontrolü)
-    if (template.alt === 'problem_yas' && vars.a && vars.b && vars.k) {
-        let cozum = (vars.k * vars.b - vars.a) / (1 - vars.k);
-        return (cozum > 0 && Number.isInteger(cozum));
-    }
-    // Bölme işleminde tam bölünme kontrolü (eğer c ifadesi '/' içeriyorsa)
-    if (template.alt === 'problem_bolme' && template.c.includes('/') && vars.a && vars.b) {
-        return (vars.a % vars.b === 0);
-    }
-    // Cevabın tam sayı olmasını istiyorsak (zor seviye için)
-    if (template.z === 'zor' && !Number.isInteger(answer)) {
-        return false;
-    }
-    return true;
-}
-
-function generateQuestion(topicId, level, preventRepeat = true) { 
-    const templates = QUESTION_TEMPLATES[topicId]?.[level]; 
-    if (!templates || templates.length === 0) return fallbackQuestion(); 
-    let availableTemplates = [...templates]; 
-    if (preventRepeat) { 
-        const key = `${topicId}_${level}`; 
-        const lastId = ST.lastQuestions[key]; 
-        if (lastId) { 
-            availableTemplates = templates.filter(t => t.id !== lastId); 
-        } 
-        if (availableTemplates.length === 0) { 
-            availableTemplates = [...templates]; 
-            ST.lastQuestions[key] = null; 
-        } 
-    } 
-    
-    let maxAttempts = 30;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const template = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
-        const vars = generateVariables(template.v || {});
-        let questionText = fillTemplate(template.s, vars);
-        let answer = fillTemplate(template.c, vars);
-        try { 
-            if (answer.includes('Math.') || answer.includes('maxKisi') || answer.includes('medyan') || answer.includes('mod') || answer.includes('maxArtisAyi') || answer.includes('eslenikYap') || answer.includes('katsayiCikar')) { 
-                answer = eval(answer); 
-            } else if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(answer)) { 
-                answer = eval(answer); 
-            } 
-            answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000; 
-        } catch(e) { 
-            answer = template.c; 
-        }
-        if (isQuestionValid(template, vars, answer)) {
-            const key = `${topicId}_${level}`;
-            ST.lastQuestions[key] = template.id;
-            return { 
-                id: template.id, 
-                soru: questionText, 
-                cevap: String(answer), 
-                cevapRaw: answer, 
-                zorluk: template.z || 'orta', 
-                alt: template.alt || '', 
-                vars: vars, 
-                template: template 
-            };
-        }
-    }
-    console.warn(`Geçerli soru üretilemedi, fallback kullanılıyor: konu ${topicId}, level ${level}`);
-    return fallbackQuestion(); 
 }
 
 function fallbackQuestion() { 
@@ -481,7 +647,7 @@ function toggleDrawingPadSize(canvasId) {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem('kpss_mat_v7') || '{}');
-        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6) {
+        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7) {
             Object.assign(ST, saved);
         }
     } catch(e) { console.warn(e); }
@@ -498,7 +664,7 @@ function loadState() {
 function saveState() {
     try {
         const toSave = {
-            version: 7.6,
+            version: 7.7,
             currentTopic: ST.currentTopic,
             currentLevel: ST.currentLevel,
             streak: ST.streak,
@@ -865,12 +1031,33 @@ function checkQBAnswer() {
 function skipQBQuestion() { const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; prog.solved++; ST.questionBankProgress[ST.currentTopic] = prog; saveState(); renderQBSolveHeader(); nextQBQuestion(); }
 function nextQBQuestion() { ST.currentQuestion = null; renderNextQBQuestion(); }
 
-// ========== DENEME SINAVI ==========
+// ========== DENEME SINAVI (GELİŞTİRİLMİŞ) ==========
 function renderExamList() { const el = document.getElementById('examListContent'); if (!el) return; let html = '<div class="card"><h3>📋 Deneme Sınavları</h3>'; for (let i = 0; i < 3; i++) { const exam = ST.examHistory[i]; const examNum = i + 1; const status = exam ? `✅ ${exam.net} net (${exam.date})` : '⭕ Çözülmedi'; html += `<div class="exam-item" onclick="showExamOptions(${examNum})"><div><div class="exam-title">Deneme ${examNum}</div><div class="exam-desc">20-30 soru</div></div><div class="exam-status">${status}</div></div>`; } html += '</div>'; el.innerHTML = html; }
 function showExamOptions(setId) { ST.pendingExamSet = setId; document.getElementById('examOptionsModal').classList.remove('hidden'); }
 function closeExamOptions() { document.getElementById('examOptionsModal').classList.add('hidden'); }
-function startExam(questionCount) { closeExamOptions(); const allQuestions = []; for (let topicId = 1; topicId <= 20; topicId++) { for (let level = 0; level <= 2; level++) { const templates = QUESTION_TEMPLATES[topicId]?.[level] || []; allQuestions.push(...templates); } } const shuffled = shuffleArray(allQuestions); const selected = shuffled.slice(0, questionCount).map(t => generateQuestionFromTemplate(t)); ST.examMode = true; ST.examQuestions = selected; ST.examCurrentIndex = 0; ST.examAnswers = []; ST.examTimeLeft = questionCount * 60; showView('vExam'); startExamTimer(); renderExamQuestion(); }
-function generateQuestionFromTemplate(template) { const vars = generateVariables(template.v || {}); const questionText = fillTemplate(template.s, vars); let answer = fillTemplate(template.c, vars); try { if (answer.includes('Math.') || answer.includes('maxKisi') || answer.includes('medyan') || answer.includes('mod') || answer.includes('maxArtisAyi') || answer.includes('eslenikYap') || answer.includes('katsayiCikar')) { answer = eval(answer); } else if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(answer)) { answer = eval(answer); } answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000; } catch(e) { answer = template.c; } return { ...template, soru: questionText, cevap: String(answer), vars: vars }; }
+
+function startExam(questionCount) {
+    closeExamOptions();
+    showView('vExam');
+    document.getElementById('examContent').innerHTML = '<div class="card"><p>Sorular hazırlanıyor...</p></div>';
+    
+    const selected = [];
+    for (let i = 0; i < questionCount; i++) {
+        const randomTopic = randomInt(1, 20);
+        const randomLevel = randomInt(0, 2);
+        const q = generateQuestion(randomTopic, randomLevel, true);
+        selected.push(q);
+    }
+    
+    ST.examMode = true;
+    ST.examQuestions = selected;
+    ST.examCurrentIndex = 0;
+    ST.examAnswers = [];
+    ST.examTimeLeft = questionCount * 60;
+    startExamTimer();
+    renderExamQuestion();
+}
+
 function startExamTimer() { if (ST.examTimer) clearInterval(ST.examTimer); ST.examTimer = setInterval(() => { if (ST.examTimeLeft > 0) { ST.examTimeLeft--; updateExamTimerDisplay(); if (ST.examTimeLeft === 0) finishExam(); } }, 1000); }
 function updateExamTimerDisplay() { const m = Math.floor(ST.examTimeLeft / 60), s = ST.examTimeLeft % 60; document.getElementById('examTimer').textContent = `${m}:${s.toString().padStart(2, '0')}`; if (ST.examTimeLeft < 60) document.getElementById('examTimer').style.color = 'var(--danger)'; }
 function renderExamQuestion() { const q = ST.examQuestions[ST.examCurrentIndex]; const zc = q.zorluk === 'kolay' ? 'badge-grn' : (q.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); document.getElementById('examContent').innerHTML = `<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${ST.examCurrentIndex+1}/${ST.examQuestions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span></div></div>${renderQuestionHTML(q)}<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." onkeydown="if(event.key==='Enter') submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" onclick="skipExamAnswer()">Boş Bırak →</button></div>`; setTimeout(() => document.getElementById('examAnsInp')?.focus(), 150); }
@@ -886,7 +1073,7 @@ function renderStats() { const acc = ST.totalSolved > 0 ? Math.round((ST.totalCo
 async function askGrokForSolution(question, correctAnswer, userAnswer) { if (!ST.grokApiKey) { return '⚠️ Groq API anahtarı girilmedi. Ayarlar\'dan ekleyin.\n\n🔗 console.groq.com adresinden ücretsiz API anahtarı (gsk_...) alabilirsiniz.'; } const prompt = `Sen bir KPSS matematik öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.\n\nSoru: ${question}\nDoğru cevap: ${correctAnswer}\nÖğrencinin cevabı: ${userAnswer || '(boş bıraktı)'}\n\nLütfen:\n1. Soruyu kısa çöz (3-5 adım)\n2. Hangi formül/kural kullanıldığını belirt\n3. Öğrencinin hatasını varsa düzelt\n4. Sonucu vurgula`; try { const response = await fetch(GROK_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ST.grokApiKey}` }, body: JSON.stringify({ model: GROK_MODEL, messages: [ { role: 'system', content: 'Sen bir matematik öğretmenisin. Öğrencilere KPSS matematik sorularını açıklıyorsun. Kısa, net ve anlaşılır ol.' }, { role: 'user', content: prompt } ], max_tokens: 800, temperature: 0.3 }) }); if (!response.ok) { const errorText = await response.text(); console.error('Groq API Hatası:', response.status, errorText); if (response.status === 401) return '❌ API anahtarı geçersiz! Lütfen Ayarlar\'dan doğru anahtarı girin.\n\n🔑 console.groq.com adresinden yeni anahtar alabilirsiniz.'; if (response.status === 429) return '⚠️ API kullanım limiti aşıldı. Lütfen biraz bekleyip tekrar deneyin.'; return `❌ API hatası (${response.status}). Lütfen daha sonra tekrar deneyin.`; } const data = await response.json(); return data.choices?.[0]?.message?.content || 'Açıklama alınamadı. Lütfen tekrar deneyin.'; } catch(e) { console.error('Groq API bağlantı hatası:', e); if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) return '❌ İnternet bağlantınızı kontrol edin. API sunucusuna bağlanılamıyor.'; return `❌ Bağlantı hatası: ${e.message}\n\nLütfen internet bağlantınızı kontrol edin ve tekrar deneyin.`; } }
 function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) { const btn = document.createElement('button'); btn.className = 'btn btn-grok'; btn.innerHTML = '🤖 Groq ile Çözümü Gör'; btn.style.marginTop = '12px'; btn.style.width = '100%'; btn.onclick = async () => { btn.disabled = true; btn.innerHTML = '🤖 Groq düşünüyor...'; btn.style.opacity = '0.7'; const explanation = await askGrokForSolution(question, correctAnswer, userAnswer); const box = document.createElement('div'); box.className = 'grok-explanation'; box.style.marginTop = '12px'; box.innerHTML = `<div class="grok-header">🤖 <strong>Groq Açıklıyor</strong></div><div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>`; btn.replaceWith(box); }; targetEl.appendChild(btn); }
 
-// ========== MÜSVEDDE (ESKİ FONKSİYONLAR) ==========
+// ========== MÜSVEDDE ==========
 function clearScratchpad() { const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); if (canvas) clearDrawingPad(canvas.id); else ST.scratchpad = ''; saveState(); }
 function copyScratchpad() { const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); if (canvas) copyDrawingPad(canvas.id); else alert('Çizim alanı bulunamadı.'); }
 function toggleScratchpadSize() { const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); if (canvas) toggleDrawingPadSize(canvas.id); }
@@ -921,6 +1108,6 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Uygulama hazır! (Tüm iyileştirmeler yapıldı)');
+    console.log('✅ Gelişmiş Soru Motoru V2 Aktif! LRU Cache + Groq Varyasyon + Akıllı Kısıtlar');
 }
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
