@@ -1,6 +1,6 @@
 /* ============================================
    KPSS MATEMATİK - ANA STİL DOSYASI
-   Versiyon: 8.1 (Çizim Destekli Müsvedde)
+   Versiyon: 8.2 (Autofill Engelli + Çizim Destekli)
    20 Konu • 3 Seviye • Mobil Uyumlu
    ============================================ */
 
@@ -448,6 +448,62 @@ body {
 .ans-inp::placeholder { color: var(--text-muted); }
 .ans-hint { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
 
+/* ==================== AUTOFILL ENGELLEME (KRİTİK) ==================== */
+/* Bu bölüm otomatik doldurma sorununu tamamen çözer */
+
+/* 1. Autofill arka planını temizle - Webkit (Chrome, Edge, Safari) */
+input.ans-inp:-webkit-autofill,
+input.ans-inp:-webkit-autofill:hover,
+input.ans-inp:-webkit-autofill:focus,
+input.ans-inp:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 100px var(--bg-input) inset !important;
+    box-shadow: 0 0 0 100px var(--bg-input) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    background-color: var(--bg-input) !important;
+    background-image: none !important;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+/* 2. Readonly modda autofill engelle */
+input.ans-inp[readonly] {
+    background-color: var(--bg-input);
+    cursor: text;
+}
+
+/* 3. Firefox için autofill engelle */
+input.ans-inp {
+    filter: none;
+}
+
+/* 4. Input alanının otomatik doldurulmasını tamamen engelle */
+input.ans-inp {
+    transition: background-color 0.1s ease;
+}
+
+/* 5. Credential Manager popup'ını engelleme ipucu (tamamen engelleyemez ama azaltır) */
+input.ans-inp::-webkit-credentials-auto-fill-button,
+input.ans-inp::-webkit-credentials-auto-fill-button:active {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* 6. Password manager popup'ını gizleme */
+input.ans-inp::-webkit-strong-password-auto-fill-button,
+input.ans-inp::-webkit-strong-password-auto-fill-button:active {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* 7. input alanını form dışında tutmak için yardımcı (autocomplete kapat) */
+input.ans-inp {
+    autocomplete: off;
+    autocapitalize: none;
+    autocorrect: off;
+    spellcheck: false;
+}
+
 /* ==================== MÜSVEDDE (ÇİZİM ALANI) ==================== */
 .scratchpad-area {
     margin-top: 16px;
@@ -467,7 +523,7 @@ body {
 .drawing-pad {
     display: block;
     width: 100%;
-    touch-action: none;      /* Dokunmatikte kaydırmayı engeller */
+    touch-action: none;
     cursor: crosshair;
     background: #fefefe;
     border-radius: 8px;
