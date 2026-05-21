@@ -1,15 +1,15 @@
 // ============================================
-// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ MOTOR V4
+// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ MOTOR V5
+// Otomatik doldurma (autofill) tamamen engellenmiştir
 // Groq: Şablonlardan örnek alarak soru varyasyonu üretir
-// + Çözüm açıklaması için de kullanılır
 // LRU Cache + Akıllı Kısıtlar Aktif
 // ============================================
 
-console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V4)');
+console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V5 - Autofill Engellendi)');
 
 // ========== STATE ==========
 let ST = {
-    version: 7.9,
+    version: 8.0,
     grokApiKey: '',
     currentTopic: 1,
     currentLevel: 0,
@@ -439,7 +439,7 @@ function renderQuestionHTML(qData) {
     return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; 
 }
 
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</tr></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</td>`; }).join('')}</tbody></table></div>`; }
+function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</table></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
 
 function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
 
@@ -682,7 +682,7 @@ function toggleDrawingPadSize(canvasId) {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem('kpss_mat_v7') || '{}');
-        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7 || saved.version === 7.8 || saved.version === 7.9) {
+        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7 || saved.version === 7.8 || saved.version === 7.9 || saved.version === 8.0) {
             Object.assign(ST, saved);
         }
     } catch(e) { console.warn(e); }
@@ -700,7 +700,7 @@ function loadState() {
 function saveState() {
     try {
         const toSave = {
-            version: 7.9,
+            version: 8.0,
             currentTopic: ST.currentTopic,
             currentLevel: ST.currentLevel,
             streak: ST.streak,
@@ -861,6 +861,7 @@ function renderNextQuestion() {
     ST.currentQuestion = { ...qData, level };
     const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn');
     
+    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
     document.getElementById('learnContent').innerHTML = `
         <div class="prog-bar-wrap"><div class="prog-bar-label"><span>${levelConfig.icon} ${levelConfig.name}</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div>
         <div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${((levelProg.total)/levelConfig.questionCount)*100}%"></div></div></div>
@@ -868,7 +869,7 @@ function renderNextQuestion() {
             <div class="q-header"><span class="q-counter">Soru ${levelProg.total+1}/${levelConfig.questionCount}</span>
             <div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span><span class="badge badge-acc">${levelConfig.name}</span></div></div>
             ${renderQuestionHTML(qData)}
-            <div class="ans-row"><input id="ansInp" class="ans-inp" type="text" inputmode="decimal" placeholder="Cevabını yaz..." autocomplete="off" onkeydown="if(event.key==='Enter') checkAnswer()">
+            <div class="ans-row"><input id="ansInp" class="ans-inp" type="text" inputmode="decimal" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') checkAnswer()">
             <button class="btn btn-primary" onclick="checkAnswer()">✓</button></div>
             <div class="ans-hint">Sayı veya kesir (ör: 3/4) olarak yaz</div>
         </div>
@@ -890,7 +891,11 @@ function renderNextQuestion() {
     
     setTimeout(() => {
         setupDrawingPad('scratchpadCanvas', ST.scratchpad || null);
-        document.getElementById('ansInp')?.focus();
+        const ansInp = document.getElementById('ansInp');
+        if (ansInp) {
+            ansInp.value = '';  // Tarayıcı ne doldurduysa temizle
+            ansInp.focus();
+        }
     }, 50);
 }
 
@@ -1061,13 +1066,15 @@ function renderNextQBQuestion() {
     ST.currentQuestion = { ...qData, mode: 'questionBank' }; 
     const topic = getTopicById(ST.currentTopic); 
     const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); 
+    
+    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
     document.getElementById('qbSolveContent').innerHTML = `
         <div class="prog-bar-wrap"><div class="prog-bar-label"><span>${topic?.n || ''}</span><span>${prog.solved}/100</span></div>
         <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(prog.solved/100)*100}%"></div></div></div>
         <div class="card accent-top">
             <div class="q-header"><span class="q-counter">Soru ${prog.solved+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span></div></div>
             ${renderQuestionHTML(qData)}
-            <div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div>
+            <div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div>
             <button class="btn btn-ghost btn-full" onclick="skipQBQuestion()">Boş Bırak →</button>
         </div>
         <div id="feedbackAreaQB"></div>
@@ -1083,7 +1090,11 @@ function renderNextQBQuestion() {
     `; 
     setTimeout(() => { 
         setupDrawingPad('qbScratchpadCanvas', ST.scratchpad || null); 
-        document.getElementById('qbAnsInp')?.focus(); 
+        const qbAnsInp = document.getElementById('qbAnsInp');
+        if (qbAnsInp) {
+            qbAnsInp.value = '';  // Tarayıcı ne doldurduysa temizle
+            qbAnsInp.focus();
+        }
     }, 50); 
 }
 
@@ -1200,8 +1211,16 @@ function updateExamTimerDisplay() {
 function renderExamQuestion() { 
     const q = ST.examQuestions[ST.examCurrentIndex]; 
     const zc = q.zorluk === 'kolay' ? 'badge-grn' : (q.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); 
-    document.getElementById('examContent').innerHTML = `<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${ST.examCurrentIndex+1}/${ST.examQuestions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span></div></div>${renderQuestionHTML(q)}<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" onkeydown="if(event.key==='Enter') submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" onclick="skipExamAnswer()">Boş Bırak →</button></div>`; 
-    setTimeout(() => document.getElementById('examAnsInp')?.focus(), 150); 
+    
+    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
+    document.getElementById('examContent').innerHTML = `<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${ST.examCurrentIndex+1}/${ST.examQuestions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span></div></div>${renderQuestionHTML(q)}<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" onclick="skipExamAnswer()">Boş Bırak →</button></div>`; 
+    setTimeout(() => {
+        const examAnsInp = document.getElementById('examAnsInp');
+        if (examAnsInp) {
+            examAnsInp.value = '';  // Tarayıcı ne doldurduysa temizle
+            examAnsInp.focus();
+        }
+    }, 150); 
 }
 
 function submitExamAnswer() { 
@@ -1391,7 +1410,7 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Gelişmiş Motor V4 Aktif! Groq: Şablon tabanlı varyasyon + Çözüm açıklaması');
+    console.log('✅ Gelişmiş Motor V5 Aktif! Autofill tamamen engellendi.');
 }
 
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
