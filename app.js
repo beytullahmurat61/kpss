@@ -1,15 +1,16 @@
 // ============================================
-// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ MOTOR V5
+// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ MOTOR V6
 // Otomatik doldurma (autofill) tamamen engellenmiştir
+// Konu tamamlandığında ilerleme çubuğu %100 gösterir
 // Groq: Şablonlardan örnek alarak soru varyasyonu üretir
 // LRU Cache + Akıllı Kısıtlar Aktif
 // ============================================
 
-console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V5 - Autofill Engellendi)');
+console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V6 - Autofill Engellendi)');
 
 // ========== STATE ==========
 let ST = {
-    version: 8.0,
+    version: 8.1,
     grokApiKey: '',
     currentTopic: 1,
     currentLevel: 0,
@@ -439,7 +440,7 @@ function renderQuestionHTML(qData) {
     return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; 
 }
 
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</table></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div>`; }
+function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</table></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</table>`; }).join('')}</tbody></table></div>`; }
 
 function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
 
@@ -682,7 +683,7 @@ function toggleDrawingPadSize(canvasId) {
 function loadState() {
     try {
         const saved = JSON.parse(localStorage.getItem('kpss_mat_v7') || '{}');
-        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7 || saved.version === 7.8 || saved.version === 7.9 || saved.version === 8.0) {
+        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7 || saved.version === 7.8 || saved.version === 7.9 || saved.version === 8.0 || saved.version === 8.1) {
             Object.assign(ST, saved);
         }
     } catch(e) { console.warn(e); }
@@ -700,7 +701,7 @@ function loadState() {
 function saveState() {
     try {
         const toSave = {
-            version: 8.0,
+            version: 8.1,
             currentTopic: ST.currentTopic,
             currentLevel: ST.currentLevel,
             streak: ST.streak,
@@ -771,7 +772,7 @@ function updateHomeStats() {
     document.getElementById('statStreak').textContent = ST.maxStreak; 
 }
 
-// ========== KONU LİSTESİ ==========
+// ========== KONU LİSTESİ (DÜZENLENDİ - TAMAMLANAN KONULAR %100 GÖSTERİR) ==========
 function renderTopicsList() { 
     const el = document.getElementById('topicsList'); 
     if (!el) return; 
@@ -779,8 +780,16 @@ function renderTopicsList() {
     for (let topic of TOPICS) { 
         const completed = ST.completedTopics.includes(topic.id); 
         const prog = getTopicProgress(topic.id); 
-        const totalSolved = (prog.level0?.total || 0) + (prog.level1?.total || 0) + (prog.level2?.total || 0); 
-        const pct = Math.min(100, Math.round((totalSolved / 90) * 100)); 
+        
+        let pct;
+        if (completed) {
+            // Konu tamamlandıysa bar %100 olsun
+            pct = 100;
+        } else {
+            const totalSolved = (prog.level0?.total || 0) + (prog.level1?.total || 0) + (prog.level2?.total || 0);
+            pct = Math.min(100, Math.round((totalSolved / 90) * 100));
+        }
+        
         const locked = topic.locked && !completed && ST.completedTopics.length < topic.order - 1; 
         let cls = 'topic-row'; 
         if (completed) cls += ' t-done'; 
@@ -1410,7 +1419,7 @@ function startApp() {
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Gelişmiş Motor V5 Aktif! Autofill tamamen engellendi.');
+    console.log('✅ Gelişmiş Motor V6 Aktif! Autofill engellendi, tamamlanan konular %100 gösterir.');
 }
 
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
