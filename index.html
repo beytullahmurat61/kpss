@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f0f23">
     <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="google" content="notranslate">
-    <title>KPSS Matematik | Konu Çalış + Soru Bankası + Deneme</title>
+    <meta name="google" content="notranslate">
+    <title>Misyon Koruma | Ders Çalış + Soru Bankası + Eşleştirme</title>
 
-    <!-- FAVICON - Bu satırı ekleyin -->
-    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧮%3C/text%3E%3C/svg%3E">
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛡️%3C/text%3E%3C/svg%3E">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
         <!-- HEADER -->
         <header id="mainHeader">
             <button class="btn-icon" id="btnBack" onclick="goBack()" aria-label="Geri">←</button>
-            <span id="headerTitle">KPSS Matematik</span>
+            <span id="headerTitle">Misyon Koruma</span>
             <button class="btn-icon" id="btnMenu" onclick="toggleMenu()" aria-label="Menü">☰</button>
         </header>
 
@@ -30,11 +30,272 @@
             <div class="overlay-bg" onclick="toggleMenu()"></div>
             <div class="overlay-panel">
                 <div class="side-menu-header">
-                    <span>📚 Menü</span>
+                    <span>🛡️ Menü</span>
                     <button class="btn-icon" onclick="toggleMenu()">✕</button>
                 </div>
                 <div class="side-menu-actions">
                     <button class="btn btn-ghost btn-full" onclick="goHome(); toggleMenu();">🏠 Ana Sayfa</button>
+                    <button class="btn btn-ghost btn-full" onclick="goCourses(); toggleMenu();">📚 Ders Çalış</button>
+                    <button class="btn btn-ghost btn-full" onclick="goQuestionBank(); toggleMenu();">📝 Soru Bankası</button>
+                    <button class="btn btn-ghost btn-full" onclick="goMatching(); toggleMenu();">🎯 Eşleştirme</button>
+                    <button class="btn btn-ghost btn-full" onclick="goStats(); toggleMenu();">📊 İstatistikler</button>
+                </div>
+                <div class="side-menu-footer">
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('api');">🔑 Groq API Anahtarı</button>
+                    <button class="btn btn-ghost btn-full" onclick="toggleMenu(); openModal('reset');">🔄 Sıfırla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <main id="mainContent">
+
+            <!-- ==================== ANA SAYFA ==================== -->
+            <div id="vHome" class="view active">
+                <div class="hero-section">
+                    <div class="hero-icon">🛡️</div>
+                    <h1>Misyon Koruma</h1>
+                    <p class="hero-sub">12 Ders • Ünite Ünite • Binlerce Soru</p>
+                </div>
+
+                <div class="stats-row" id="homeStatsRow">
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statCourses">0</span>
+                        <span class="stat-mini-lbl">Ders</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statQuestions">0</span>
+                        <span class="stat-mini-lbl">Soru</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statAccuracy">%0</span>
+                        <span class="stat-mini-lbl">Doğruluk</span>
+                    </div>
+                    <div class="stat-mini" onclick="goStats()">
+                        <span class="stat-mini-val" id="statStreak">0</span>
+                        <span class="stat-mini-lbl">Seri</span>
+                    </div>
+                </div>
+
+                <!-- Kaldığın yerden devam -->
+                <div id="continueCard" class="continue-card hidden" onclick="continueLast()">
+                    <div class="continue-left">
+                        <span class="continue-icon">▶️</span>
+                        <div>
+                            <div class="continue-title">Kaldığın Yerden Devam</div>
+                            <div class="continue-sub" id="continueSub">—</div>
+                        </div>
+                    </div>
+                    <span class="continue-arrow">→</span>
+                </div>
+
+                <div class="btn-group-vertical">
+                    <button class="btn btn-primary btn-full" onclick="goCourses()">
+                        📚 Ders Çalış
+                        <span class="btn-sub" id="homeCoursesProgress">0/12 ders</span>
+                    </button>
+                    <button class="btn btn-accent btn-full" onclick="goQuestionBank()">
+                        📝 Soru Bankası
+                        <span class="btn-sub">Ders ders + Karma</span>
+                    </button>
+                    <button class="btn btn-match btn-full" onclick="goMatching()">
+                        🎯 Eşleştirme Tablosu
+                        <span class="btn-sub">Doğru–Yanlış / Eşleştirme</span>
+                    </button>
+                    <button class="btn btn-stats btn-full" onclick="goStats()">
+                        📊 İstatistikler
+                        <span class="btn-sub">Detaylı analiz</span>
+                    </button>
+                </div>
+
+                <!-- Günlük Hedef -->
+                <div class="daily-goal-card">
+                    <div class="daily-goal-head">
+                        <span>🎯 Günlük Hedef</span>
+                        <span id="dailyGoalCounter">0/20</span>
+                    </div>
+                    <div class="daily-goal-bar"><div id="dailyGoalFill" class="daily-goal-fill"></div></div>
+                    <div class="daily-goal-note">Bugün çözdüğün soru sayısı</div>
+                </div>
+            </div>
+
+            <!-- ==================== DERS LİSTESİ ==================== -->
+            <div id="vCourses" class="view">
+                <div class="section-header">
+                    <h2>📚 Dersler</h2>
+                    <span class="badge" id="coursesDoneLabel">0/12</span>
+                </div>
+                <div id="coursesList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- ==================== ÜNİTE LİSTESİ (Bir dersin üniteleri) ==================== -->
+            <div id="vUnits" class="view">
+                <div class="section-header">
+                    <h2 id="unitsCourseTitle">Ders</h2>
+                    <span class="badge" id="unitsProgress">0/0</span>
+                </div>
+                <div id="unitsList" class="topics-list"></div>
+            </div>
+
+            <!-- ==================== ÜNİTE İÇERİĞİ (Konu anlatımı + ünite sonu sorular) ==================== -->
+            <div id="vUnitDetail" class="view">
+                <div class="learn-header">
+                    <h2 id="unitTitle">Ünite</h2>
+                    <span class="badge badge-acc" id="unitBadge">Konu</span>
+                </div>
+
+                <!-- Sekmeler -->
+                <div class="tab-bar" id="unitTabBar">
+                    <button class="tab-btn active" data-tab="lesson" onclick="switchUnitTab('lesson')">📖 Konu Anlatımı</button>
+                    <button class="tab-btn" data-tab="quiz" onclick="switchUnitTab('quiz')">✍️ Ünite Sonu Soruları</button>
+                </div>
+
+                <!-- Konu anlatımı -->
+                <div id="unitLessonTab" class="tab-content active">
+                    <div id="unitLessonContent" class="learn-content"></div>
+                    <div class="btn-row" style="margin-top: 16px;">
+                        <button class="btn btn-ghost btn-full" onclick="markUnitRead()">✅ Okudum, Anladım</button>
+                        <button class="btn btn-primary btn-full" onclick="switchUnitTab('quiz')">✍️ Sorulara Geç</button>
+                    </div>
+                </div>
+
+                <!-- Ünite sonu soruları -->
+                <div id="unitQuizTab" class="tab-content">
+                    <div id="unitQuizContent" class="learn-content"></div>
+                </div>
+            </div>
+
+            <!-- ==================== SORU BANKASI (ders seçimi) ==================== -->
+            <div id="vQuestionBank" class="view">
+                <div class="section-header">
+                    <h2>📝 Soru Bankası</h2>
+                    <span>Ders ders + Karma</span>
+                </div>
+
+                <!-- Karma Sorular Kartı -->
+                <div class="qb-special-card" onclick="startMixedQuestions()">
+                    <div class="qb-special-icon">🎲</div>
+                    <div class="qb-special-info">
+                        <div class="qb-special-title">Karma Sorular</div>
+                        <div class="qb-special-sub">Tüm derslerden rastgele sorular</div>
+                    </div>
+                    <div class="qb-special-arrow">→</div>
+                </div>
+
+                <div class="section-subheader">
+                    <h3>Ders Ders Sorular</h3>
+                </div>
+                <div id="qbCoursesList" class="topics-list">
+                    <div class="loading">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- ==================== SORU BANKASI ÇÖZME ==================== -->
+            <div id="vQBSolve" class="view">
+                <div class="learn-header">
+                    <h2 id="qbSolveTitle">Soru Bankası</h2>
+                    <span class="badge badge-acc" id="qbSolveProgress">0/0</span>
+                </div>
+                <div id="qbSolveContent" class="learn-content"></div>
+            </div>
+
+            <!-- ==================== EŞLEŞTİRME ==================== -->
+            <div id="vMatching" class="view">
+                <div class="section-header">
+                    <h2>🎯 Eşleştirme Tablosu</h2>
+                    <span>Doğru–Yanlış / Eşleştir</span>
+                </div>
+                <div id="matchingContent"></div>
+            </div>
+
+            <!-- ==================== İSTATİSTİKLER ==================== -->
+            <div id="vStats" class="view">
+                <div class="section-header"><h2>📊 İstatistikler</h2></div>
+                <div id="statsContent"><div class="loading">Yükleniyor...</div></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODALLAR ==================== -->
+    <!-- Groq API Modal -->
+    <div id="apiModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('api')"></div>
+        <div class="modal-card">
+            <h3>🔑 Groq API Anahtarı</h3>
+            <p style="font-size: 13px; color: #9090aa; margin-bottom: 12px;">
+                🤖 <a href="https://console.groq.com/keys" target="_blank" style="color: #7c8aff;">console.groq.com/keys</a> adresinden ücretsiz alabilirsiniz.
+            </p>
+            <input id="apiInp" class="input" type="password" placeholder="gsk_...">
+            <div class="btn-row">
+                <button class="btn btn-ghost btn-full" onclick="closeModal('api')">Vazgeç</button>
+                <button class="btn btn-primary btn-full" onclick="saveKey()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Modal -->
+    <div id="resetModal" class="modal hidden">
+        <div class="modal-bg" onclick="closeModal('reset')"></div>
+        <div class="modal-card">
+            <h3>🔄 Sıfırla</h3>
+            <button class="btn btn-ghost btn-full" onclick="doReset('course')">📘 Sadece Bu Dersi Sıfırla</button>
+            <button class="btn btn-ghost btn-full" onclick="doReset('unit')">📄 Sadece Bu Üniteyi Sıfırla</button>
+            <button class="btn btn-danger btn-full" onclick="doReset('all')">🗑️ Tüm İlerlemeyi Sıfırla</button>
+            <button class="btn btn-ghost btn-full" onclick="closeModal('reset')">Vazgeç</button>
+        </div>
+    </div>
+
+    <!-- Ünite Tamamlama Popup -->
+    <div id="completionPopup" class="modal hidden">
+        <div class="modal-bg" onclick="closeCompletionPopup()"></div>
+        <div class="modal-card" style="text-align: center;">
+            <div style="font-size: 48px;">🏆</div>
+            <h3 id="completionUnitTitle">Tebrikler!</h3>
+            <p id="completionMessage" style="margin: 12px 0;">Üniteyi başarıyla tamamladın!</p>
+            <div class="btn-row" style="flex-direction: column; gap: 8px;">
+                <button class="btn btn-accent btn-full" onclick="goToQuestionBankFromPopup()">📝 Soru Bankası'nda Pekiştir</button>
+                <button class="btn btn-primary btn-full" onclick="goToNextUnitFromPopup()">➡️ Sonraki Üniteye Geç</button>
+                <button class="btn btn-ghost btn-full" onclick="closeCompletionPopup()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTLER ==================== -->
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="matching.js"></script>
+<script src="app.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🛡️ Misyon Koruma uygulaması başlatılıyor...');
+
+        const required = [
+            { name: 'TOPICS', file: 'config.js' },
+            { name: 'SORU_BANKASI', file: 'questions.js' },
+            { name: 'startApp', file: 'app.js' }
+        ];
+
+        for (const r of required) {
+            if (typeof window[r.name] === 'undefined') {
+                console.error(`❌ ${r.file} yüklenemedi! ${r.name} tanımlı değil.`);
+                document.body.innerHTML =
+                    `<div style="padding:20px;text-align:center;color:red;font-family:sans-serif">
+                        ❌ ${r.file} dosyası yüklenemedi!<br>Lütfen sayfayı yenileyin.
+                    </div>`;
+                return;
+            }
+        }
+
+        console.log('✅ Tüm dosyalar yüklendi.');
+        startApp();
+    });
+</script>
+</body>
+</html>                    <button class="btn btn-ghost btn-full" onclick="goHome(); toggleMenu();">🏠 Ana Sayfa</button>
                     <button class="btn btn-ghost btn-full" onclick="goTopics(); toggleMenu();">📚 Konu Çalış</button>
                     <button class="btn btn-ghost btn-full" onclick="goQuestionBank(); toggleMenu();">📝 Soru Bankası</button>
                     <button class="btn btn-ghost btn-full" onclick="goExamList(); toggleMenu();">📋 Deneme Sınavı</button>
