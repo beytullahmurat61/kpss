@@ -1,39 +1,38 @@
 // ============================================
-// KPSS MATEMATİK ANA UYGULAMA - GELİŞMİŞ MOTOR V6
-// Otomatik doldurma (autofill) tamamen engellenmiştir
-// Konu tamamlandığında ilerleme çubuğu %100 gösterir
-// Groq: Şablonlardan örnek alarak soru varyasyonu üretir
-// LRU Cache + Akıllı Kısıtlar Aktif
+// MİSYON KORUMA SINAVI - ANA UYGULAMA MOTORU V1
+// Ders → Ünite → Konu Anlatımı + Ünite Soruları
+// Soru Bankası: Ders ders + Karma
+// Eşleştirme Tablosu modülü entegre
+// Autofill engellendi | Groq entegrasyonu aktif
 // ============================================
 
-console.log('🚀 KPSS Matematik Uygulaması başlıyor... (Gelişmiş Motor V6 - Autofill Engellendi)');
+console.log('🚀 Misyon Koruma uygulaması başlıyor...');
 
 // ========== STATE ==========
 let ST = {
-    version: 8.1,
+    version: 1.0,
     grokApiKey: '',
-    currentTopic: 1,
-    currentLevel: 0,
+    currentCourse: 1,
+    currentUnit: null,
+    currentUnitTab: 'lesson',
     streak: 0,
     maxStreak: 0,
     totalCorrect: 0,
     totalSolved: 0,
-    completedTopics: [],
-    topicProgress: {},
-    questionBankProgress: {},
-    examHistory: [],
+    completedCourses: [],
+    completedUnits: [],
+    unitProgress: {},          // { 'anayasa-1': { correct, total, completed } }
+    questionBankProgress: {},  // { courseId: { solved, correct } }
+    mixedProgress: { solved: 0, correct: 0 },
+    matchingProgress: {},      // { setId: { correct, total } }
+    dailyGoal: { date: '', solved: 0, target: 20 },
+    lastVisited: null,         // { courseId, unitId, tab }
     scratchpad: '',
-    phase: 'summary',
     currentQuestion: null,
     currentView: 'vHome',
-    examMode: false,
-    examQuestions: [],
-    examCurrentIndex: 0,
-    examAnswers: [],
-    examTimeLeft: 0,
-    examTimer: null,
-    pendingExamSet: null,
-    pendingCompletionTopic: null
+    examMode: false,           // artık kullanılmıyor ama uyumluluk için
+    pendingCompletionUnit: null,
+    pendingCompletionCourse: null
 };
 
 // ========== GROQ API ==========
@@ -74,662 +73,120 @@ function checkEqual(userAns, correctAns) {
     } catch(e) { return false; } 
 }
 
-// ========== GRAFİK YARDIMCILARI ==========
-function maxKisi(a, b, c) { if (a >= b && a >= c) return "Ali"; if (b >= a && b >= c) return "Veli"; return "Can"; }
-function medyan(...sayilar) { const sorted = [...sayilar].sort((x, y) => x - y); const mid = Math.floor(sorted.length / 2); return sorted.length % 2 === 0 ? (sorted[mid-1] + sorted[mid]) / 2 : sorted[mid]; }
-function mod(...sayilar) { const freq = {}; sayilar.forEach(s => freq[s] = (freq[s] || 0) + 1); let maxFreq = 0, modVal = sayilar[0]; for (let [val, f] of Object.entries(freq)) { if (f > maxFreq) { maxFreq = f; modVal = Number(val); } } return modVal; }
-function maxArtisAyi(ocak, subat, mart, nisan) { const artis1 = subat - ocak; const artis2 = mart - subat; const artis3 = nisan - mart; const maxArtis = Math.max(artis1, artis2, artis3); if (maxArtis === artis1) return "Şubat"; if (maxArtis === artis2) return "Mart"; return "Nisan"; }
-function katsayiCikar(sayi) { let disari = 1; for (let i = Math.floor(Math.sqrt(sayi)); i >= 2; i--) { if (sayi % (i*i) === 0) { disari = i; sayi = sayi / (i*i); break; } } return disari === 1 ? `√${sayi}` : `${disari}√${sayi}`; }
-function eslenikYap(a, b) { return `(√${a} - √${b})/(${a} - ${b})`; }
-
 // ========== SORU BANKASI YÜKLEME ==========
-let QUESTION_TEMPLATES = {};
-function loadQuestions() { 
-    for (let topicId = 1; topicId <= 20; topicId++) { 
-        QUESTION_TEMPLATES[topicId] = {}; 
-        for (let level = 0; level <= 2; level++) { 
-            QUESTION_TEMPLATES[topicId][level] = []; 
-        } 
-    } 
-    for (let topicId in SORU_BANKASI) { 
-        const tId = parseInt(topicId); 
-        for (let level in SORU_BANKASI[topicId]) { 
-            const lvl = parseInt(level); 
-            if (QUESTION_TEMPLATES[tId] && QUESTION_TEMPLATES[tId][lvl]) { 
-                QUESTION_TEMPLATES[tId][lvl] = SORU_BANKASI[topicId][level]; 
-            } 
-        } 
-    } 
-    console.log('✅ Sorular yüklendi'); 
-}
+// questions.js yapısı: SORU_BANKASI = { units: {...}, mixed: [...] }
+let UNIT_QUESTIONS = {};   // { unitId: [ {q, options, answer}, ... ] }
+let MIXED_QUESTIONS = [];  // [ {q, options, answer}, ... ]
 
-// ========== 1. LRU GEÇMİŞ CACHE ==========
-class LRUQuestionCache {
-    constructor(maxSize = 60) {
-        this.maxSize = maxSize;
-        this.cache = new Map();
-    }
-    has(fp) { return this.cache.has(fp); }
-    add(fp) {
-        if (this.cache.has(fp)) this.cache.delete(fp);
-        this.cache.set(fp, Date.now());
-        if (this.cache.size > this.maxSize) {
-            this.cache.delete(this.cache.keys().next().value);
-        }
-    }
-    clear() { this.cache.clear(); }
-}
+function loadQuestions() {
+    UNIT_QUESTIONS = {};
+    MIXED_QUESTIONS = [];
 
-const QE_HISTORIES = {};
-function getQEHistory(topicId, level) {
-    const k = `${topicId}_${level}`;
-    if (!QE_HISTORIES[k]) QE_HISTORIES[k] = new LRUQuestionCache(60);
-    return QE_HISTORIES[k];
-}
-
-function makeFingerprint(templateId, answer) {
-    const num = parseFloat(String(answer));
-    const rounded = isNaN(num) ? String(answer).trim() : Math.round(num * 10) / 10;
-    return `${templateId}|${rounded}`;
-}
-
-// ========== 2. GELİŞMİŞ PARAMETRE ÜRETME ==========
-function advancedGenerateVariables(varRanges, template) {
-    if (!varRanges || Object.keys(varRanges).length === 0) return {};
-    const alt = template?.alt || '';
-
-    for (let attempt = 0; attempt < 150; attempt++) {
-        const vars = {};
-
-        for (let [key, range] of Object.entries(varRanges)) {
-            if (key === 'kosul') continue;
-            if (Array.isArray(range)) {
-                let [min, max, constraint] = range;
-                min = Number(min); max = Number(max);
-                let val = Math.floor(Math.random() * (max - min + 1)) + min;
-                if (constraint) {
-                    const cs = String(constraint).split('_');
-                    for (let c of cs) {
-                        if (c === 'tek' && val % 2 === 0) val = val > min ? val - 1 : val + 1;
-                        else if (c === 'cift' && val % 2 !== 0) val = val > min ? val - 1 : val + 1;
-                        else if (/^\d+kati$/.test(c)) {
-                            const k = parseInt(c);
-                            val = Math.round(val / k) * k;
-                            if (val < min) val += k;
-                            if (val > max) val -= k;
-                        }
-                    }
-                }
-                vars[key] = val;
-            } else if (typeof range === 'string') {
-                vars[key] = range;
-            } else {
-                vars[key] = range;
-            }
-        }
-
-        // Kısıt kontrolleri
-        if (alt === 'ardisik' && template?.s?.includes('Ardışık iki') && vars.s !== undefined) {
-            if (vars.s % 2 === 0) continue;
-        }
-        if (alt === 'ardisik' && template?.s?.includes('üç çift') && vars.s !== undefined) {
-            if (vars.s % 6 !== 0) continue;
-        }
-        if (alt === 'ardisik' && template?.s?.includes('üç tek') && vars.s !== undefined) {
-            if (vars.s % 6 !== 3) continue;
-        }
-        if ((alt === 'bolme' || alt === 'problem_bolme') && vars.a !== undefined && vars.b !== undefined) {
-            if (vars.b === 0 || vars.a % vars.b !== 0) continue;
-        }
-        if (alt === 'problem_yas' && vars.a !== undefined && vars.b !== undefined && vars.k !== undefined) {
-            if (vars.k === 1) continue;
-            const cozum = (vars.k * vars.b - vars.a) / (1 - vars.k);
-            if (cozum <= 0 || !Number.isInteger(cozum) || cozum > 100) continue;
-        }
-        if ((alt === 'oran' || alt === 'problem_oran') && vars.a !== undefined && vars.b !== undefined && vars.t !== undefined) {
-            if ((vars.t * vars.a) % (vars.a + vars.b) !== 0) continue;
-        }
-        if (alt === 'kesir_sadele' && vars.a !== undefined && vars.b !== undefined) {
-            const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
-            if (gcd(Math.abs(vars.a), Math.abs(vars.b)) < 2) continue;
-        }
-        if (vars.a !== undefined && vars.b !== undefined) {
-            const templateStr = JSON.stringify(template?.s || '');
-            if (templateStr.includes('{a} - {b}') && vars.a <= vars.b) continue;
-            if (templateStr.includes('{b} - {a}') && vars.b <= vars.a) continue;
-        }
-
-        return vars;
+    if (typeof SORU_BANKASI === 'undefined') {
+        console.warn('⚠️ SORU_BANKASI yüklenmedi');
+        return;
     }
 
-    // Fallback
-    const vars = {};
-    for (let [key, range] of Object.entries(varRanges)) {
-        if (key === 'kosul') continue;
-        if (Array.isArray(range)) {
-            let [min, max] = range;
-            vars[key] = Math.floor(Math.random() * (max - min + 1)) + min;
-        } else if (typeof range === 'string') {
-            vars[key] = range;
-        } else {
-            vars[key] = range;
+    // Ünite soruları
+    if (SORU_BANKASI.units) {
+        for (const [unitId, qs] of Object.entries(SORU_BANKASI.units)) {
+            UNIT_QUESTIONS[unitId] = qs || [];
         }
     }
-    return vars;
-}
 
-// ========== 3. CEVAP MANTIK KONTROLÜ ==========
-function isAnswerSane(answer, template) {
-    const num = parseFloat(String(answer));
-    if (isNaN(num)) return String(answer).trim().length > 0 && String(answer).trim().length < 30;
-    if (!isFinite(num)) return false;
-    if (Math.abs(num) > 1_000_000) return false;
-    if (template?.z !== 'kolay' && Math.abs(num) < 0.0001 && num !== 0) return false;
-    if (template?.z === 'kolay' && !Number.isInteger(num) && !String(answer).includes('/')) return false;
-    return true;
-}
-
-// ========== 4. GROQ VARYASYON (ŞABLON TABANLI) ==========
-const groqVariationQueue = {};
-const GROQ_QUEUE_FILL_RATE = 5;
-let _questionCounter = 0;
-
-async function generateGroqVariation(template, vars, exampleAnswer, groqApiKey) {
-    if (!groqApiKey) return null;
-    
-    const exampleQuestion = fillTemplate(template.s, vars);
-    
-    const prompt = `Sen bir KPSS matematik soru üreticisisin. Aşağıdaki ÖRNEK soruyu incele ve aynı KONU ve ZORLUK seviyesinde, farklı sayılarla YENİ bir soru üret.
-
-ÖRNEK SORU: ${exampleQuestion}
-ÖRNEK CEVAP: ${exampleAnswer}
-SORU TİPİ: ${template.alt || 'standart'}
-ZORLUK: ${template.z || 'orta'}
-
-KURALLAR (KESİNLİKLE UYULMALI):
-1. Sayıları değiştir ama soru TİPİNİ ve çözüm YÖNTEMİNİ aynen koru
-2. Cevap MUTLAKA tam sayı veya basit kesir (ör: 3/4) olmalı
-3. Sayılar 1-1000 arasında olsun, çok büyük sayılar kullanma
-4. Soruyu Türkçe yaz, anlaşılır olsun
-5. SADECE JSON formatında cevap ver: {"soru": "...", "cevap": "..."}
-6. ASLA ek açıklama, uyarı veya başka şey yazma
-
-Şimdi SADECE JSON olarak yeni soruyu üret:`;
-
-    try {
-        const response = await fetch(GROK_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqApiKey}` },
-            body: JSON.stringify({
-                model: GROK_MODEL,
-                messages: [
-                    { role: 'system', content: 'Sen bir KPSS matematik soru üreticisisin. Sadece JSON formatında yanıt verirsin. Asla başka şey yazma.' },
-                    { role: 'user', content: prompt }
-                ],
-                max_tokens: 250,
-                temperature: 0.5
-            })
-        });
-        
-        if (!response.ok) return null;
-        
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (!content) return null;
-        
-        let cleaned = content.replace(/```json\s*|\s*```/g, '').trim();
-        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return null;
-        cleaned = jsonMatch[0];
-        
-        let parsed;
-        try {
-            parsed = JSON.parse(cleaned);
-        } catch(e) {
-            console.warn('[Groq] JSON parse hatası');
-            return null;
-        }
-        
-        if (!parsed?.soru || parsed?.cevap === undefined) return null;
-        
-        const groqAnswer = String(parsed.cevap).trim();
-        const num = parseFloat(groqAnswer);
-        
-        if (isNaN(num) && !/^\d+\/\d+$/.test(groqAnswer)) return null;
-        if (!isNaN(num) && (Math.abs(num) > 10000 || !isFinite(num))) return null;
-        if (groqAnswer.length === 0 || groqAnswer.length > 20) return null;
-        if (parsed.soru.length < 10 || parsed.soru.length > 300) return null;
-        
-        return { 
-            soru: parsed.soru, 
-            cevap: groqAnswer,
-            validated: true
-        };
-        
-    } catch(e) {
-        console.warn('[Groq Variation] Hata:', e.message);
-        return null;
+    // Karma sorular
+    if (Array.isArray(SORU_BANKASI.mixed)) {
+        MIXED_QUESTIONS = SORU_BANKASI.mixed;
     }
+
+    console.log(`✅ Sorular yüklendi: ${Object.keys(UNIT_QUESTIONS).length} ünite, ${MIXED_QUESTIONS.length} karma soru`);
 }
 
-async function prefetchGroqVariation(topicId, level) {
-    if (!ST.grokApiKey) return;
-    const templates = QUESTION_TEMPLATES[topicId]?.[level];
-    if (!templates || templates.length === 0) return;
-    const template = templates[Math.floor(Math.random() * templates.length)];
-    const vars = advancedGenerateVariables(template.v || {}, template);
-    let exampleAnswer = fillTemplate(template.c, vars);
-    try {
-        if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(exampleAnswer)) exampleAnswer = eval(exampleAnswer);
-        exampleAnswer = Number.isInteger(exampleAnswer) ? exampleAnswer : Math.round(exampleAnswer * 100) / 100;
-    } catch(e) {}
-    const variation = await generateGroqVariation(template, vars, String(exampleAnswer), ST.grokApiKey);
-    if (variation) {
-        const key = `${topicId}_${level}`;
-        if (!groqVariationQueue[key]) groqVariationQueue[key] = [];
-        if (groqVariationQueue[key].length < 3) {
-            groqVariationQueue[key].push({ ...variation, template, zorluk: template.z || 'orta', alt: template.alt || '' });
-        }
-    }
+// Ünitenin soruları (varsa)
+function getUnitQuestions(unitId) {
+    return UNIT_QUESTIONS[unitId] || [];
 }
 
-function dequeueGroqVariation(topicId, level) {
-    const key = `${topicId}_${level}`;
-    const queue = groqVariationQueue[key];
-    if (!queue || queue.length === 0) return null;
-    const item = queue.shift();
-    const history = getQEHistory(topicId, level);
-    const fp = makeFingerprint('groq_' + item.template.id, item.cevap);
-    if (history.has(fp)) return null;
-    history.add(fp);
-    return {
-        id: 'groq_' + item.template.id,
-        soru: item.soru,
-        cevap: item.cevap,
-        cevapRaw: parseFloat(item.cevap) || item.cevap,
-        zorluk: item.zorluk,
-        alt: item.alt,
-        vars: {},
-        template: item.template,
-        source: 'groq'
-    };
-}
-
-// ========== 5. SORU ÜRETME ==========
-function generateQuestion(topicId, level, preventRepeat = true) {
-    _questionCounter++;
-    
-    // Her 5 soruda bir Groq kuyruğunu doldur
-    if (_questionCounter % GROQ_QUEUE_FILL_RATE === 0 && ST.grokApiKey) {
-        prefetchGroqVariation(topicId, level).catch(() => {});
-    }
-    
-    // Her 3 soruda bir Groq varyasyonu kullan (varsa)
-    if (_questionCounter % 3 === 0 && ST.grokApiKey) {
-        const groqQ = dequeueGroqVariation(topicId, level);
-        if (groqQ) return groqQ;
-    }
-    
-    return generateQuestionFromTemplate(topicId, level, preventRepeat);
-}
-
-function generateQuestionFromTemplate(topicId, level, preventRepeat = true) {
-    const templates = QUESTION_TEMPLATES[topicId]?.[level];
-    if (!templates || templates.length === 0) return fallbackQuestion();
-    const history = getQEHistory(topicId, level);
-    const shuffled = shuffleArray([...templates]);
-
-    for (let ti = 0; ti < shuffled.length; ti++) {
-        const template = shuffled[ti];
-        for (let va = 0; va < 40; va++) {
-            const vars = advancedGenerateVariables(template.v || {}, template);
-            let questionText = fillTemplate(template.s, vars);
-            let answer = fillTemplate(template.c, vars);
-            try {
-                if (/maxKisi|medyan|mod|maxArtisAyi|eslenikYap|katsayiCikar|Math\./.test(answer)) {
-                    answer = eval(answer);
-                } else if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(answer)) {
-                    answer = eval(answer);
-                }
-                answer = Number.isInteger(answer) ? answer : Math.round(answer * 1000) / 1000;
-            } catch(e) { answer = template.c; }
-            if (!isAnswerSane(answer, template)) continue;
-            const fp = makeFingerprint(template.id, answer);
-            if (preventRepeat && history.has(fp)) continue;
-            history.add(fp);
-            return {
-                id: template.id,
-                soru: questionText,
-                cevap: String(answer),
-                cevapRaw: answer,
-                zorluk: template.z || 'orta',
-                alt: template.alt || '',
-                vars: vars,
-                template: template,
-                source: 'template'
-            };
-        }
-    }
-    history.clear();
-    console.warn(`[QE] Cache temizlendi: konu ${topicId} level ${level}`);
-    return generateQuestionFromTemplate(topicId, level, false);
-}
-
-function fillTemplate(text, vars) { 
-    if (!text) return ''; 
-    let result = String(text); 
-    for (let [key, val] of Object.entries(vars)) { 
-        result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), val); 
-    } 
-    return result; 
-}
-
-function fallbackQuestion() { 
-    return { id: 'fallback', soru: '1 + 1 = ?', cevap: '2', cevapRaw: 2, zorluk: 'kolay', alt: '' }; 
-}
-
-// ========== RENDER SORU ==========
-function renderQuestionHTML(qData) { 
-    const text = qData.soru || ''; 
-    const alt = qData.alt || ''; 
-    if (alt === 'tablo_toplama' || alt === 'carpim_tablosu') return renderTableQuestion(qData); 
-    if (alt === 'sutun_grafik') return renderBarChart(qData); 
-    if (alt === 'daire_grafik') return renderPieChart(qData); 
-    if (alt === 'cizgi_grafik') return renderLineChart(qData); 
-    if (alt === 'sayi_dogrusu') return renderNumberLine(qData); 
-    return `<div class="q-text">${text.replace(/\n/g, '<br>')}</div>`; 
-}
-
-function renderTableQuestion(qData) { const vars = qData.vars || {}; const a = Math.min(vars.a || 3, 10); const b = Math.min(vars.b || 4, 10); return `<div class="q-text">Çarpım tablosuna göre ${a} × ${b} = ?</div><div class="q-visual"><table class="q-table"><thead><tr><th>×</th>${[1,2,3,4,5,6,7,8,9,10].map(i=>`<th>${i}</th>`).join('')}</table></thead><tbody>${[...Array(a).keys()].map(ri => { const row = ri+1; return `<tr><th>${row}</th>${[1,2,3,4,5,6,7,8,9,10].map(ci => { const isTarget = (row === a && ci === b); return `<td class="${isTarget ? 'cell-target' : ''}">${isTarget ? '?' : row*ci}</td>`; }).join('')}</table>`; }).join('')}</tbody></table></div>`; }
-
-function renderBarChart(qData) { const vars = qData.vars || {}; const a = vars.a || 40, b = vars.b || 65; const maxVal = Math.max(a, b, 10); const W = 220, H = 120; return `<div class="q-text">Sütun grafiğine göre A ve B'nin toplamı kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:260px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="40" y="${H-25-(a/maxVal)*80}" width="50" height="${(a/maxVal)*80}" fill="var(--accent)" rx="3"/><text x="65" y="${H-25-(a/maxVal)*80-5}" text-anchor="middle" font-size="10">${a}</text><text x="65" y="${H-10}" text-anchor="middle" font-size="11">A</text><rect x="110" y="${H-25-(b/maxVal)*80}" width="50" height="${(b/maxVal)*80}" fill="var(--success)" rx="3"/><text x="135" y="${H-25-(b/maxVal)*80-5}" text-anchor="middle" font-size="10">${b}</text><text x="135" y="${H-10}" text-anchor="middle" font-size="11">B</text></svg></div>`; }
-
-function renderPieChart(qData) { const vars = qData.vars || {}; const p = Math.min(vars.p || 30, 100); const angle = p * 3.6; const rad = angle * Math.PI / 180; const cx = 60, cy = 60, r = 50; const x1 = cx + r * Math.cos(-Math.PI/2); const y1 = cy + r * Math.sin(-Math.PI/2); const x2 = cx + r * Math.cos(-Math.PI/2 + rad); const y2 = cy + r * Math.sin(-Math.PI/2 + rad); const large = angle > 180 ? 1 : 0; return `<div class="q-text">Daire grafiğinde %${p}'lik dilimin değeri kaçtır?</div><div class="q-visual"><svg viewBox="0 0 120 120" width="120" height="120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/><path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="var(--accent)" opacity="0.85"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="11">%${p}</text></svg></div>`; }
-
-function renderLineChart(qData) { const vars = qData.vars || {}; const a = vars.a || 20, b = vars.b || 45, c = vars.c || 35, d = vars.d || 60; const maxVal = Math.max(a, b, c, d, 10); const W = 280, H = 120; const xPoints = [40, 100, 160, 220]; const yPoints = [H-25-(a/maxVal)*80, H-25-(b/maxVal)*80, H-25-(c/maxVal)*80, H-25-(d/maxVal)*80]; const linePoints = yPoints.map((y,i) => `${xPoints[i]},${y}`).join(' '); return `<div class="q-text">Çizgi grafiğine göre en yüksek değer kaçtır?</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:300px"><line x1="20" y1="0" x2="20" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><line x1="20" y1="${H-25}" x2="${W-10}" y2="${H-25}" stroke="var(--text-muted)" stroke-width="1.5"/><polyline points="${linePoints}" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="${xPoints[0]}" cy="${yPoints[0]}" r="4" fill="var(--accent)"/><text x="${xPoints[0]}" y="${yPoints[0]-5}" text-anchor="middle" font-size="9">${a}</text><circle cx="${xPoints[1]}" cy="${yPoints[1]}" r="4" fill="var(--accent)"/><text x="${xPoints[1]}" y="${yPoints[1]-5}" text-anchor="middle" font-size="9">${b}</text><circle cx="${xPoints[2]}" cy="${yPoints[2]}" r="4" fill="var(--accent)"/><text x="${xPoints[2]}" y="${yPoints[2]-5}" text-anchor="middle" font-size="9">${c}</text><circle cx="${xPoints[3]}" cy="${yPoints[3]}" r="4" fill="var(--accent)"/><text x="${xPoints[3]}" y="${yPoints[3]-5}" text-anchor="middle" font-size="9">${d}</text><text x="40" y="${H-8}" text-anchor="middle" font-size="9">Ocak</text><text x="100" y="${H-8}" text-anchor="middle" font-size="9">Şubat</text><text x="160" y="${H-8}" text-anchor="middle" font-size="9">Mart</text><text x="220" y="${H-8}" text-anchor="middle" font-size="9">Nisan</text></svg></div>`; }
-
-function renderNumberLine(qData) { const vars = qData.vars || {}; const start = vars.start || 0, end = vars.end || 10, point = vars.point || 5; const W = 280, H = 50; const step = (end - start) / 10; const marks = []; for (let i = start; i <= end; i += step) marks.push(i); return `<div class="q-text">Sayı doğrusunda ${point} noktası işaretlenmiştir.</div><div class="q-visual"><svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="10" y1="25" x2="${W-10}" y2="25" stroke="var(--text-muted)" stroke-width="2"/>${marks.map(m => { const x = 10 + (m-start)/(end-start)*(W-20); return `<line x1="${x}" y1="20" x2="${x}" y2="30" stroke="var(--text-muted)" stroke-width="1.5"/><text x="${x}" y="44" text-anchor="middle" font-size="9" fill="var(--text-muted)">${Math.round(m)}</text>`; }).join('')}<circle cx="${10 + (point-start)/(end-start)*(W-20)}" cy="25" r="5" fill="var(--accent)"/><text x="${10 + (point-start)/(end-start)*(W-20)}" y="15" text-anchor="middle" font-size="10" fill="var(--accent)">${point}</text></svg></div>`; }
-
-// ========== ÇİZİM PAD YARDIMCILARI ==========
-let drawingStates = {};
-
-function setupDrawingPad(canvasId, loadImageData = null) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return null;
-    const ctx = canvas.getContext('2d');
-    
-    if (!drawingStates[canvasId]) {
-        drawingStates[canvasId] = {
-            ctx: ctx,
-            history: [],
-            historyIndex: -1,
-            drawing: false,
-            lastX: 0, lastY: 0,
-            color: '#1a1a2e',
-            isErasing: false
-        };
-    }
-    const state = drawingStates[canvasId];
-    state.ctx = ctx;
-    
-    const resizeCanvas = () => {
-        const rect = canvas.getBoundingClientRect();
-        const oldData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        ctx.fillStyle = '#fefefe';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (loadImageData && loadImageData !== '') {
-            const img = new Image();
-            img.onload = () => {
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                saveHistoryState(canvasId);
-            };
-            img.src = loadImageData;
-        } else if (oldData && oldData.width > 0 && oldData.height > 0) {
-            ctx.putImageData(oldData, 0, 0);
-        }
-        saveHistoryState(canvasId);
-        ctx.strokeStyle = state.color;
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-    };
-    resizeCanvas();
-    window.addEventListener('resize', () => resizeCanvas());
-    
-    const getCoords = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
-        let x = (clientX - rect.left) * scaleX;
-        let y = (clientY - rect.top) * scaleY;
-        x = Math.min(Math.max(0, x), canvas.width);
-        y = Math.min(Math.max(0, y), canvas.height);
-        return { x, y };
-    };
-    
-    const startDraw = (e) => {
-        e.preventDefault();
-        state.drawing = true;
-        const { x, y } = getCoords(e);
-        state.lastX = x;
-        state.lastY = y;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-    };
-    const draw = (e) => {
-        if (!state.drawing) return;
-        e.preventDefault();
-        const { x, y } = getCoords(e);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        state.lastX = x;
-        state.lastY = y;
-    };
-    const endDraw = () => {
-        if (!state.drawing) return;
-        state.drawing = false;
-        saveHistoryState(canvasId);
-        saveDrawingToState(canvas);
-    };
-    
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', endDraw);
-    canvas.addEventListener('touchstart', startDraw);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', endDraw);
-    
-    updateBrushColor(canvasId);
-    return canvas;
-}
-
-function saveHistoryState(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const state = drawingStates[canvasId];
-    if (!state) return;
-    const imageData = canvas.toDataURL();
-    if (state.historyIndex < state.history.length - 1) {
-        state.history = state.history.slice(0, state.historyIndex + 1);
-    }
-    state.history.push(imageData);
-    state.historyIndex = state.history.length - 1;
-    if (state.history.length > 50) {
-        state.history.shift();
-        state.historyIndex--;
-    }
-}
-
-function undoDrawing(canvasId) {
-    const state = drawingStates[canvasId];
-    if (!state || state.historyIndex <= 0) return;
-    state.historyIndex--;
-    const prevImage = state.history[state.historyIndex];
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        saveDrawingToState(canvas);
-    };
-    img.src = prevImage;
-}
-
-function clearDrawingPad(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fefefe';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const state = drawingStates[canvasId];
-    if (state) {
-        state.history = [];
-        state.historyIndex = -1;
-        saveHistoryState(canvasId);
-    }
-    ST.scratchpad = '';
-    saveState();
-}
-
-function copyDrawingPad(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    canvas.toBlob(blob => {
-        try {
-            navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-            alert('📋 Çizim panoya kopyalandı!');
-        } catch(e) {
-            alert('Kopyalama başarısız, lütfen manuel ekran görüntüsü alın.');
-        }
+// Dersin tüm ünitelerinden sorular
+function getCourseQuestions(courseId) {
+    const course = getCourseById(courseId);
+    if (!course || !course.units) return [];
+    let all = [];
+    course.units.forEach(u => {
+        all = all.concat(getUnitQuestions(u.id));
     });
+    return all;
 }
 
-function toggleEraser(canvasId, btnElement) {
-    const state = drawingStates[canvasId];
-    if (!state) return;
-    state.isErasing = !state.isErasing;
-    updateBrushColor(canvasId);
-    if (btnElement) {
-        if (state.isErasing) {
-            btnElement.innerHTML = '✏️';
-            btnElement.title = 'Kalem modu';
-            btnElement.style.background = 'var(--accent-glow)';
-        } else {
-            btnElement.innerHTML = '🧽';
-            btnElement.title = 'Silgi modu';
-            btnElement.style.background = 'transparent';
-        }
-    }
-}
-
-function updateBrushColor(canvasId) {
-    const state = drawingStates[canvasId];
-    if (!state) return;
-    const ctx = state.ctx;
-    if (state.isErasing) {
-        ctx.strokeStyle = '#fefefe';
-    } else {
-        ctx.strokeStyle = '#1a1a2e';
-    }
-    state.color = ctx.strokeStyle;
-}
-
-function saveDrawingToState(canvas) {
-    try {
-        ST.scratchpad = canvas.toDataURL('image/png');
-        saveState();
-    } catch(e) { console.warn(e); }
-}
-
-function toggleDrawingPadSize(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const currentHeight = canvas.style.height;
-    if (!currentHeight || currentHeight === 'auto' || currentHeight === '150px') {
-        canvas.style.height = '250px';
-    } else {
-        canvas.style.height = '150px';
-    }
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fefefe';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (ST.scratchpad && ST.scratchpad !== '') {
-        const img = new Image();
-        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        img.src = ST.scratchpad;
-    }
-    updateBrushColor(canvasId);
+// ========== ÜNİTE İÇERİĞİ ==========
+function getUnitLessonContent(courseId, unitId) {
+    const unit = getUnit(courseId, unitId);
+    return unit ? unit.content : null;
 }
 
 // ========== STATE YÖNETİMİ ==========
 function loadState() {
     try {
-        const saved = JSON.parse(localStorage.getItem('kpss_mat_v7') || '{}');
-        if (saved.version === 7.0 || saved.version === 7.1 || saved.version === 7.2 || saved.version === 7.3 || saved.version === 7.4 || saved.version === 7.5 || saved.version === 7.6 || saved.version === 7.7 || saved.version === 7.8 || saved.version === 7.9 || saved.version === 8.0 || saved.version === 8.1) {
+        const saved = JSON.parse(localStorage.getItem('misyon_koruma_v1') || '{}');
+        if (saved.version === 1.0) {
             Object.assign(ST, saved);
         }
     } catch(e) { console.warn(e); }
-    ST.grokApiKey = localStorage.getItem('kpss_grok_api_key') || '';
-    if (!ST.topicProgress) ST.topicProgress = {};
-    if (!ST.completedTopics) ST.completedTopics = [];
+    ST.grokApiKey = localStorage.getItem('misyon_grok_api_key') || '';
+    if (!ST.unitProgress) ST.unitProgress = {};
+    if (!ST.completedCourses) ST.completedCourses = [];
+    if (!ST.completedUnits) ST.completedUnits = [];
     if (!ST.questionBankProgress) ST.questionBankProgress = {};
-    if (!ST.examHistory) ST.examHistory = [];
-    if (ST.scratchpad && !ST.scratchpad.startsWith('data:image')) {
-        ST.scratchpad = '';
-    }
+    if (!ST.mixedProgress) ST.mixedProgress = { solved: 0, correct: 0 };
+    if (!ST.matchingProgress) ST.matchingProgress = {};
+    if (!ST.dailyGoal) ST.dailyGoal = { date: todayStr(), solved: 0, target: 20 };
+    if (ST.scratchpad && !ST.scratchpad.startsWith('data:image')) ST.scratchpad = '';
     saveState();
 }
 
 function saveState() {
     try {
         const toSave = {
-            version: 8.1,
-            currentTopic: ST.currentTopic,
-            currentLevel: ST.currentLevel,
+            version: 1.0,
+            currentCourse: ST.currentCourse,
+            currentUnit: ST.currentUnit,
             streak: ST.streak,
             maxStreak: ST.maxStreak,
             totalCorrect: ST.totalCorrect,
             totalSolved: ST.totalSolved,
-            completedTopics: ST.completedTopics,
-            topicProgress: ST.topicProgress,
+            completedCourses: ST.completedCourses,
+            completedUnits: ST.completedUnits,
+            unitProgress: ST.unitProgress,
             questionBankProgress: ST.questionBankProgress,
-            examHistory: ST.examHistory,
-            phase: ST.phase,
-            currentView: ST.currentView,
-            examMode: ST.examMode,
-            examQuestions: ST.examQuestions,
-            examCurrentIndex: ST.examCurrentIndex,
-            examAnswers: ST.examAnswers,
-            examTimeLeft: ST.examTimeLeft,
+            mixedProgress: ST.mixedProgress,
+            matchingProgress: ST.matchingProgress,
+            dailyGoal: ST.dailyGoal,
+            lastVisited: ST.lastVisited,
             scratchpad: ST.scratchpad
         };
-        localStorage.setItem('kpss_mat_v7', JSON.stringify(toSave));
+        localStorage.setItem('misyon_koruma_v1', JSON.stringify(toSave));
     } catch(e) { console.warn(e); }
 }
 
-function getTopicProgress(topicId) {
-    if (!ST.topicProgress[topicId]) {
-        ST.topicProgress[topicId] = { level0: { correct: 0, total: 0 }, level1: { correct: 0, total: 0 }, level2: { correct: 0, total: 0 } };
+function getUnitProgress(unitId) {
+    if (!ST.unitProgress[unitId]) {
+        ST.unitProgress[unitId] = { correct: 0, total: 0, completed: false };
     }
-    return ST.topicProgress[topicId];
+    return ST.unitProgress[unitId];
+}
+
+// ========== GÜNLÜK HEDEF ==========
+function updateDailyGoal() {
+    const today = todayStr();
+    if (ST.dailyGoal.date !== today) {
+        ST.dailyGoal = { date: today, solved: 0, target: 20 };
+    }
+}
+
+function bumpDailyGoal() {
+    updateDailyGoal();
+    ST.dailyGoal.solved++;
+    saveState();
 }
 
 // ========== SAYFA GEÇİŞLERİ ==========
@@ -740,686 +197,794 @@ function showView(id, pushHistory = true) {
     updateHeader(id);
     if (pushHistory) history.pushState({ view: id }, '', '#/' + id);
     if (id === 'vHome') updateHomeStats();
-    else if (id === 'vTopics') renderTopicsList();
-    else if (id === 'vLearn') renderPreStudySummary();
+    else if (id === 'vCourses') renderCoursesList();
+    else if (id === 'vUnits') renderUnitsList();
+    else if (id === 'vUnitDetail') renderUnitDetail();
     else if (id === 'vQuestionBank') renderQuestionBankList();
+    else if (id === 'vMatching') renderMatching();
     else if (id === 'vStats') renderStats();
-    else if (id === 'vExamList') renderExamList();
     saveState();
 }
 
 function updateHeader(viewId) { 
-    const titles = { vHome: 'KPSS Matematik', vTopics: '📚 Konular', vLearn: 'Konu Çalış', vQuestionBank: '📝 Soru Bankası', vQBSolve: 'Soru Bankası', vExamList: '📋 Denemeler', vExam: 'Deneme Sınavı', vStats: '📊 İstatistikler' }; 
-    document.getElementById('headerTitle').textContent = titles[viewId] || 'KPSS Matematik'; 
+    const titles = { 
+        vHome: '🛡️ Misyon Koruma', 
+        vCourses: '📚 Dersler', 
+        vUnits: '📄 Üniteler', 
+        vUnitDetail: '📖 Ünite', 
+        vQuestionBank: '📝 Soru Bankası',
+        vQBSolve: '📝 Soru Çöz',
+        vMatching: '🎯 Eşleştirme',
+        vStats: '📊 İstatistikler' 
+    }; 
+    document.getElementById('headerTitle').textContent = titles[viewId] || '🛡️ Misyon Koruma'; 
     document.getElementById('btnBack').style.visibility = viewId === 'vHome' ? 'hidden' : 'visible'; 
 }
 
 function goBack() { history.back(); }
 function goHome() { showView('vHome'); }
-function goTopics() { showView('vTopics'); }
+function goCourses() { showView('vCourses'); }
 function goQuestionBank() { showView('vQuestionBank'); }
-function goExamList() { showView('vExamList'); }
+function goMatching() { showView('vMatching'); }
 function goStats() { showView('vStats'); }
 function toggleMenu() { document.getElementById('sideMenu')?.classList.toggle('hidden'); }
 
 // ========== ANA SAYFA ==========
 function updateHomeStats() { 
-    const done = ST.completedTopics.length; 
+    const doneCourses = ST.completedCourses.length; 
     const acc = ST.totalSolved > 0 ? Math.round((ST.totalCorrect / ST.totalSolved) * 100) : 0; 
-    document.getElementById('statTopics').textContent = done; 
+    document.getElementById('statCourses').textContent = doneCourses; 
     document.getElementById('statQuestions').textContent = ST.totalSolved; 
     document.getElementById('statAccuracy').textContent = '%' + acc; 
     document.getElementById('statStreak').textContent = ST.maxStreak; 
-}
 
-// ========== KONU LİSTESİ (DÜZENLENDİ - TAMAMLANAN KONULAR %100 GÖSTERİR) ==========
-function renderTopicsList() { 
-    const el = document.getElementById('topicsList'); 
-    if (!el) return; 
-    let html = ''; 
-    for (let topic of TOPICS) { 
-        const completed = ST.completedTopics.includes(topic.id); 
-        const prog = getTopicProgress(topic.id); 
-        
-        let pct;
-        if (completed) {
-            // Konu tamamlandıysa bar %100 olsun
-            pct = 100;
+    const totalCourses = TOPICS.length;
+    const coursesProgress = document.getElementById('homeCoursesProgress');
+    if (coursesProgress) coursesProgress.textContent = `${doneCourses}/${totalCourses} ders`;
+
+    updateDailyGoal();
+    const dg = ST.dailyGoal;
+    const dgFill = document.getElementById('dailyGoalFill');
+    const dgCount = document.getElementById('dailyGoalCounter');
+    if (dgFill && dgCount) {
+        const pct = Math.min(100, (dg.solved / dg.target) * 100);
+        dgFill.style.width = pct + '%';
+        dgCount.textContent = `${dg.solved}/${dg.target}`;
+    }
+
+    // Kaldığın yerden devam kartı
+    const continueCard = document.getElementById('continueCard');
+    const continueSub = document.getElementById('continueSub');
+    if (continueCard && continueSub && ST.lastVisited) {
+        const course = getCourseById(ST.lastVisited.courseId);
+        const unit = getUnit(ST.lastVisited.courseId, ST.lastVisited.unitId);
+        if (course && unit) {
+            continueCard.classList.remove('hidden');
+            continueSub.textContent = `${course.e} ${course.n} → ${unit.title}`;
         } else {
-            const totalSolved = (prog.level0?.total || 0) + (prog.level1?.total || 0) + (prog.level2?.total || 0);
-            pct = Math.min(100, Math.round((totalSolved / 90) * 100));
+            continueCard.classList.add('hidden');
         }
-        
-        const locked = topic.locked && !completed && ST.completedTopics.length < topic.order - 1; 
-        let cls = 'topic-row'; 
-        if (completed) cls += ' t-done'; 
-        else if (topic.id === ST.currentTopic && ST.phase !== 'summary') cls += ' t-current'; 
-        else if (locked) cls += ' t-locked'; 
-        html += `<div class="${cls}" ${locked ? '' : `onclick="openTopic(${topic.id})"`}><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>${completed ? '✅' : (locked ? '🔒' : '📘')}</span></div>`; 
-    } 
-    el.innerHTML = html; 
-    document.getElementById('topicsDoneLabel').textContent = `${ST.completedTopics.length}/20`; 
+    } else if (continueCard) {
+        continueCard.classList.add('hidden');
+    }
 }
 
-function openTopic(topicId) { 
-    const topic = getTopicById(topicId);
-    if (topic.locked && !ST.completedTopics.includes(topicId) && ST.completedTopics.length < topic.order - 1) {
-        alert('🔒 Bu konuya ulaşmak için önceki konuları tamamlamalısınız!');
+function continueLast() {
+    if (!ST.lastVisited) return;
+    ST.currentCourse = ST.lastVisited.courseId;
+    ST.currentUnit = ST.lastVisited.unitId;
+    ST.currentUnitTab = ST.lastVisited.tab || 'lesson';
+    showView('vUnitDetail');
+}
+
+// ========== DERS LİSTESİ ==========
+function renderCoursesList() {
+    const el = document.getElementById('coursesList');
+    if (!el) return;
+    let html = '';
+    for (const course of TOPICS) {
+        const completed = ST.completedCourses.includes(course.id);
+        const unitsTotal = course.units?.length || 0;
+        const unitsDone = (course.units || []).filter(u => ST.completedUnits.includes(u.id)).length;
+        const pct = unitsTotal > 0 ? Math.round((unitsDone / unitsTotal) * 100) : 0;
+
+        let cls = 'topic-row';
+        if (completed) cls += ' t-done';
+
+        html += `<div class="${cls}" onclick="openCourse(${course.id})">
+            <span class="t-icon">${course.e}</span>
+            <div class="t-info">
+                <div class="t-name">${course.n}</div>
+                <div class="t-meta">${unitsDone}/${unitsTotal} ünite</div>
+                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
+            </div>
+            <span>${completed ? '✅' : '📘'}</span>
+        </div>`;
+    }
+    el.innerHTML = html;
+    document.getElementById('coursesDoneLabel').textContent = `${ST.completedCourses.length}/${TOPICS.length}`;
+}
+
+function openCourse(courseId) {
+    ST.currentCourse = courseId;
+    showView('vUnits');
+}
+
+// ========== ÜNİTE LİSTESİ ==========
+function renderUnitsList() {
+    const course = getCourseById(ST.currentCourse);
+    if (!course) return;
+    document.getElementById('unitsCourseTitle').textContent = `${course.e} ${course.n}`;
+    const el = document.getElementById('unitsList');
+    if (!el) return;
+    const units = course.units || [];
+    const doneCount = units.filter(u => ST.completedUnits.includes(u.id)).length;
+    document.getElementById('unitsProgress').textContent = `${doneCount}/${units.length}`;
+
+    let html = '';
+    units.forEach((unit, idx) => {
+        const prog = ST.unitProgress[unit.id] || { correct: 0, total: 0, completed: false };
+        const completed = ST.completedUnits.includes(unit.id);
+        const qCount = getUnitQuestions(unit.id).length;
+        let cls = 'topic-row';
+        if (completed) cls += ' t-done';
+
+        html += `<div class="${cls}" onclick="openUnit('${unit.id}')">
+            <span class="t-icon">${idx + 1}️⃣</span>
+            <div class="t-info">
+                <div class="t-name">${unit.title}</div>
+                <div class="t-meta">${qCount} soru</div>
+            </div>
+            <span>${completed ? '✅' : '📄'}</span>
+        </div>`;
+    });
+    el.innerHTML = html;
+}
+
+function openUnit(unitId) {
+    ST.currentUnit = unitId;
+    ST.currentUnitTab = 'lesson';
+    ST.lastVisited = { courseId: ST.currentCourse, unitId, tab: 'lesson' };
+    saveState();
+    showView('vUnitDetail');
+}
+
+// ========== ÜNİTE DETAY ==========
+function renderUnitDetail() {
+    const course = getCourseById(ST.currentCourse);
+    const unit = getUnit(ST.currentCourse, ST.currentUnit);
+    if (!course || !unit) return;
+
+    document.getElementById('unitTitle').textContent = unit.title;
+    document.getElementById('unitBadge').textContent = course.n;
+    switchUnitTab(ST.currentUnitTab || 'lesson');
+}
+
+function switchUnitTab(tab) {
+    ST.currentUnitTab = tab;
+    ST.lastVisited = { courseId: ST.currentCourse, unitId: ST.currentUnit, tab };
+    saveState();
+
+    document.querySelectorAll('#unitTabBar .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    if (tab === 'lesson') {
+        document.getElementById('unitLessonTab').classList.add('active');
+        renderUnitLesson();
+    } else if (tab === 'quiz') {
+        document.getElementById('unitQuizTab').classList.add('active');
+        renderUnitQuiz();
+    }
+}
+
+function renderUnitLesson() {
+    const content = getUnitLessonContent(ST.currentCourse, ST.currentUnit);
+    const el = document.getElementById('unitLessonContent');
+    if (!el) return;
+    const alreadyRead = ST.completedUnits.includes(ST.currentUnit);
+    el.innerHTML = `
+        <div class="learn-content">${content || '<p>İçerik hazırlanıyor...</p>'}</div>
+    `;
+    const readBtn = document.querySelector('#unitLessonTab .btn-ghost');
+    if (readBtn) {
+        readBtn.textContent = alreadyRead ? '✅ Okundu' : '✅ Okudum, Anladım';
+        readBtn.disabled = alreadyRead;
+    }
+}
+
+function markUnitRead() {
+    if (!ST.completedUnits.includes(ST.currentUnit)) {
+        ST.completedUnits.push(ST.currentUnit);
+        saveState();
+    }
+    alert('✅ Ünite okundu olarak işaretlendi. Şimdi soruları çözebilirsin!');
+    switchUnitTab('quiz');
+}
+
+function renderUnitQuiz() {
+    const questions = getUnitQuestions(ST.currentUnit);
+    const el = document.getElementById('unitQuizContent');
+    if (!el) return;
+
+    if (questions.length === 0) {
+        el.innerHTML = `
+            <div class="card" style="text-align:center">
+                <h3>📝 Bu ünitede henüz soru yok</h3>
+                <p style="color:var(--text-muted); margin: 12px 0;">Sorular eklendiğinde buradan çözebileceksin.</p>
+                <button class="btn btn-ghost btn-full" onclick="markUnitRead()">✅ Üniteyi Tamamla</button>
+            </div>
+        `;
         return;
     }
-    ST.currentTopic = topicId; 
-    ST.currentLevel = 0; 
-    ST.phase = 'summary'; 
-    showView('vLearn'); 
-    saveState(); 
-}
 
-// ========== KONU ÇALIŞ ==========
-function renderPreStudySummary() { 
-    const topic = getTopicById(ST.currentTopic); 
-    if (!topic) return; 
-    document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`; 
-    document.getElementById('learnKademe').textContent = LEVELS[ST.currentLevel].name; 
-    const prog = getTopicProgress(ST.currentTopic); 
-    const level = ST.currentLevel;
-    const levelConfig = LEVELS[level];
-    const levelProg = prog[`level${level}`] || { correct: 0, total: 0 }; 
-    
-    let html = `<div class="card accent-top"><h3>📖 ${topic.n}</h3>
-        <p style="color:var(--text-muted)">${levelConfig.name} seviyesinde ${levelConfig.questionCount} soru çözeceksin. ${levelConfig.minCorrect} doğru yaparak seviyeyi geçebilirsin.</p></div>
-        <div class="card"><div class="prog-bar-wrap"><div class="prog-bar-label"><span>İlerleme</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(levelProg.total/levelConfig.questionCount)*100}%"></div></div></div>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">🎯 Geçmek için ${levelConfig.minCorrect} doğru</p></div>`;
-    
-    if (levelProg.total >= levelConfig.questionCount) {
-        if (levelProg.correct >= levelConfig.minCorrect) {
-            if (level < 2) {
-                html += `<button class="btn btn-primary btn-full" onclick="nextLevel()">➡️ ${LEVELS[level+1].name} Seviyesine Geç</button>`;
-            } else {
-                html += `<button class="btn btn-accent btn-full" onclick="completeTopicAndGo()">🏆 Konuyu Tamamla</button>`;
-            }
-        } else {
-            html += `<button class="btn btn-danger btn-full" onclick="resetCurrentLevel()">🔄 Seviyeyi Sıfırla ve Tekrar Dene</button>`;
-        }
-    } else {
-        html += `<button class="btn btn-primary btn-full" onclick="beginStudy()">✍️ Çalışmaya Başla</button>`;
-    }
-    
-    document.getElementById('learnContent').innerHTML = html; 
-}
-
-function beginStudy() { 
-    ST.phase = 'question'; 
-    ST.currentQuestion = null; 
-    renderNextQuestion(); 
-}
-
-function renderNextQuestion() {
-    const topic = getTopicById(ST.currentTopic);
-    const level = ST.currentLevel;
-    const levelConfig = LEVELS[level];
-    const prog = getTopicProgress(ST.currentTopic);
-    const levelProg = prog[`level${level}`] || { correct: 0, total: 0 };
-    if (levelProg.total >= levelConfig.questionCount) { 
-        renderPreStudySummary(); 
-        return; 
-    }
-    document.getElementById('learnTitle').textContent = `${topic.e} ${topic.n}`;
-    document.getElementById('learnKademe').textContent = levelConfig.name;
-    const qData = generateQuestion(ST.currentTopic, level, true);
-    ST.currentQuestion = { ...qData, level };
-    const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn');
-    
-    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
-    document.getElementById('learnContent').innerHTML = `
-        <div class="prog-bar-wrap"><div class="prog-bar-label"><span>${levelConfig.icon} ${levelConfig.name}</span><span>${levelProg.correct}/${levelProg.total} doğru</span></div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${((levelProg.total)/levelConfig.questionCount)*100}%"></div></div></div>
-        <div class="card accent-top">
-            <div class="q-header"><span class="q-counter">Soru ${levelProg.total+1}/${levelConfig.questionCount}</span>
-            <div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span><span class="badge badge-acc">${levelConfig.name}</span></div></div>
-            ${renderQuestionHTML(qData)}
-            <div class="ans-row"><input id="ansInp" class="ans-inp" type="text" inputmode="decimal" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') checkAnswer()">
-            <button class="btn btn-primary" onclick="checkAnswer()">✓</button></div>
-            <div class="ans-hint">Sayı veya kesir (ör: 3/4) olarak yaz</div>
-        </div>
-        <div id="feedbackArea"></div>
-        <div class="scratchpad-area">
-            <div class="scratchpad-header">
-                <span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span>
-                <div>
-                    <button class="btn-icon-small" onclick="undoDrawing('scratchpadCanvas')" title="Geri Al">↩️</button>
-                    <button class="btn-icon-small" id="eraserBtn_scratchpadCanvas" onclick="toggleEraser('scratchpadCanvas', this)" title="Silgi/Kalem">🧽</button>
-                    <button class="btn-icon-small" onclick="toggleDrawingPadSize('scratchpadCanvas')">[+]</button>
-                    <button class="btn-icon-small" onclick="clearDrawingPad('scratchpadCanvas')">🗑️</button>
-                    <button class="btn-icon-small" onclick="copyDrawingPad('scratchpadCanvas')">📋</button>
+    const prog = getUnitProgress(ST.currentUnit);
+    if (prog.total >= questions.length) {
+        // Ünite tamamlandı ekranı
+        const passed = prog.correct >= Math.ceil(questions.length * 0.6);
+        el.innerHTML = `
+            <div class="card" style="text-align:center">
+                <div style="font-size:48px">${passed ? '🏆' : '💪'}</div>
+                <h3>${passed ? 'Üniteyi Tamamladın!' : 'Tekrar Denemelisin'}</h3>
+                <p style="margin:12px 0">Doğru: <b>${prog.correct}/${prog.total}</b></p>
+                <div class="btn-row" style="flex-direction:column;gap:8px">
+                    <button class="btn btn-ghost btn-full" onclick="resetUnitProgress()">🔄 Tekrar Çöz</button>
+                    <button class="btn btn-primary btn-full" onclick="goToNextUnit()">➡️ Sonraki Ünite</button>
                 </div>
             </div>
-            <canvas id="scratchpadCanvas" class="drawing-pad" style="width:100%; height:150px; background:#fefefe; border-radius:8px;"></canvas>
+        `;
+        return;
+    }
+
+    // Soru çözme
+    const q = questions[prog.total];
+    ST.currentQuestion = { ...q, mode: 'unit', unitId: ST.currentUnit };
+    el.innerHTML = `
+        <div class="prog-bar-wrap">
+            <div class="prog-bar-label"><span>Soru ${prog.total + 1}/${questions.length}</span><span>${prog.correct} doğru</span></div>
+            <div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(prog.total / questions.length) * 100}%"></div></div>
+        </div>
+        <div class="card accent-top">
+            <div class="q-header">
+                <span class="q-counter">Soru ${prog.total + 1}</span>
+            </div>
+            <div class="q-text">${q.q}</div>
+            <div class="options-list">
+                ${q.options.map((opt, i) => `<button class="option-btn" onclick="answerUnitQuestion(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`).join('')}
+            </div>
+        </div>
+        <div id="unitFeedbackArea"></div>
+    `;
+}
+
+function answerUnitQuestion(selectedIdx) {
+    const q = ST.currentQuestion;
+    if (!q || q.mode !== 'unit') return;
+    const questions = getUnitQuestions(ST.currentUnit);
+    const prog = getUnitProgress(ST.currentUnit);
+    const isCorrect = selectedIdx === q.answer;
+
+    prog.total++;
+    if (isCorrect) prog.correct++;
+    ST.totalSolved++;
+    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
+    else ST.streak = 0;
+    bumpDailyGoal();
+    saveState();
+
+    // Doğru cevabı göster
+    document.querySelectorAll('.option-btn').forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === q.answer) btn.classList.add('opt-correct');
+        if (i === selectedIdx && !isCorrect) btn.classList.add('opt-wrong');
+    });
+
+    const isLast = prog.total >= questions.length;
+    const fbHtml = `
+        <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
+            <div class="fb-head">
+                <span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span>
+                <span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span>
+            </div>
+            <div class="fb-body">
+                Doğru cevap: <b>${String.fromCharCode(65 + q.answer)}) ${q.options[q.answer]}</b>
+                ${q.explain ? `<br><br>💡 <b>Açıklama:</b> ${q.explain}` : ''}
+            </div>
+            ${!isLast ? '<div class="btn-row"><button class="btn btn-primary btn-full" onclick="renderUnitQuiz()">Sonraki Soru →</button></div>' 
+                     : '<div class="btn-row"><button class="btn btn-primary btn-full" onclick="finishUnit()">🏁 Üniteyi Bitir</button></div>'}
         </div>
     `;
-    
-    setTimeout(() => {
-        setupDrawingPad('scratchpadCanvas', ST.scratchpad || null);
-        const ansInp = document.getElementById('ansInp');
-        if (ansInp) {
-            ansInp.value = '';  // Tarayıcı ne doldurduysa temizle
-            ansInp.focus();
-        }
-    }, 50);
+    const fbArea = document.getElementById('unitFeedbackArea');
+    if (fbArea) fbArea.innerHTML = fbHtml;
+
+    if (!isCorrect) renderGrokBtn(fbArea.querySelector('.fb-fail'), q.q, q.options[q.answer], '');
 }
 
-function checkAnswer() { 
-    const inp = document.getElementById('ansInp'); 
-    if (!inp?.value.trim()) { 
-        inp.style.borderColor = 'var(--danger)'; 
-        setTimeout(() => { if(inp) inp.style.borderColor = ''; }, 1000); 
-        return; 
-    } 
-    inp.disabled = true; 
-    if (!ST.currentQuestion) return; 
-    const userAnswer = inp.value.trim(); 
-    const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); 
-    const level = ST.currentQuestion.level; 
-    const prog = getTopicProgress(ST.currentTopic); 
-    if (!prog[`level${level}`]) prog[`level${level}`] = { correct: 0, total: 0 }; 
-    prog[`level${level}`].total++; 
-    if (isCorrect) prog[`level${level}`].correct++; 
-    ST.totalSolved++; 
-    if (isCorrect) { 
-        ST.totalCorrect++; 
-        ST.streak++; 
-        if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; 
-    } else { 
-        ST.streak = 0; 
-    } 
-    const levelConfig = LEVELS[level]; 
-    const levelProg = prog[`level${level}`]; 
-    let nextLevel = null; 
-    let topicCompleted = false; 
-    if (levelProg.total >= levelConfig.questionCount) { 
-        if (levelProg.correct >= levelConfig.minCorrect) { 
-            if (level < 2) { 
-                nextLevel = level + 1; 
-                ST.currentLevel = nextLevel; 
-            } else { 
-                topicCompleted = true; 
-                if (!ST.completedTopics.includes(ST.currentTopic)) { 
-                    ST.completedTopics.push(ST.currentTopic); 
-                } 
-            } 
-        } else { 
-            prog[`level${level}`] = { correct: 0, total: 0 }; 
-        } 
-    } 
-    saveState(); 
-    let nextMsg = ''; 
-    if (nextLevel !== null) { 
-        nextMsg = `<div class="level-complete-msg">🎉 ${levelConfig.name} Seviyesi Geçildi!<br>→ ${LEVELS[nextLevel].name} seviyesine başlıyorsun.</div>`; 
-    } else if (topicCompleted) { 
-        nextMsg = `<div class="topic-complete-msg">🏆 KONU TAMAMLANDI! 🏆<br>Soru Bankası'nda pekiştirebilirsin.</div>`; 
-        showTopicCompletionPopup(ST.currentTopic); 
-    } 
-    const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru cevap: <strong>${ST.currentQuestion.cevap}</strong><br>Senin cevabın: <em>${userAnswer}</em>`}</div>${nextMsg}${!topicCompleted ? '<div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQuestion()">Sonraki Soru →</button></div>' : ''}</div>`;
-    
-    const feedbackArea = document.getElementById('feedbackArea');
-    if (feedbackArea) {
-        feedbackArea.innerHTML = fbHtml;
-    } else {
-        document.getElementById('learnContent').insertAdjacentHTML('beforeend', fbHtml);
+function finishUnit() {
+    const prog = getUnitProgress(ST.currentUnit);
+    const questions = getUnitQuestions(ST.currentUnit);
+    const passed = prog.correct >= Math.ceil(questions.length * 0.6);
+    prog.completed = true;
+
+    if (passed && !ST.completedUnits.includes(ST.currentUnit)) {
+        ST.completedUnits.push(ST.currentUnit);
     }
-    
-    if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); 
-}
 
-function nextQuestion() { 
-    ST.phase = 'question'; 
-    ST.currentQuestion = null; 
-    renderNextQuestion(); 
-}
-
-function nextLevel() {
-    if (ST.currentLevel < 2) {
-        ST.currentLevel++;
-        ST.phase = 'summary';
-        renderPreStudySummary();
-        saveState();
+    // Ders tamamlandı mı?
+    const course = getCourseById(ST.currentCourse);
+    const allUnitsDone = (course.units || []).every(u => ST.completedUnits.includes(u.id));
+    if (allUnitsDone && !ST.completedCourses.includes(ST.currentCourse)) {
+        ST.completedCourses.push(ST.currentCourse);
     }
-}
 
-function resetCurrentLevel() {
-    const prog = getTopicProgress(ST.currentTopic);
-    prog[`level${ST.currentLevel}`] = { correct: 0, total: 0 };
     saveState();
-    renderPreStudySummary();
-    alert(`✅ ${LEVELS[ST.currentLevel].name} seviyesi sıfırlandı, tekrar deneyebilirsiniz.`);
+    renderUnitQuiz();
+    showUnitCompletionPopup(passed);
 }
 
-function completeTopicAndGo() {
-    if (!ST.completedTopics.includes(ST.currentTopic)) {
-        ST.completedTopics.push(ST.currentTopic);
-        saveState();
+function resetUnitProgress() {
+    ST.unitProgress[ST.currentUnit] = { correct: 0, total: 0, completed: false };
+    ST.completedUnits = ST.completedUnits.filter(id => id !== ST.currentUnit);
+    saveState();
+    renderUnitQuiz();
+}
+
+function goToNextUnit() {
+    const course = getCourseById(ST.currentCourse);
+    if (!course) return;
+    const units = course.units || [];
+    const idx = units.findIndex(u => u.id === ST.currentUnit);
+    if (idx >= 0 && idx < units.length - 1) {
+        openUnit(units[idx + 1].id);
+    } else {
+        // Ders bitti, sonraki derse
+        const nextCourse = TOPICS.find(c => c.order === course.order + 1);
+        if (nextCourse) openCourse(nextCourse.id);
+        else { alert('🎉 Tüm dersleri bitirdin!'); goCourses(); }
     }
-    showTopicCompletionPopup(ST.currentTopic);
 }
 
-function showTopicCompletionPopup(topicId) { 
-    const topic = getTopicById(topicId); 
-    const popup = document.getElementById('completionPopup'); 
-    document.getElementById('completionTopicTitle').textContent = `🏆 ${topic.e} ${topic.n} Tamamlandı!`; 
-    document.getElementById('completionMessage').innerHTML = `Harikasın! Şimdi Soru Bankası'nda bol bol soru çözerek konuyu pekiştirebilirsin.`; 
-    ST.pendingCompletionTopic = topicId; 
-    popup.classList.remove('hidden'); 
+function showUnitCompletionPopup(passed) {
+    const popup = document.getElementById('completionPopup');
+    const title = document.getElementById('completionUnitTitle');
+    const msg = document.getElementById('completionMessage');
+    const unit = getUnit(ST.currentCourse, ST.currentUnit);
+    if (!popup || !title || !msg) return;
+
+    ST.pendingCompletionUnit = ST.currentUnit;
+    ST.pendingCompletionCourse = ST.currentCourse;
+
+    const prog = getUnitProgress(ST.currentUnit);
+    if (passed) {
+        title.textContent = `🏆 ${unit?.title} Tamamlandı!`;
+        msg.innerHTML = `Doğru: <b>${prog.correct}/${prog.total}</b> — Harika!`;
+    } else {
+        title.textContent = `💪 ${unit?.title}`;
+        msg.innerHTML = `Doğru: <b>${prog.correct}/${prog.total}</b> — Tekrar denemelisin.`;
+    }
+    popup.classList.remove('hidden');
 }
 
-function closeCompletionPopup() { 
-    document.getElementById('completionPopup').classList.add('hidden'); 
-    ST.pendingCompletionTopic = null; 
+function closeCompletionPopup() {
+    document.getElementById('completionPopup')?.classList.add('hidden');
+    ST.pendingCompletionUnit = null;
+    ST.pendingCompletionCourse = null;
 }
 
-function goToQuestionBankFromPopup() { 
-    closeCompletionPopup(); 
-    if (ST.pendingCompletionTopic) startQuestionBank(ST.pendingCompletionTopic); 
+function goToQuestionBankFromPopup() {
+    closeCompletionPopup();
+    ST.currentCourse = ST.pendingCompletionCourse;
+    showView('vQuestionBank');
 }
 
-function goToNextTopicFromPopup() { 
-    closeCompletionPopup(); 
-    const currentTopic = getTopicById(ST.pendingCompletionTopic); 
-    const nextTopic = TOPICS.find(t => t.order === (currentTopic?.order || 0) + 1);
-    if (nextTopic) {
-        ST.currentTopic = nextTopic.id;
-        ST.currentLevel = 0;
-        ST.phase = 'summary';
-        showView('vLearn');
-        saveState();
-    } else { 
-        alert('🎉 Tüm konuları tamamladın!'); 
-    } 
+function goToNextUnitFromPopup() {
+    const courseId = ST.pendingCompletionCourse;
+    closeCompletionPopup();
+    if (courseId) ST.currentCourse = courseId;
+    goToNextUnit();
 }
 
 // ========== SORU BANKASI ==========
-function renderQuestionBankList() { 
-    const el = document.getElementById('qbTopicsList'); 
-    if (!el) return; 
-    let html = ''; 
-    for (let topic of TOPICS) { 
-        if (!ST.completedTopics.includes(topic.id)) continue; 
-        const prog = ST.questionBankProgress[topic.id] || { solved: 0, correct: 0 }; 
-        const pct = Math.min(100, Math.round((prog.solved / 100) * 100)); 
-        html += `<div class="topic-row" onclick="startQuestionBank(${topic.id})"><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>📝</span></div>`; 
-    } 
-    el.innerHTML = html || '<div class="card" style="text-align:center">Henüz tamamladığınız konu yok. Önce konu çalışarak konuları tamamlayın!</div>'; 
+function renderQuestionBankList() {
+    const el = document.getElementById('qbCoursesList');
+    if (!el) return;
+    let html = '';
+    for (const course of TOPICS) {
+        const questions = getCourseQuestions(course.id);
+        const prog = ST.questionBankProgress[course.id] || { solved: 0, correct: 0 };
+        const total = questions.length;
+        const pct = total > 0 ? Math.round((prog.solved / total) * 100) : 0;
+        const acc = prog.solved > 0 ? Math.round((prog.correct / prog.solved) * 100) : 0;
+
+        html += `<div class="topic-row" onclick="startCourseQuestions(${course.id})">
+            <span class="t-icon">${course.e}</span>
+            <div class="t-info">
+                <div class="t-name">${course.n}</div>
+                <div class="t-meta">${prog.solved}/${total} çözüldü • %${acc} doğruluk</div>
+                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
+            </div>
+            <span>📝</span>
+        </div>`;
+    }
+    el.innerHTML = html;
 }
 
-function startQuestionBank(topicId) { 
-    ST.currentTopic = topicId; 
-    ST.currentQuestion = null; 
-    showView('vQBSolve'); 
-    renderQBSolveHeader(); 
-    renderNextQBQuestion(); 
+function startCourseQuestions(courseId) {
+    ST.currentCourse = courseId;
+    const questions = getCourseQuestions(courseId);
+    if (questions.length === 0) {
+        alert('Bu derste henüz soru yok.');
+        return;
+    }
+    startQBSession(questions, `📝 ${getCourseById(courseId).n}`);
 }
 
-function renderQBSolveHeader() { 
-    const topic = getTopicById(ST.currentTopic); 
-    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
-    document.getElementById('qbSolveTitle').textContent = `📝 ${topic?.n || ''}`; 
-    document.getElementById('qbSolveProgress').textContent = `${prog.solved}/100 soru`; 
+function startMixedQuestions() {
+    if (MIXED_QUESTIONS.length === 0) {
+        alert('Henüz karma soru eklenmemiş.');
+        return;
+    }
+    startQBSession(shuffleArray([...MIXED_QUESTIONS]), '🎲 Karma Sorular', true);
 }
 
-function renderNextQBQuestion() { 
-    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
-    if (prog.solved >= 100) { 
-        document.getElementById('qbSolveContent').innerHTML = `<div class="card"><h3>🎉 Tebrikler! 100 soruyu tamamladın.</h3><button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button></div>`; 
-        return; 
-    } 
-    const qData = generateQuestion(ST.currentTopic, randomInt(0, 2), true); 
-    ST.currentQuestion = { ...qData, mode: 'questionBank' }; 
-    const topic = getTopicById(ST.currentTopic); 
-    const zc = qData.zorluk === 'kolay' ? 'badge-grn' : (qData.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); 
-    
-    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
+function startQBSession(questions, title, isMixed = false) {
+    ST.qbSession = {
+        questions: shuffleArray(questions).slice(0, 100),
+        index: 0,
+        correct: 0,
+        isMixed
+    };
+    showView('vQBSolve');
+    document.getElementById('qbSolveTitle').textContent = title;
+    renderQBQuestion();
+}
+
+function renderQBQuestion() {
+    const s = ST.qbSession;
+    if (!s) { goQuestionBank(); return; }
+    if (s.index >= s.questions.length) {
+        document.getElementById('qbSolveContent').innerHTML = `
+            <div class="card" style="text-align:center">
+                <div style="font-size:48px">🎉</div>
+                <h3>Oturum Tamamlandı!</h3>
+                <p style="margin:12px 0">Doğru: <b>${s.correct}/${s.questions.length}</b> (%${Math.round((s.correct / s.questions.length) * 100)})</p>
+                <button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button>
+            </div>
+        `;
+        return;
+    }
+    const q = s.questions[s.index];
+    ST.currentQuestion = { ...q, mode: 'qb' };
+    document.getElementById('qbSolveProgress').textContent = `${s.index + 1}/${s.questions.length}`;
+
     document.getElementById('qbSolveContent').innerHTML = `
-        <div class="prog-bar-wrap"><div class="prog-bar-label"><span>${topic?.n || ''}</span><span>${prog.solved}/100</span></div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(prog.solved/100)*100}%"></div></div></div>
+        <div class="prog-bar-wrap">
+            <div class="prog-bar-label"><span>Soru ${s.index + 1}/${s.questions.length}</span><span>${s.correct} doğru</span></div>
+            <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(s.index / s.questions.length) * 100}%"></div></div>
+        </div>
         <div class="card accent-top">
-            <div class="q-header"><span class="q-counter">Soru ${prog.solved+1}</span><div class="q-tags"><span class="badge ${zc}">${qData.zorluk}</span></div></div>
-            ${renderQuestionHTML(qData)}
-            <div class="ans-row"><input id="qbAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') checkQBAnswer()"><button class="btn btn-primary" onclick="checkQBAnswer()">✓</button></div>
-            <button class="btn btn-ghost btn-full" onclick="skipQBQuestion()">Boş Bırak →</button>
+            <div class="q-text">${q.q}</div>
+            <div class="options-list">
+                ${q.options.map((opt, i) => `<button class="option-btn" onclick="answerQBQuestion(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`).join('')}
+            </div>
         </div>
-        <div id="feedbackAreaQB"></div>
-        <div class="scratchpad-area">
-            <div class="scratchpad-header"><span>✍️ Müsvedde (Parmak/Kalem ile çiz)</span>
-            <div><button class="btn-icon-small" onclick="undoDrawing('qbScratchpadCanvas')" title="Geri Al">↩️</button>
-            <button class="btn-icon-small" id="eraserBtn_qbScratchpadCanvas" onclick="toggleEraser('qbScratchpadCanvas', this)" title="Silgi/Kalem">🧽</button>
-            <button class="btn-icon-small" onclick="toggleDrawingPadSize('qbScratchpadCanvas')">[+]</button>
-            <button class="btn-icon-small" onclick="clearDrawingPad('qbScratchpadCanvas')">🗑️</button>
-            <button class="btn-icon-small" onclick="copyDrawingPad('qbScratchpadCanvas')">📋</button></div></div>
-            <canvas id="qbScratchpadCanvas" class="drawing-pad" style="width:100%; height:150px; background:#fefefe; border-radius:8px;"></canvas>
-        </div>
-    `; 
-    setTimeout(() => { 
-        setupDrawingPad('qbScratchpadCanvas', ST.scratchpad || null); 
-        const qbAnsInp = document.getElementById('qbAnsInp');
-        if (qbAnsInp) {
-            qbAnsInp.value = '';  // Tarayıcı ne doldurduysa temizle
-            qbAnsInp.focus();
-        }
-    }, 50); 
+        <div id="qbFeedbackArea"></div>
+    `;
 }
 
-function checkQBAnswer() { 
-    const inp = document.getElementById('qbAnsInp'); 
-    if (!inp?.value.trim()) return; 
-    inp.disabled = true; 
-    if (!ST.currentQuestion) return; 
-    const userAnswer = inp.value.trim(); 
-    const isCorrect = checkEqual(userAnswer, ST.currentQuestion.cevap); 
-    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
-    prog.solved++; 
-    if (isCorrect) prog.correct++; 
-    ST.questionBankProgress[ST.currentTopic] = prog; 
-    ST.totalSolved++; 
-    if (isCorrect) { 
-        ST.totalCorrect++; 
-        ST.streak++; 
-        if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; 
-    } else { 
-        ST.streak = 0; 
-    } 
-    saveState(); 
-    renderQBSolveHeader(); 
-    const fbHtml = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}"><div class="fb-head"><span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span><span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span></div><div class="fb-body">${isCorrect ? `Cevap: <strong>${ST.currentQuestion.cevap}</strong>` : `Doğru: <strong>${ST.currentQuestion.cevap}</strong><br>Senin: <em>${userAnswer}</em>`}</div><div class="btn-row"><button class="btn btn-ghost btn-full" onclick="nextQBQuestion()">Sonraki →</button></div></div>`;
-    
-    const feedbackArea = document.getElementById('feedbackAreaQB');
-    if (feedbackArea) {
-        feedbackArea.innerHTML = fbHtml;
+function answerQBQuestion(selectedIdx) {
+    const s = ST.qbSession;
+    const q = ST.currentQuestion;
+    if (!s || !q) return;
+    const isCorrect = selectedIdx === q.answer;
+    s.index++;
+    if (isCorrect) s.correct++;
+
+    ST.totalSolved++;
+    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
+    else ST.streak = 0;
+
+    // İlerleme kaydı
+    if (s.isMixed) {
+        ST.mixedProgress.solved++;
+        if (isCorrect) ST.mixedProgress.correct++;
     } else {
-        document.getElementById('qbSolveContent').insertAdjacentHTML('beforeend', fbHtml);
+        const courseId = ST.currentCourse;
+        if (!ST.questionBankProgress[courseId]) ST.questionBankProgress[courseId] = { solved: 0, correct: 0 };
+        ST.questionBankProgress[courseId].solved++;
+        if (isCorrect) ST.questionBankProgress[courseId].correct++;
     }
-    
-    if (!isCorrect) renderGrokBtn(document.querySelector('.fb-fail'), ST.currentQuestion.soru, ST.currentQuestion.cevap, userAnswer); 
+    bumpDailyGoal();
+    saveState();
+
+    document.querySelectorAll('.option-btn').forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === q.answer) btn.classList.add('opt-correct');
+        if (i === selectedIdx && !isCorrect) btn.classList.add('opt-wrong');
+    });
+
+    const fbHtml = `
+        <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
+            <div class="fb-head">
+                <span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span>
+                <span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span>
+            </div>
+            <div class="fb-body">
+                Doğru cevap: <b>${String.fromCharCode(65 + q.answer)}) ${q.options[q.answer]}</b>
+                ${q.explain ? `<br><br>💡 <b>Açıklama:</b> ${q.explain}` : ''}
+            </div>
+            <div class="btn-row"><button class="btn btn-primary btn-full" onclick="nextQBQuestion()">Sonraki Soru →</button></div>
+        </div>
+    `;
+    const fbArea = document.getElementById('qbFeedbackArea');
+    if (fbArea) fbArea.innerHTML = fbHtml;
+    if (!isCorrect) renderGrokBtn(fbArea.querySelector('.fb-fail'), q.q, q.options[q.answer], '');
 }
 
-function skipQBQuestion() { 
-    const prog = ST.questionBankProgress[ST.currentTopic] || { solved: 0, correct: 0 }; 
-    prog.solved++; 
-    ST.questionBankProgress[ST.currentTopic] = prog; 
-    saveState(); 
-    renderQBSolveHeader(); 
-    nextQBQuestion(); 
+function nextQBQuestion() {
+    ST.qbSession.index++;
+    renderQBQuestion();
 }
 
-function nextQBQuestion() { 
-    ST.currentQuestion = null; 
-    renderNextQBQuestion(); 
-}
+// ========== EŞLEŞTİRME ==========
+let matchingState = {};
 
-// ========== DENEME SINAVI ==========
-function renderExamList() { 
-    const el = document.getElementById('examListContent'); 
-    if (!el) return; 
-    let html = '<div class="card"><h3>📋 Deneme Sınavları</h3>'; 
-    for (let i = 0; i < 3; i++) { 
-        const exam = ST.examHistory[i]; 
-        const examNum = i + 1; 
-        const status = exam ? `✅ ${exam.net} net (${exam.date})` : '⭕ Çözülmedi'; 
-        html += `<div class="exam-item" onclick="showExamOptions(${examNum})"><div><div class="exam-title">Deneme ${examNum}</div><div class="exam-desc">20-30 soru</div></div><div class="exam-status">${status}</div></div>`; 
-    } 
-    html += '</div>'; 
-    el.innerHTML = html; 
-}
-
-function showExamOptions(setId) { 
-    ST.pendingExamSet = setId; 
-    document.getElementById('examOptionsModal').classList.remove('hidden'); 
-}
-
-function closeExamOptions() { 
-    document.getElementById('examOptionsModal').classList.add('hidden'); 
-}
-
-function startExam(questionCount) {
-    closeExamOptions();
-    showView('vExam');
-    document.getElementById('examContent').innerHTML = '<div class="card"><p>Sorular hazırlanıyor...</p></div>';
-    
-    const selected = [];
-    for (let i = 0; i < questionCount; i++) {
-        const randomTopic = randomInt(1, 20);
-        const randomLevel = randomInt(0, 2);
-        const q = generateQuestion(randomTopic, randomLevel, true);
-        selected.push(q);
+function renderMatching() {
+    const el = document.getElementById('matchingContent');
+    if (!el) return;
+    if (typeof MATCHING_SETS === 'undefined' || MATCHING_SETS.length === 0) {
+        el.innerHTML = '<div class="card" style="text-align:center">Eşleştirme seti bulunamadı.</div>';
+        return;
     }
-    
-    ST.examMode = true;
-    ST.examQuestions = selected;
-    ST.examCurrentIndex = 0;
-    ST.examAnswers = [];
-    ST.examTimeLeft = questionCount * 60;
-    startExamTimer();
-    renderExamQuestion();
+
+    let html = '';
+    for (const set of MATCHING_SETS) {
+        const prog = ST.matchingProgress[set.id] || { correct: 0, total: 0 };
+        html += `<div class="topic-row" onclick="startMatching('${set.id}')">
+            <span class="t-icon">🎯</span>
+            <div class="t-info">
+                <div class="t-name">${set.title}</div>
+                <div class="t-meta">${set.pairs.length} çift • ${set.description || ''}</div>
+            </div>
+            <span>${prog.correct > 0 ? `%${Math.round((prog.correct/prog.total)*100)}` : '→'}</span>
+        </div>`;
+    }
+    el.innerHTML = html;
 }
 
-function startExamTimer() { 
-    if (ST.examTimer) clearInterval(ST.examTimer); 
-    ST.examTimer = setInterval(() => { 
-        if (ST.examTimeLeft > 0) { 
-            ST.examTimeLeft--; 
-            updateExamTimerDisplay(); 
-            if (ST.examTimeLeft === 0) finishExam(); 
-        } 
-    }, 1000); 
+function startMatching(setId) {
+    const set = MATCHING_SETS.find(s => s.id === setId);
+    if (!set) return;
+
+    const leftItems = set.pairs.map((p, i) => ({ id: i, text: p.left }));
+    const rightItems = shuffleArray(set.pairs.map((p, i) => ({ id: i, text: p.right })));
+
+    matchingState = {
+        setId,
+        set,
+        leftItems,
+        rightItems,
+        selectedLeft: null,
+        matches: {},           // { leftId: rightId }
+        correctCount: 0,
+        finished: false
+    };
+
+    renderMatchingBoard();
 }
 
-function updateExamTimerDisplay() { 
-    const m = Math.floor(ST.examTimeLeft / 60), s = ST.examTimeLeft % 60; 
-    document.getElementById('examTimer').textContent = `${m}:${s.toString().padStart(2, '0')}`; 
-    if (ST.examTimeLeft < 60) document.getElementById('examTimer').style.color = 'var(--danger)'; 
+function renderMatchingBoard() {
+    const el = document.getElementById('matchingContent');
+    if (!el) return;
+    const s = matchingState;
+
+    let leftHtml = s.leftItems.map(item => {
+        const matched = s.matches[item.id] !== undefined;
+        const cls = matched ? 'match-item matched' : (s.selectedLeft === item.id ? 'match-item selected' : 'match-item');
+        return `<button class="${cls}" onclick="selectLeft(${item.id})" ${matched ? 'disabled' : ''}>${item.text}</button>`;
+    }).join('');
+
+    let rightHtml = s.rightItems.map(item => {
+        const matched = Object.values(s.matches).includes(item.id);
+        const cls = matched ? 'match-item matched' : 'match-item';
+        return `<button class="${cls}" onclick="selectRight(${item.id})" ${matched ? 'disabled' : ''}>${item.text}</button>`;
+    }).join('');
+
+    el.innerHTML = `
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <b>${s.set.title}</b>
+                <span>${Object.keys(s.matches).length}/${s.set.pairs.length}</span>
+            </div>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">${s.set.description || ''}</p>
+            <div class="matching-board">
+                <div class="match-col">${leftHtml}</div>
+                <div class="match-col">${rightHtml}</div>
+            </div>
+            <div id="matchingFeedback"></div>
+            <button class="btn btn-ghost btn-full" style="margin-top:12px" onclick="goMatching()">← Listeye Dön</button>
+        </div>
+    `;
 }
 
-function renderExamQuestion() { 
-    const q = ST.examQuestions[ST.examCurrentIndex]; 
-    const zc = q.zorluk === 'kolay' ? 'badge-grn' : (q.zorluk === 'zor' ? 'badge-red' : 'badge-warn'); 
-    
-    // AUTOFILL ENGELLEME: readonly + onfocus + sonradan temizleme
-    document.getElementById('examContent').innerHTML = `<div class="card accent-top"><div class="q-header"><span class="q-counter">Soru ${ST.examCurrentIndex+1}/${ST.examQuestions.length}</span><div class="q-tags"><span class="badge ${zc}">${q.zorluk}</span></div></div>${renderQuestionHTML(q)}<div class="ans-row"><input id="examAnsInp" class="ans-inp" type="text" placeholder="Cevabını yaz..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter') submitExamAnswer()"><button class="btn btn-primary" onclick="submitExamAnswer()">✓</button></div><button class="btn btn-ghost btn-full" onclick="skipExamAnswer()">Boş Bırak →</button></div>`; 
-    setTimeout(() => {
-        const examAnsInp = document.getElementById('examAnsInp');
-        if (examAnsInp) {
-            examAnsInp.value = '';  // Tarayıcı ne doldurduysa temizle
-            examAnsInp.focus();
-        }
-    }, 150); 
+function selectLeft(id) {
+    matchingState.selectedLeft = id;
+    renderMatchingBoard();
 }
 
-function submitExamAnswer() { 
-    const inp = document.getElementById('examAnsInp'); 
-    const userAnswer = inp?.value?.trim() || ''; 
-    const q = ST.examQuestions[ST.examCurrentIndex]; 
-    ST.examAnswers.push({ question: q.soru, correctAnswer: q.cevap, userAnswer, isCorrect: checkEqual(userAnswer, q.cevap), skipped: false }); 
-    if (ST.examCurrentIndex + 1 < ST.examQuestions.length) { 
-        ST.examCurrentIndex++; 
-        renderExamQuestion(); 
-    } else finishExam(); 
-}
+function selectRight(id) {
+    if (matchingState.selectedLeft === null) return;
+    const leftId = matchingState.selectedLeft;
+    matchingState.matches[leftId] = id;
+    matchingState.selectedLeft = null;
 
-function skipExamAnswer() { 
-    const q = ST.examQuestions[ST.examCurrentIndex]; 
-    ST.examAnswers.push({ question: q.soru, correctAnswer: q.cevap, userAnswer: '(boş)', isCorrect: false, skipped: true }); 
-    if (ST.examCurrentIndex + 1 < ST.examQuestions.length) { 
-        ST.examCurrentIndex++; 
-        renderExamQuestion(); 
-    } else finishExam(); 
-}
+    // Doğru mu?
+    const isCorrect = leftId === id;  // pairs aynı index'te eşleşiyor
+    if (isCorrect) matchingState.correctCount++;
 
-function finishExam() { 
-    if (ST.examTimer) clearInterval(ST.examTimer); 
-    const answers = ST.examAnswers; 
-    const correct = answers.filter(a => a.isCorrect).length; 
-    const wrong = answers.filter(a => !a.isCorrect && !a.skipped).length; 
-    const blank = answers.filter(a => a.skipped).length; 
-    const net = (correct - wrong * 0.25).toFixed(2); 
-    ST.examHistory.unshift({ id: Date.now(), date: todayStr(), questionCount: ST.examQuestions.length, correct, wrong, blank, net, answers }); 
-    if (ST.examHistory.length > 10) ST.examHistory.pop(); 
-    saveState(); 
-    let wrongList = answers.filter(a => !a.isCorrect).map((a, i) => `<div class="wrong-item" id="wrong_${i}"><div class="wrong-question">${a.question}</div><div>Doğru: <strong>${a.correctAnswer}</strong> — Senin: <em>${a.userAnswer}</em></div></div>`).join(''); 
-    document.getElementById('examContent').innerHTML = `<div style="text-align:center"><div class="net-num">${net}</div><div class="net-lbl">Net</div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:var(--success)">${correct}</div><div class="stat-lbl">Doğru</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--danger)">${wrong}</div><div class="stat-lbl">Yanlış</div></div><div class="stat-cell"><div class="stat-num" style="color:var(--warning)">${blank}</div><div class="stat-lbl">Boş</div></div></div><div class="btn-row"><button class="btn btn-primary btn-full" onclick="location.reload()">🔄 Tekrar Dene</button><button class="btn btn-ghost btn-full" onclick="goExamList()">Listeye Dön</button></div></div>${wrongList ? `<div class="card"><h3>❌ Yanlışlar</h3>${wrongList}</div>` : ''}`; 
-    answers.filter(a => !a.isCorrect).forEach((a, i) => { 
-        const t = document.getElementById(`wrong_${i}`); 
-        if (t) renderGrokBtn(t, a.question, a.correctAnswer, a.userAnswer); 
-    }); 
-    ST.examMode = false; 
-}
+    // İlerleme kaydı
+    if (!ST.matchingProgress[matchingState.setId]) ST.matchingProgress[matchingState.setId] = { correct: 0, total: 0 };
+    ST.matchingProgress[matchingState.setId].total++;
+    if (isCorrect) ST.matchingProgress[matchingState.setId].correct++;
 
-function cancelExam() { 
-    if (confirm('Denemeyi iptal et?')) { 
-        if (ST.examTimer) clearInterval(ST.examTimer); 
-        ST.examMode = false; 
-        goExamList(); 
-    } 
+    ST.totalSolved++;
+    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
+    else ST.streak = 0;
+    bumpDailyGoal();
+    saveState();
+
+    renderMatchingBoard();
+    const fb = document.getElementById('matchingFeedback');
+    if (fb) {
+        fb.innerHTML = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}" style="margin-top:8px">
+            <div class="fb-head"><span>${isCorrect ? '🎉' : '❌'}</span><span>${isCorrect ? 'Doğru eşleştirme!' : 'Yanlış eşleştirme'}</span></div>
+        </div>`;
+    }
+
+    if (Object.keys(matchingState.matches).length === matchingState.set.pairs.length) {
+        setTimeout(() => {
+            alert(`🎉 Eşleştirme tamamlandı!\nDoğru: ${matchingState.correctCount}/${matchingState.set.pairs.length}`);
+        }, 400);
+    }
 }
 
 // ========== İSTATİSTİKLER ==========
-function renderStats() { 
-    const acc = ST.totalSolved > 0 ? Math.round((ST.totalCorrect / ST.totalSolved) * 100) : 0; 
-    const net = (ST.totalCorrect - ((ST.totalSolved - ST.totalCorrect) * 0.25)).toFixed(2); 
-    let topicHtml = ''; 
-    for (let topic of TOPICS) { 
-        const prog = getTopicProgress(topic.id); 
-        const totalSolved = (prog.level0?.total || 0) + (prog.level1?.total || 0) + (prog.level2?.total || 0); 
-        const correct = (prog.level0?.correct || 0) + (prog.level1?.correct || 0) + (prog.level2?.correct || 0); 
-        const pct = totalSolved > 0 ? Math.round((correct / totalSolved) * 100) : 0; 
-        const completed = ST.completedTopics.includes(topic.id); 
-        topicHtml += `<div class="topic-row"><span class="t-icon">${topic.e}</span><div class="t-info"><div class="t-name">${topic.n}</div><div class="t-meta">${correct}/${totalSolved} doğru</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div></div><span>${completed ? '✅' : '🔄'}</span></div>`; 
-    } 
-    let examHtml = '<div class="card"><h3>📋 Deneme Geçmişi</h3>'; 
-    for (let exam of ST.examHistory.slice(0, 5)) { 
-        examHtml += `<div class="exam-item" style="margin-bottom:8px"><div><div>${exam.date}</div><div class="exam-desc">${exam.questionCount} soru</div></div><div>${exam.net} net</div></div>`; 
-    } 
-    examHtml += '</div>'; 
-    document.getElementById('statsContent').innerHTML = `<div class="net-box"><div class="net-num">${net}</div><div class="net-lbl">Toplam Net</div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num">${ST.totalSolved}</div><div class="stat-lbl">Soru</div></div><div class="stat-cell"><div class="stat-num">%${acc}</div><div class="stat-lbl">Doğruluk</div></div><div class="stat-cell"><div class="stat-num">${ST.maxStreak}</div><div class="stat-lbl">Seri</div></div><div class="stat-cell"><div class="stat-num">${ST.completedTopics.length}</div><div class="stat-lbl">Konu</div></div></div><div class="card"><h3>📚 Konu Performansı</h3>${topicHtml}</div>${examHtml}`; 
+function renderStats() {
+    const acc = ST.totalSolved > 0 ? Math.round((ST.totalCorrect / ST.totalSolved) * 100) : 0;
+    let courseHtml = '';
+    for (const course of TOPICS) {
+        const unitsTotal = course.units?.length || 0;
+        const unitsDone = (course.units || []).filter(u => ST.completedUnits.includes(u.id)).length;
+        const pct = unitsTotal > 0 ? Math.round((unitsDone / unitsTotal) * 100) : 0;
+        const completed = ST.completedCourses.includes(course.id);
+        courseHtml += `<div class="topic-row">
+            <span class="t-icon">${course.e}</span>
+            <div class="t-info">
+                <div class="t-name">${course.n}</div>
+                <div class="t-meta">${unitsDone}/${unitsTotal} ünite</div>
+                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
+            </div>
+            <span>${completed ? '✅' : '🔄'}</span>
+        </div>`;
+    }
+
+    document.getElementById('statsContent').innerHTML = `
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="stat-num">${ST.totalSolved}</div><div class="stat-lbl">Soru</div></div>
+            <div class="stat-cell"><div class="stat-num">%${acc}</div><div class="stat-lbl">Doğruluk</div></div>
+            <div class="stat-cell"><div class="stat-num">${ST.maxStreak}</div><div class="stat-lbl">Seri</div></div>
+            <div class="stat-cell"><div class="stat-num">${ST.completedCourses.length}</div><div class="stat-lbl">Ders</div></div>
+        </div>
+        <div class="card"><h3>📚 Ders Performansı</h3>${courseHtml}</div>
+    `;
 }
 
-// ========== GROQ API (ÇÖZÜM AÇIKLAMASI) ==========
-async function askGrokForSolution(question, correctAnswer, userAnswer) { 
-    if (!ST.grokApiKey) { 
-        return '⚠️ Groq API anahtarı girilmedi. Ayarlar\'dan ekleyin.\n\n🔗 console.groq.com adresinden ücretsiz API anahtarı (gsk_...) alabilirsiniz.'; 
-    } 
-    const prompt = `Sen bir KPSS matematik öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.\n\nSoru: ${question}\nDoğru cevap: ${correctAnswer}\nÖğrencinin cevabı: ${userAnswer || '(boş bıraktı)'}\n\nLütfen:\n1. Soruyu kısa çöz (3-5 adım)\n2. Hangi formül/kural kullanıldığını belirt\n3. Öğrencinin hatasını varsa düzelt\n4. Sonucu vurgula`; 
-    try { 
-        const response = await fetch(GROK_API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ST.grokApiKey}` }, 
-            body: JSON.stringify({ 
-                model: GROK_MODEL, 
-                messages: [ 
-                    { role: 'system', content: 'Sen bir matematik öğretmenisin. Öğrencilere KPSS matematik sorularını açıklıyorsun. Kısa, net ve anlaşılır ol.' }, 
-                    { role: 'user', content: prompt } 
-                ], 
-                max_tokens: 800, 
-                temperature: 0.3 
-            }) 
-        }); 
-        if (!response.ok) { 
-            const errorText = await response.text(); 
-            console.error('Groq API Hatası:', response.status, errorText); 
-            if (response.status === 401) return '❌ API anahtarı geçersiz! Lütfen Ayarlar\'dan doğru anahtarı girin.'; 
-            if (response.status === 429) return '⚠️ API kullanım limiti aşıldı. Biraz bekleyip tekrar deneyin.'; 
-            return `❌ API hatası (${response.status}).`; 
-        } 
-        const data = await response.json(); 
-        return data.choices?.[0]?.message?.content || 'Açıklama alınamadı.'; 
-    } catch(e) { 
-        console.error('Groq API bağlantı hatası:', e); 
-        return '❌ Bağlantı hatası. İnternetinizi kontrol edin.'; 
-    } 
+// ========== GROQ API ==========
+async function askGrokForSolution(question, correctAnswer, userAnswer) {
+    if (!ST.grokApiKey) {
+        return '⚠️ Groq API anahtarı girilmedi. Menü → 🔑 Groq API Anahtarı\'ndan ekleyin.\n\n🔗 console.groq.com/keys adresinden ücretsiz alabilirsiniz.';
+    }
+    const prompt = `Sen bir Misyon Koruma sınavı öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.\n\nSoru: ${question}\nDoğru cevap: ${correctAnswer}\nÖğrencinin cevabı: ${userAnswer || '(boş bıraktı)'}\n\nLütfen:\n1. Soruyu kısa çöz (3-5 adım)\n2. Hangi kanun/kural kullanıldığını belirt\n3. Öğrencinin hatasını varsa düzelt\n4. Sonucu vurgula`;
+
+    try {
+        const response = await fetch(GROK_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ST.grokApiKey}` },
+            body: JSON.stringify({
+                model: GROK_MODEL,
+                messages: [
+                    { role: 'system', content: 'Sen Misyon Koruma sınavına hazırlanan öğrencilere ders anlatan bir öğretmensin. Kısa, net ve anlaşılır ol.' },
+                    { role: 'user', content: prompt }
+                ],
+                max_tokens: 800,
+                temperature: 0.3
+            })
+        });
+        if (!response.ok) {
+            if (response.status === 401) return '❌ API anahtarı geçersiz!';
+            if (response.status === 429) return '⚠️ API limiti aşıldı. Bekleyin.';
+            return `❌ API hatası (${response.status}).`;
+        }
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || 'Açıklama alınamadı.';
+    } catch(e) {
+        return '❌ Bağlantı hatası. İnternetinizi kontrol edin.';
+    }
 }
 
-function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) { 
-    const btn = document.createElement('button'); 
-    btn.className = 'btn btn-grok'; 
-    btn.innerHTML = '🤖 Groq ile Çözümü Gör'; 
-    btn.style.marginTop = '12px'; 
-    btn.style.width = '100%'; 
-    btn.onclick = async () => { 
-        btn.disabled = true; 
-        btn.innerHTML = '🤖 Groq düşünüyor...'; 
-        btn.style.opacity = '0.7'; 
-        const explanation = await askGrokForSolution(question, correctAnswer, userAnswer); 
-        const box = document.createElement('div'); 
-        box.className = 'grok-explanation'; 
-        box.style.marginTop = '12px'; 
-        box.innerHTML = `<div class="grok-header">🤖 <strong>Groq Açıklıyor</strong></div><div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>`; 
-        btn.replaceWith(box); 
-    }; 
-    targetEl.appendChild(btn); 
-}
-
-// ========== MÜSVEDDE ==========
-function clearScratchpad() { 
-    const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); 
-    if (canvas) clearDrawingPad(canvas.id); 
-    else ST.scratchpad = ''; 
-    saveState(); 
-}
-
-function copyScratchpad() { 
-    const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); 
-    if (canvas) copyDrawingPad(canvas.id); 
-    else alert('Çizim alanı bulunamadı.'); 
-}
-
-function toggleScratchpadSize() { 
-    const canvas = document.getElementById('scratchpadCanvas') || document.getElementById('qbScratchpadCanvas'); 
-    if (canvas) toggleDrawingPadSize(canvas.id); 
+function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
+    if (!targetEl) return;
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-grok';
+    btn.innerHTML = '🤖 Groq ile Çözümü Gör';
+    btn.style.marginTop = '12px';
+    btn.style.width = '100%';
+    btn.onclick = async () => {
+        btn.disabled = true;
+        btn.innerHTML = '🤖 Groq düşünüyor...';
+        const explanation = await askGrokForSolution(question, correctAnswer, userAnswer);
+        const box = document.createElement('div');
+        box.className = 'grok-explanation';
+        box.style.marginTop = '12px';
+        box.innerHTML = `<div class="grok-header">🤖 <strong>Groq Açıklıyor</strong></div><div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>`;
+        btn.replaceWith(box);
+    };
+    targetEl.appendChild(btn);
 }
 
 // ========== MODALLAR ==========
-function openModal(id) { 
-    document.getElementById(id + 'Modal')?.classList.remove('hidden'); 
-    if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey; 
+function openModal(id) {
+    document.getElementById(id + 'Modal')?.classList.remove('hidden');
+    if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey;
+}
+function closeModal(id) {
+    document.getElementById(id + 'Modal')?.classList.add('hidden');
+}
+function saveKey() {
+    const k = document.getElementById('apiInp')?.value?.trim();
+    if (k) {
+        ST.grokApiKey = k;
+        localStorage.setItem('misyon_grok_api_key', k);
+        closeModal('api');
+        alert('✅ Groq API anahtarı kaydedildi!');
+    }
 }
 
-function closeModal(id) { 
-    document.getElementById(id + 'Modal')?.classList.add('hidden'); 
-}
-
-function saveKey() { 
-    const k = document.getElementById('apiInp')?.value?.trim(); 
-    if (k) { 
-        ST.grokApiKey = k; 
-        localStorage.setItem('kpss_grok_api_key', k); 
-        closeModal('api'); 
-        alert('✅ Groq API anahtarı kaydedildi! (Soru varyasyonu + Çözüm için)'); 
-    } 
-}
-
-function doReset(type) { 
-    if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) { 
-        const savedApiKey = ST.grokApiKey;
+function doReset(type) {
+    if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) {
+        const k = ST.grokApiKey;
         localStorage.clear();
-        if (savedApiKey) {
-            localStorage.setItem('kpss_grok_api_key', savedApiKey);
-            ST.grokApiKey = savedApiKey;
+        if (k) { localStorage.setItem('misyon_grok_api_key', k); ST.grokApiKey = k; }
+        location.reload();
+    } else if (type === 'course' && confirm(`${getCourseById(ST.currentCourse)?.n} dersi sıfırlansın mı?`)) {
+        const course = getCourseById(ST.currentCourse);
+        (course.units || []).forEach(u => { delete ST.unitProgress[u.id]; });
+        ST.completedUnits = ST.completedUnits.filter(id => !(course.units || []).find(u => u.id === id));
+        ST.completedCourses = ST.completedCourses.filter(id => id !== ST.currentCourse);
+        saveState();
+        renderCoursesList();
+        alert('✅ Ders sıfırlandı!');
+    } else if (type === 'unit' && confirm('Bu ünite sıfırlansın mı?')) {
+        if (ST.currentUnit) {
+            delete ST.unitProgress[ST.currentUnit];
+            ST.completedUnits = ST.completedUnits.filter(id => id !== ST.currentUnit);
+            saveState();
+            renderUnitQuiz();
+            alert('✅ Ünite sıfırlandı!');
         }
-        location.reload(); 
-    } else if (type === 'topic' && confirm(`${getTopicById(ST.currentTopic)?.n} konusu sıfırlansın mı?`)) { 
-        ST.topicProgress[ST.currentTopic] = null; 
-        ST.completedTopics = ST.completedTopics.filter(id => id !== ST.currentTopic); 
-        saveState(); 
-        renderTopicsList(); 
-        alert(`✅ Konu sıfırlandı!`); 
-    } 
+    }
 }
 
 // ========== BAŞLANGIÇ ==========
 function startApp() {
     loadState();
     loadQuestions();
+    updateDailyGoal();
     ST.currentView = 'vHome';
     history.replaceState({ view: 'vHome' }, '', '#/vHome');
     showView('vHome', false);
-    console.log('✅ Gelişmiş Motor V6 Aktif! Autofill engellendi, tamamlanan konular %100 gösterir.');
+    console.log('✅ Misyon Koruma Motoru Aktif!');
 }
 
 window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
