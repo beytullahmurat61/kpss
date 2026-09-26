@@ -1,990 +1,767 @@
-// ============================================
-// MİSYON KORUMA SINAVI - ANA UYGULAMA MOTORU V1
-// Ders → Ünite → Konu Anlatımı + Ünite Soruları
-// Soru Bankası: Ders ders + Karma
-// Eşleştirme Tablosu modülü entegre
-// Autofill engellendi | Groq entegrasyonu aktif
-// ============================================
+// ============================================================
+// MİSYON KORUMA – UYGULAMA MOTORU
+// Ders → Ünite → Test → Sonuç → Yanlışlar → Tekrar
+// Backend yok; tüm ilerleme localStorage'da tutulur.
+// ============================================================
+'use strict';
 
-console.log('🚀 Misyon Koruma uygulaması başlıyor...');
+// ---------------- yardımcılar ----------------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const L = QDB.LETTERS;
+const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const fmtDate = ts => ts ? new Date(ts).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmtTime = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+const DIFF = { easy: ['🟢', 'Kolay'], medium: ['🟡', 'Orta'], hard: ['🔴', 'Zor'] };
+const tone = p => (p >= 75 ? 'ok' : p >= 50 ? 'mid' : 'bad');
 
-// ========== STATE ==========
-let ST = {
-    version: 1.0,
-    grokApiKey: '',
-    currentCourse: 1,
-    currentUnit: null,
-    currentUnitTab: 'lesson',
-    streak: 0,
-    maxStreak: 0,
-    totalCorrect: 0,
-    totalSolved: 0,
-    completedCourses: [],
-    completedUnits: [],
-    unitProgress: {},          // { 'anayasa-1': { correct, total, completed } }
-    questionBankProgress: {},  // { courseId: { solved, correct } }
-    mixedProgress: { solved: 0, correct: 0 },
-    matchingProgress: {},      // { setId: { correct, total } }
-    dailyGoal: { date: '', solved: 0, target: 20 },
-    lastVisited: null,         // { courseId, unitId, tab }
-    scratchpad: '',
-    currentQuestion: null,
-    currentView: 'vHome',
-    examMode: false,           // artık kullanılmıyor ama uyumluluk için
-    pendingCompletionUnit: null,
-    pendingCompletionCourse: null
+// ---------------- kalıcı durum ----------------
+const DEFAULT_STATE = () => ({
+  v: 1,
+  q: {},            // soruId → { a, c, w, b, h, l, t, p }  (deneme, doğru, yanlış, boş, geçmiş, son sonuç, son zaman, yanlış önceliği)
+  fav: {}, later: {},
+  tests: [],
+  counters: { tests: 0, exams: 0 },
+  daily: { target: 50, days: {} },
+  session: null
+});
+let S = DEFAULT_STATE();
+
+const Store = {
+  load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(APP_CONFIG.storageKey) || 'null');
+      if (raw && raw.v === 1) S = Object.assign(DEFAULT_STATE(), raw);
+    } catch (e) { console.error('Kayıt okunamadı', e); }
+  },
+  save() {
+    try { localStorage.setItem(APP_CONFIG.storageKey, JSON.stringify(S)); }
+    catch (e) { toast('Kayıt yapılamadı: tarayıcı depolama alanı dolu olabilir.'); console.error(e); }
+  }
 };
 
-// ========== GROQ API ==========
-const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROK_MODEL = 'llama-3.3-70b-versatile';
-
-// ========== YARDIMCI FONKSİYONLAR ==========
-function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function shuffleArray(arr) { const s = [...arr]; for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; } return s; }
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-
-function normAns(s) { 
-    if (!s) return ''; 
-    let cleaned = String(s).toLowerCase().trim(); 
-    cleaned = cleaned.replace(/\s*(bin|tl|lira|gün|saat|km|kg|gr|lt|ml|cm|m)\b/gi, ''); 
-    if (/^\d+000$/.test(cleaned)) cleaned = cleaned.replace(/000$/, '');
-    cleaned = cleaned.replace(/[.,](\d{3})\b/g, '$1'); 
-    cleaned = cleaned.replace(/,/g, '.'); 
-    cleaned = cleaned.replace(/[×x]/g, '*'); 
-    cleaned = cleaned.replace(/\s+/g, ''); 
-    if (!isNaN(parseFloat(cleaned)) && isFinite(cleaned)) cleaned = parseFloat(cleaned).toString();
-    return cleaned; 
+// Bir cevabı istatistiğe işler ve yanlış önceliğini günceller
+function record(qid, res) {
+  const r = S.q[qid] || (S.q[qid] = { a: 0, c: 0, w: 0, b: 0, h: '', l: '', t: 0, p: 0 });
+  r.a++; r[res]++; r.h = (r.h + res).slice(-10); r.t = Date.now();
+  if (res !== 'b' || !r.l || r.l === 'b') r.l = res;   // boş bırakmak önceki doğru/yanlış bilgisini silmez
+  if (res === 'w') r.p = Math.min((r.p || 0) + 3, 9);        // yanlış → öncelik yükselir
+  else if (res === 'c' && r.p > 0) r.p = Math.max(r.p - 2, 0); // doğru → öncelik düşer
 }
-
-function checkEqual(userAns, correctAns) { 
-    try { 
-        const u = normAns(userAns), c = normAns(correctAns); 
-        if (u === c) return true; 
-        const uNum = parseFloat(u), cNum = parseFloat(c); 
-        if (!isNaN(uNum) && !isNaN(cNum) && Math.abs(uNum - cNum) < 0.001) return true; 
-        const uParts = u.split('/'), cParts = c.split('/'); 
-        if (cParts.length === 2 || uParts.length === 2) { 
-            const uVal = uParts.length === 2 ? Number(uParts[0])/Number(uParts[1]) : uNum; 
-            const cVal = cParts.length === 2 ? Number(cParts[0])/Number(cParts[1]) : cNum; 
-            if (!isNaN(uVal) && !isNaN(cVal) && Math.abs(uVal - cVal) < 0.001) return true; 
-        } 
-        return false; 
-    } catch(e) { return false; } 
+function bumpDaily(n = 1) {
+  const k = dayKey(); S.daily.days[k] = (S.daily.days[k] || 0) + n;
+  const keys = Object.keys(S.daily.days).sort(); while (keys.length > 60) delete S.daily.days[keys.shift()];
 }
+const todayCount = () => S.daily.days[dayKey()] || 0;
 
-// ========== SORU BANKASI YÜKLEME ==========
-// questions.js yapısı: SORU_BANKASI = { units: {...}, mixed: [...] }
-let UNIT_QUESTIONS = {};   // { unitId: [ {q, options, answer}, ... ] }
-let MIXED_QUESTIONS = [];  // [ {q, options, answer}, ... ]
-
-function loadQuestions() {
-    UNIT_QUESTIONS = {};
-    MIXED_QUESTIONS = [];
-
-    if (typeof SORU_BANKASI === 'undefined') {
-        console.warn('⚠️ SORU_BANKASI yüklenmedi');
-        return;
-    }
-
-    // Ünite soruları
-    if (SORU_BANKASI.units) {
-        for (const [unitId, qs] of Object.entries(SORU_BANKASI.units)) {
-            UNIT_QUESTIONS[unitId] = qs || [];
-        }
-    }
-
-    // Karma sorular
-    if (Array.isArray(SORU_BANKASI.mixed)) {
-        MIXED_QUESTIONS = SORU_BANKASI.mixed;
-    }
-
-    console.log(`✅ Sorular yüklendi: ${Object.keys(UNIT_QUESTIONS).length} ünite, ${MIXED_QUESTIONS.length} karma soru`);
+// ---------------- istatistik hesapları ----------------
+function statsOf(questions) {
+  let solved = 0, correct = 0, wrong = 0;
+  for (const q of questions) { const r = S.q[q.id]; if (!r) continue; if (r.l === 'c') { solved++; correct++; } else if (r.l === 'w') { solved++; wrong++; } }
+  return { total: questions.length, solved, correct, wrong, pct: pct(correct, solved) };
 }
-
-// Ünitenin soruları (varsa)
-function getUnitQuestions(unitId) {
-    return UNIT_QUESTIONS[unitId] || [];
+const unitStats = uid => statsOf(QDB.unitQs(uid));
+const courseStats = cid => statsOf(QDB.courseQs(cid));
+function weakUnits() {
+  const out = [];
+  COURSES.forEach(c => c.units.forEach(u => {
+    const s = unitStats(u.id);
+    if (s.solved >= APP_CONFIG.weakMinSolved && s.pct < APP_CONFIG.weakThreshold) out.push({ c, u, s });
+  }));
+  return out.sort((a, b) => a.s.pct - b.s.pct);
 }
+const wrongList = () => QDB.all.filter(q => S.q[q.id]?.w > 0);
 
-// Dersin tüm ünitelerinden sorular
-function getCourseQuestions(courseId) {
-    const course = getCourseById(courseId);
-    if (!course || !course.units) return [];
-    let all = [];
-    course.units.forEach(u => {
-        all = all.concat(getUnitQuestions(u.id));
-    });
-    return all;
-}
-
-// ========== ÜNİTE İÇERİĞİ ==========
-function getUnitLessonContent(courseId, unitId) {
-    const unit = getUnit(courseId, unitId);
-    return unit ? unit.content : null;
-}
-
-// ========== STATE YÖNETİMİ ==========
-function loadState() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('misyon_koruma_v1') || '{}');
-        if (saved.version === 1.0) {
-            Object.assign(ST, saved);
-        }
-    } catch(e) { console.warn(e); }
-    ST.grokApiKey = localStorage.getItem('misyon_grok_api_key') || '';
-    if (!ST.unitProgress) ST.unitProgress = {};
-    if (!ST.completedCourses) ST.completedCourses = [];
-    if (!ST.completedUnits) ST.completedUnits = [];
-    if (!ST.questionBankProgress) ST.questionBankProgress = {};
-    if (!ST.mixedProgress) ST.mixedProgress = { solved: 0, correct: 0 };
-    if (!ST.matchingProgress) ST.matchingProgress = {};
-    if (!ST.dailyGoal) ST.dailyGoal = { date: todayStr(), solved: 0, target: 20 };
-    if (ST.scratchpad && !ST.scratchpad.startsWith('data:image')) ST.scratchpad = '';
-    saveState();
-}
-
-function saveState() {
-    try {
-        const toSave = {
-            version: 1.0,
-            currentCourse: ST.currentCourse,
-            currentUnit: ST.currentUnit,
-            streak: ST.streak,
-            maxStreak: ST.maxStreak,
-            totalCorrect: ST.totalCorrect,
-            totalSolved: ST.totalSolved,
-            completedCourses: ST.completedCourses,
-            completedUnits: ST.completedUnits,
-            unitProgress: ST.unitProgress,
-            questionBankProgress: ST.questionBankProgress,
-            mixedProgress: ST.mixedProgress,
-            matchingProgress: ST.matchingProgress,
-            dailyGoal: ST.dailyGoal,
-            lastVisited: ST.lastVisited,
-            scratchpad: ST.scratchpad
-        };
-        localStorage.setItem('misyon_koruma_v1', JSON.stringify(toSave));
-    } catch(e) { console.warn(e); }
-}
-
-function getUnitProgress(unitId) {
-    if (!ST.unitProgress[unitId]) {
-        ST.unitProgress[unitId] = { correct: 0, total: 0, completed: false };
-    }
-    return ST.unitProgress[unitId];
-}
-
-// ========== GÜNLÜK HEDEF ==========
-function updateDailyGoal() {
-    const today = todayStr();
-    if (ST.dailyGoal.date !== today) {
-        ST.dailyGoal = { date: today, solved: 0, target: 20 };
-    }
-}
-
-function bumpDailyGoal() {
-    updateDailyGoal();
-    ST.dailyGoal.solved++;
-    saveState();
-}
-
-// ========== SAYFA GEÇİŞLERİ ==========
-function showView(id, pushHistory = true) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(id)?.classList.add('active');
-    ST.currentView = id;
-    updateHeader(id);
-    if (pushHistory) history.pushState({ view: id }, '', '#/' + id);
-    if (id === 'vHome') updateHomeStats();
-    else if (id === 'vCourses') renderCoursesList();
-    else if (id === 'vUnits') renderUnitsList();
-    else if (id === 'vUnitDetail') renderUnitDetail();
-    else if (id === 'vQuestionBank') renderQuestionBankList();
-    else if (id === 'vMatching') renderMatching();
-    else if (id === 'vStats') renderStats();
-    saveState();
-}
-
-function updateHeader(viewId) { 
-    const titles = { 
-        vHome: '🛡️ Misyon Koruma', 
-        vCourses: '📚 Dersler', 
-        vUnits: '📄 Üniteler', 
-        vUnitDetail: '📖 Ünite', 
-        vQuestionBank: '📝 Soru Bankası',
-        vQBSolve: '📝 Soru Çöz',
-        vMatching: '🎯 Eşleştirme',
-        vStats: '📊 İstatistikler' 
-    }; 
-    document.getElementById('headerTitle').textContent = titles[viewId] || '🛡️ Misyon Koruma'; 
-    document.getElementById('btnBack').style.visibility = viewId === 'vHome' ? 'hidden' : 'visible'; 
-}
-
-function goBack() { history.back(); }
-function goHome() { showView('vHome'); }
-function goCourses() { showView('vCourses'); }
-function goQuestionBank() { showView('vQuestionBank'); }
-function goMatching() { showView('vMatching'); }
-function goStats() { showView('vStats'); }
-function toggleMenu() { document.getElementById('sideMenu')?.classList.toggle('hidden'); }
-
-// ========== ANA SAYFA ==========
-function updateHomeStats() { 
-    const doneCourses = ST.completedCourses.length; 
-    const acc = ST.totalSolved > 0 ? Math.round((ST.totalCorrect / ST.totalSolved) * 100) : 0; 
-    document.getElementById('statCourses').textContent = doneCourses; 
-    document.getElementById('statQuestions').textContent = ST.totalSolved; 
-    document.getElementById('statAccuracy').textContent = '%' + acc; 
-    document.getElementById('statStreak').textContent = ST.maxStreak; 
-
-    const totalCourses = TOPICS.length;
-    const coursesProgress = document.getElementById('homeCoursesProgress');
-    if (coursesProgress) coursesProgress.textContent = `${doneCourses}/${totalCourses} ders`;
-
-    updateDailyGoal();
-    const dg = ST.dailyGoal;
-    const dgFill = document.getElementById('dailyGoalFill');
-    const dgCount = document.getElementById('dailyGoalCounter');
-    if (dgFill && dgCount) {
-        const pct = Math.min(100, (dg.solved / dg.target) * 100);
-        dgFill.style.width = pct + '%';
-        dgCount.textContent = `${dg.solved}/${dg.target}`;
-    }
-
-    // Kaldığın yerden devam kartı
-    const continueCard = document.getElementById('continueCard');
-    const continueSub = document.getElementById('continueSub');
-    if (continueCard && continueSub && ST.lastVisited) {
-        const course = getCourseById(ST.lastVisited.courseId);
-        const unit = getUnit(ST.lastVisited.courseId, ST.lastVisited.unitId);
-        if (course && unit) {
-            continueCard.classList.remove('hidden');
-            continueSub.textContent = `${course.e} ${course.n} → ${unit.title}`;
-        } else {
-            continueCard.classList.add('hidden');
-        }
-    } else if (continueCard) {
-        continueCard.classList.add('hidden');
-    }
-}
-
-function continueLast() {
-    if (!ST.lastVisited) return;
-    ST.currentCourse = ST.lastVisited.courseId;
-    ST.currentUnit = ST.lastVisited.unitId;
-    ST.currentUnitTab = ST.lastVisited.tab || 'lesson';
-    showView('vUnitDetail');
-}
-
-// ========== DERS LİSTESİ ==========
-function renderCoursesList() {
-    const el = document.getElementById('coursesList');
-    if (!el) return;
-    let html = '';
-    for (const course of TOPICS) {
-        const completed = ST.completedCourses.includes(course.id);
-        const unitsTotal = course.units?.length || 0;
-        const unitsDone = (course.units || []).filter(u => ST.completedUnits.includes(u.id)).length;
-        const pct = unitsTotal > 0 ? Math.round((unitsDone / unitsTotal) * 100) : 0;
-
-        let cls = 'topic-row';
-        if (completed) cls += ' t-done';
-
-        html += `<div class="${cls}" onclick="openCourse(${course.id})">
-            <span class="t-icon">${course.e}</span>
-            <div class="t-info">
-                <div class="t-name">${course.n}</div>
-                <div class="t-meta">${unitsDone}/${unitsTotal} ünite</div>
-                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
-            </div>
-            <span>${completed ? '✅' : '📘'}</span>
-        </div>`;
-    }
-    el.innerHTML = html;
-    document.getElementById('coursesDoneLabel').textContent = `${ST.completedCourses.length}/${TOPICS.length}`;
-}
-
-function openCourse(courseId) {
-    ST.currentCourse = courseId;
-    showView('vUnits');
-}
-
-// ========== ÜNİTE LİSTESİ ==========
-function renderUnitsList() {
-    const course = getCourseById(ST.currentCourse);
-    if (!course) return;
-    document.getElementById('unitsCourseTitle').textContent = `${course.e} ${course.n}`;
-    const el = document.getElementById('unitsList');
-    if (!el) return;
-    const units = course.units || [];
-    const doneCount = units.filter(u => ST.completedUnits.includes(u.id)).length;
-    document.getElementById('unitsProgress').textContent = `${doneCount}/${units.length}`;
-
-    let html = '';
-    units.forEach((unit, idx) => {
-        const prog = ST.unitProgress[unit.id] || { correct: 0, total: 0, completed: false };
-        const completed = ST.completedUnits.includes(unit.id);
-        const qCount = getUnitQuestions(unit.id).length;
-        let cls = 'topic-row';
-        if (completed) cls += ' t-done';
-
-        html += `<div class="${cls}" onclick="openUnit('${unit.id}')">
-            <span class="t-icon">${idx + 1}️⃣</span>
-            <div class="t-info">
-                <div class="t-name">${unit.title}</div>
-                <div class="t-meta">${qCount} soru</div>
-            </div>
-            <span>${completed ? '✅' : '📄'}</span>
-        </div>`;
-    });
-    el.innerHTML = html;
-}
-
-function openUnit(unitId) {
-    ST.currentUnit = unitId;
-    ST.currentUnitTab = 'lesson';
-    ST.lastVisited = { courseId: ST.currentCourse, unitId, tab: 'lesson' };
-    saveState();
-    showView('vUnitDetail');
-}
-
-// ========== ÜNİTE DETAY ==========
-function renderUnitDetail() {
-    const course = getCourseById(ST.currentCourse);
-    const unit = getUnit(ST.currentCourse, ST.currentUnit);
-    if (!course || !unit) return;
-
-    document.getElementById('unitTitle').textContent = unit.title;
-    document.getElementById('unitBadge').textContent = course.n;
-    switchUnitTab(ST.currentUnitTab || 'lesson');
-}
-
-function switchUnitTab(tab) {
-    ST.currentUnitTab = tab;
-    ST.lastVisited = { courseId: ST.currentCourse, unitId: ST.currentUnit, tab };
-    saveState();
-
-    document.querySelectorAll('#unitTabBar .tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-    });
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-    if (tab === 'lesson') {
-        document.getElementById('unitLessonTab').classList.add('active');
-        renderUnitLesson();
-    } else if (tab === 'quiz') {
-        document.getElementById('unitQuizTab').classList.add('active');
-        renderUnitQuiz();
-    }
-}
-
-function renderUnitLesson() {
-    const content = getUnitLessonContent(ST.currentCourse, ST.currentUnit);
-    const el = document.getElementById('unitLessonContent');
-    if (!el) return;
-    const alreadyRead = ST.completedUnits.includes(ST.currentUnit);
-    el.innerHTML = `
-        <div class="learn-content">${content || '<p>İçerik hazırlanıyor...</p>'}</div>
-    `;
-    const readBtn = document.querySelector('#unitLessonTab .btn-ghost');
-    if (readBtn) {
-        readBtn.textContent = alreadyRead ? '✅ Okundu' : '✅ Okudum, Anladım';
-        readBtn.disabled = alreadyRead;
-    }
-}
-
-function markUnitRead() {
-    if (!ST.completedUnits.includes(ST.currentUnit)) {
-        ST.completedUnits.push(ST.currentUnit);
-        saveState();
-    }
-    alert('✅ Ünite okundu olarak işaretlendi. Şimdi soruları çözebilirsin!');
-    switchUnitTab('quiz');
-}
-
-function renderUnitQuiz() {
-    const questions = getUnitQuestions(ST.currentUnit);
-    const el = document.getElementById('unitQuizContent');
-    if (!el) return;
-
-    if (questions.length === 0) {
-        el.innerHTML = `
-            <div class="card" style="text-align:center">
-                <h3>📝 Bu ünitede henüz soru yok</h3>
-                <p style="color:var(--text-muted); margin: 12px 0;">Sorular eklendiğinde buradan çözebileceksin.</p>
-                <button class="btn btn-ghost btn-full" onclick="markUnitRead()">✅ Üniteyi Tamamla</button>
-            </div>
-        `;
-        return;
-    }
-
-    const prog = getUnitProgress(ST.currentUnit);
-    if (prog.total >= questions.length) {
-        // Ünite tamamlandı ekranı
-        const passed = prog.correct >= Math.ceil(questions.length * 0.6);
-        el.innerHTML = `
-            <div class="card" style="text-align:center">
-                <div style="font-size:48px">${passed ? '🏆' : '💪'}</div>
-                <h3>${passed ? 'Üniteyi Tamamladın!' : 'Tekrar Denemelisin'}</h3>
-                <p style="margin:12px 0">Doğru: <b>${prog.correct}/${prog.total}</b></p>
-                <div class="btn-row" style="flex-direction:column;gap:8px">
-                    <button class="btn btn-ghost btn-full" onclick="resetUnitProgress()">🔄 Tekrar Çöz</button>
-                    <button class="btn btn-primary btn-full" onclick="goToNextUnit()">➡️ Sonraki Ünite</button>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    // Soru çözme
-    const q = questions[prog.total];
-    ST.currentQuestion = { ...q, mode: 'unit', unitId: ST.currentUnit };
-    el.innerHTML = `
-        <div class="prog-bar-wrap">
-            <div class="prog-bar-label"><span>Soru ${prog.total + 1}/${questions.length}</span><span>${prog.correct} doğru</span></div>
-            <div class="prog-bar-bg"><div class="prog-bar-fill fill-grn" style="width:${(prog.total / questions.length) * 100}%"></div></div>
-        </div>
-        <div class="card accent-top">
-            <div class="q-header">
-                <span class="q-counter">Soru ${prog.total + 1}</span>
-            </div>
-            <div class="q-text">${q.q}</div>
-            <div class="options-list">
-                ${q.options.map((opt, i) => `<button class="option-btn" onclick="answerUnitQuestion(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`).join('')}
-            </div>
-        </div>
-        <div id="unitFeedbackArea"></div>
-    `;
-}
-
-function answerUnitQuestion(selectedIdx) {
-    const q = ST.currentQuestion;
-    if (!q || q.mode !== 'unit') return;
-    const questions = getUnitQuestions(ST.currentUnit);
-    const prog = getUnitProgress(ST.currentUnit);
-    const isCorrect = selectedIdx === q.answer;
-
-    prog.total++;
-    if (isCorrect) prog.correct++;
-    ST.totalSolved++;
-    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
-    else ST.streak = 0;
-    bumpDailyGoal();
-    saveState();
-
-    // Doğru cevabı göster
-    document.querySelectorAll('.option-btn').forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === q.answer) btn.classList.add('opt-correct');
-        if (i === selectedIdx && !isCorrect) btn.classList.add('opt-wrong');
-    });
-
-    const isLast = prog.total >= questions.length;
-    const fbHtml = `
-        <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
-            <div class="fb-head">
-                <span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span>
-                <span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span>
-            </div>
-            <div class="fb-body">
-                Doğru cevap: <b>${String.fromCharCode(65 + q.answer)}) ${q.options[q.answer]}</b>
-                ${q.explain ? `<br><br>💡 <b>Açıklama:</b> ${q.explain}` : ''}
-            </div>
-            ${!isLast ? '<div class="btn-row"><button class="btn btn-primary btn-full" onclick="renderUnitQuiz()">Sonraki Soru →</button></div>' 
-                     : '<div class="btn-row"><button class="btn btn-primary btn-full" onclick="finishUnit()">🏁 Üniteyi Bitir</button></div>'}
-        </div>
-    `;
-    const fbArea = document.getElementById('unitFeedbackArea');
-    if (fbArea) fbArea.innerHTML = fbHtml;
-
-    if (!isCorrect) renderGrokBtn(fbArea.querySelector('.fb-fail'), q.q, q.options[q.answer], '');
-}
-
-function finishUnit() {
-    const prog = getUnitProgress(ST.currentUnit);
-    const questions = getUnitQuestions(ST.currentUnit);
-    const passed = prog.correct >= Math.ceil(questions.length * 0.6);
-    prog.completed = true;
-
-    if (passed && !ST.completedUnits.includes(ST.currentUnit)) {
-        ST.completedUnits.push(ST.currentUnit);
-    }
-
-    // Ders tamamlandı mı?
-    const course = getCourseById(ST.currentCourse);
-    const allUnitsDone = (course.units || []).every(u => ST.completedUnits.includes(u.id));
-    if (allUnitsDone && !ST.completedCourses.includes(ST.currentCourse)) {
-        ST.completedCourses.push(ST.currentCourse);
-    }
-
-    saveState();
-    renderUnitQuiz();
-    showUnitCompletionPopup(passed);
-}
-
-function resetUnitProgress() {
-    ST.unitProgress[ST.currentUnit] = { correct: 0, total: 0, completed: false };
-    ST.completedUnits = ST.completedUnits.filter(id => id !== ST.currentUnit);
-    saveState();
-    renderUnitQuiz();
-}
-
-function goToNextUnit() {
-    const course = getCourseById(ST.currentCourse);
-    if (!course) return;
-    const units = course.units || [];
-    const idx = units.findIndex(u => u.id === ST.currentUnit);
-    if (idx >= 0 && idx < units.length - 1) {
-        openUnit(units[idx + 1].id);
-    } else {
-        // Ders bitti, sonraki derse
-        const nextCourse = TOPICS.find(c => c.order === course.order + 1);
-        if (nextCourse) openCourse(nextCourse.id);
-        else { alert('🎉 Tüm dersleri bitirdin!'); goCourses(); }
-    }
-}
-
-function showUnitCompletionPopup(passed) {
-    const popup = document.getElementById('completionPopup');
-    const title = document.getElementById('completionUnitTitle');
-    const msg = document.getElementById('completionMessage');
-    const unit = getUnit(ST.currentCourse, ST.currentUnit);
-    if (!popup || !title || !msg) return;
-
-    ST.pendingCompletionUnit = ST.currentUnit;
-    ST.pendingCompletionCourse = ST.currentCourse;
-
-    const prog = getUnitProgress(ST.currentUnit);
-    if (passed) {
-        title.textContent = `🏆 ${unit?.title} Tamamlandı!`;
-        msg.innerHTML = `Doğru: <b>${prog.correct}/${prog.total}</b> — Harika!`;
-    } else {
-        title.textContent = `💪 ${unit?.title}`;
-        msg.innerHTML = `Doğru: <b>${prog.correct}/${prog.total}</b> — Tekrar denemelisin.`;
-    }
-    popup.classList.remove('hidden');
-}
-
-function closeCompletionPopup() {
-    document.getElementById('completionPopup')?.classList.add('hidden');
-    ST.pendingCompletionUnit = null;
-    ST.pendingCompletionCourse = null;
-}
-
-function goToQuestionBankFromPopup() {
-    closeCompletionPopup();
-    ST.currentCourse = ST.pendingCompletionCourse;
-    showView('vQuestionBank');
-}
-
-function goToNextUnitFromPopup() {
-    const courseId = ST.pendingCompletionCourse;
-    closeCompletionPopup();
-    if (courseId) ST.currentCourse = courseId;
-    goToNextUnit();
-}
-
-// ========== SORU BANKASI ==========
-function renderQuestionBankList() {
-    const el = document.getElementById('qbCoursesList');
-    if (!el) return;
-    let html = '';
-    for (const course of TOPICS) {
-        const questions = getCourseQuestions(course.id);
-        const prog = ST.questionBankProgress[course.id] || { solved: 0, correct: 0 };
-        const total = questions.length;
-        const pct = total > 0 ? Math.round((prog.solved / total) * 100) : 0;
-        const acc = prog.solved > 0 ? Math.round((prog.correct / prog.solved) * 100) : 0;
-
-        html += `<div class="topic-row" onclick="startCourseQuestions(${course.id})">
-            <span class="t-icon">${course.e}</span>
-            <div class="t-info">
-                <div class="t-name">${course.n}</div>
-                <div class="t-meta">${prog.solved}/${total} çözüldü • %${acc} doğruluk</div>
-                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
-            </div>
-            <span>📝</span>
-        </div>`;
-    }
-    el.innerHTML = html;
-}
-
-function startCourseQuestions(courseId) {
-    ST.currentCourse = courseId;
-    const questions = getCourseQuestions(courseId);
-    if (questions.length === 0) {
-        alert('Bu derste henüz soru yok.');
-        return;
-    }
-    startQBSession(questions, `📝 ${getCourseById(courseId).n}`);
-}
-
-function startMixedQuestions() {
-    if (MIXED_QUESTIONS.length === 0) {
-        alert('Henüz karma soru eklenmemiş.');
-        return;
-    }
-    startQBSession(shuffleArray([...MIXED_QUESTIONS]), '🎲 Karma Sorular', true);
-}
-
-function startQBSession(questions, title, isMixed = false) {
-    ST.qbSession = {
-        questions: shuffleArray(questions).slice(0, 100),
-        index: 0,
-        correct: 0,
-        isMixed
+// ---------------- akıllı soru seçimi ----------------
+// sel: smart | unsolved | wrong | random ; diff: mixed | easy | medium | hard
+function pickQuestions(pool, n, sel = 'smart', diff = 'mixed') {
+  if (diff !== 'mixed') pool = pool.filter(q => q.difficulty === diff);
+  if (sel === 'unsolved') pool = pool.filter(q => !S.q[q.id] || !S.q[q.id].l || S.q[q.id].l === 'b');
+  if (sel === 'wrong') pool = pool.filter(q => S.q[q.id]?.w > 0);
+  let ordered;
+  if (sel === 'random') ordered = shuffle(pool);
+  else if (sel === 'wrong') ordered = [...pool].sort((a, b) => (S.q[b.id].p - S.q[a.id].p) || Math.random() - 0.5);
+  else {
+    const weak = {};
+    const score = q => {
+      const r = S.q[q.id];
+      if (!(q.unitId in weak)) { const s = unitStats(q.unitId); weak[q.unitId] = s.solved >= 3 ? 100 - s.pct : 30; }
+      let v = Math.random() * 40 + weak[q.unitId] * 1.5;
+      if (!r || !r.l) v += 1000;                 // 1. hiç çözülmemiş
+      else v += (r.p || 0) * 60 + Math.max(0, 6 - r.a) * 10; // 2. yanlış önceliği, 4. az görülen
+      return v;
     };
-    showView('vQBSolve');
-    document.getElementById('qbSolveTitle').textContent = title;
-    renderQBQuestion();
+    ordered = pool.map(q => [score(q), q]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
+  }
+  const chosen = n === 'all' ? ordered : ordered.slice(0, n);
+  return shuffle(chosen).map(q => q.id);
+}
+// Denemede seçilen derslerden dengeli dağılım
+function pickBalanced(courseIds, n) {
+  const pools = courseIds.map(cid => shuffle(QDB.courseQs(cid))).filter(p => p.length);
+  if (!pools.length) return [];
+  const out = []; let i = 0, guard = 0;
+  while (out.length < n && guard < n * pools.length + 10) {
+    const p = pools[i % pools.length]; if (p.length) out.push(p.pop().id);
+    i++; guard++; if (pools.every(x => !x.length)) break;
+  }
+  return shuffle(out);
 }
 
-function renderQBQuestion() {
-    const s = ST.qbSession;
-    if (!s) { goQuestionBank(); return; }
-    if (s.index >= s.questions.length) {
-        document.getElementById('qbSolveContent').innerHTML = `
-            <div class="card" style="text-align:center">
-                <div style="font-size:48px">🎉</div>
-                <h3>Oturum Tamamlandı!</h3>
-                <p style="margin:12px 0">Doğru: <b>${s.correct}/${s.questions.length}</b> (%${Math.round((s.correct / s.questions.length) * 100)})</p>
-                <button class="btn btn-primary btn-full" onclick="goQuestionBank()">Listeye Dön</button>
-            </div>
-        `;
-        return;
+// ---------------- UI temel ----------------
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+function confirmBox(title, text, okLabel = 'Evet', danger = false) {
+  return new Promise(res => {
+    const m = $('#modal');
+    m.innerHTML = `<div class="modal-card" role="dialog" aria-modal="true"><h3>${esc(title)}</h3><p>${esc(text)}</p>
+      <div class="row-btns"><button class="btn ghost" data-m="0">Vazgeç</button><button class="btn ${danger ? 'danger' : 'primary'}" data-m="1">${esc(okLabel)}</button></div></div>`;
+    m.hidden = false;
+    const close = v => { m.hidden = true; m.innerHTML = ''; m.onclick = null; res(v); };
+    m.onclick = e => { const b = e.target.closest('[data-m]'); if (b) close(b.dataset.m === '1'); else if (e.target === m) close(false); };
+    m.querySelector('[data-m="1"]').focus();
+  });
+}
+
+const bar = (p, cls = '') => `<div class="bar ${cls}"><i style="width:${Math.min(100, Math.max(0, p))}%"></i></div>`;
+const empty = (icon, text, action = '') => `<div class="empty"><div class="empty-ico">${icon}</div><p>${text}</p>${action}</div>`;
+const chips = (name, items, checked, type = 'radio') => `<div class="chips">${items.map(([v, l]) =>
+  `<label class="chip"><input type="${type}" name="${name}" value="${v}" ${(Array.isArray(checked) ? checked.map(String).includes(String(v)) : String(checked) === String(v)) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>`;
+const readForm = sel => { const f = $(sel); const d = new FormData(f); return { get: k => d.get(k), all: k => d.getAll(k) }; };
+const noQuestionsNote = () => QDB.all.length ? '' : `<a class="notice" href="#/import">📥 Soru bankası henüz boş. Soru evrakını yüklemek için dokun.</a>`;
+
+// ---------------- yönlendirme ----------------
+const ROUTES = {};
+let timerHandle = null;
+function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
+function render() {
+  const parts = (location.hash.replace(/^#\/?/, '') || 'home').split('/');
+  const name = parts[0], args = parts.slice(1).map(decodeURIComponent);
+  const route = ROUTES[name] || ROUTES.home;
+  if (name !== 'test') stopTimer();
+  const out = route(...args);
+  $('#topTitle').textContent = out.title || 'Misyon Koruma';
+  document.body.dataset.view = name;
+  $('#btnBack').style.visibility = name === 'home' ? 'hidden' : 'visible';
+  $('#view').innerHTML = out.html;
+  out.after?.();
+  if (name !== 'test') window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+
+// ---------------- ANA SAYFA ----------------
+ROUTES.home = () => {
+  const today = todayCount(), target = S.daily.target, segs = 10, filled = Math.min(segs, Math.floor((today / target) * segs));
+  const sess = S.session, wrongActive = QDB.all.filter(q => S.q[q.id]?.p > 0).length;
+  const favCount = Object.keys(S.fav).filter(QDB.has).length;
+  const weak = weakUnits().length;
+  const tile = (href, ico, label, meta = '', cls = '') => `<a class="tile ${cls}" href="${href}"><span class="tile-ico">${ico}</span><span class="tile-label">${label}</span>${meta ? `<span class="tile-meta">${meta}</span>` : ''}</a>`;
+  return {
+    title: 'Soru Bankası',
+    html: `
+    <section class="brand">
+      <div class="badge" aria-hidden="true">🛡️</div>
+      <div><h2>Misyon Koruma</h2><p>Soru çöz, yanlışlarını tekrar et, ilerle.</p></div>
+    </section>
+    ${noQuestionsNote()}
+    ${sess ? `<a class="resume" href="#/test"><span>▶️</span><div><strong>Kaldığın yerden devam et</strong><small>${esc(sess.title)} · Soru ${sess.cur + 1} / ${sess.qids.length}</small></div></a>` : ''}
+    <section class="goal" aria-label="Günlük soru hedefi">
+      <div class="goal-head"><span>🎯 Günlük hedef</span><strong>${today} <em>/ ${target}</em></strong></div>
+      <div class="segments">${Array.from({ length: segs }, (_, i) => `<i class="${i < filled ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="goal-foot">${today >= target ? '✅ Bugünün hedefi tamam.' : `Hedefe ${target - today} soru kaldı.`}
+        <div class="goal-set">${[20, 30, 50, 100].map(n => `<button class="mini ${n === target ? 'on' : ''}" data-act="goal" data-n="${n}">${n}</button>`).join('')}</div></div>
+    </section>
+    <button class="btn primary big" data-act="quick" ${QDB.all.length ? '' : 'disabled'}>⚡ Hemen 20 soru çöz</button>
+    <nav class="tiles">
+      ${tile('#/courses', '📚', 'Dersler', `${COURSES.length} ders`, 'wide')}
+      ${tile('#/bank', '📝', 'Soru Bankası', `${QDB.all.length} soru`)}
+      ${tile('#/mixed', '🎲', 'Karma Test')}
+      ${tile('#/exam', '📋', 'Deneme')}
+      ${tile('#/wrongs', '❌', 'Yanlışlarım', wrongActive ? `${wrongActive} tekrar bekliyor` : '')}
+      ${tile('#/favs', '⭐', 'Favoriler', favCount ? `${favCount} soru` : '')}
+      ${tile('#/weak', '⚠️', 'Zayıf Üniteler', weak ? `${weak} ünite` : '')}
+      ${tile('#/stats', '📊', 'İstatistikler')}
+      ${tile('#/history', '📜', 'Çözüm Geçmişi')}
+      ${tile('#/import', '📥', 'Soru Yükle', '', 'muted')}
+    </nav>`
+  };
+};
+
+// ---------------- DERSLER ----------------
+ROUTES.courses = () => ({
+  title: 'Dersler',
+  html: noQuestionsNote() + `<div class="list">${COURSES.map(c => {
+    const s = courseStats(c.id);
+    return `<a class="card course" href="#/course/${c.id}">
+      <span class="c-ico">${c.icon}</span>
+      <div class="c-body"><strong>${esc(c.name)}</strong>
+        <small>${s.total} soru · ${s.solved} çözüldü${s.solved ? ` · <b class="t-${tone(s.pct)}">%${s.pct}</b>` : ''}</small>
+        ${bar(pct(s.solved, s.total))}</div></a>`;
+  }).join('')}</div>`
+});
+
+ROUTES.course = cid => {
+  const c = QDB.course(cid); if (!c) return ROUTES.courses();
+  const cs = courseStats(cid);
+  return {
+    title: c.short,
+    html: `<div class="page-head"><span class="c-ico lg">${c.icon}</span><div><h2>${esc(c.name)}</h2>
+      <p>${cs.total} soru · ${cs.solved} çözüldü · başarı %${cs.pct}</p></div></div>
+      <a class="btn secondary block" href="#/setup/course/${cid}">🔀 Tüm ünitelerden karışık test</a>
+      <h3 class="sec">Üniteler</h3>
+      <div class="list">${c.units.map(u => {
+        const s = unitStats(u.id);
+        return `<a class="card unit" href="#/unit/${u.id}">
+          <span class="u-no">${u.no}</span>
+          <div class="c-body"><strong>📘 Ünite ${u.no}</strong><span class="u-title">${esc(u.title)}</span>
+          <small>${s.total} soru · ${s.solved} çözüldü${s.solved ? ` · <b class="t-${tone(s.pct)}">%${s.pct}</b>` : ''}</small>
+          ${bar(pct(s.solved, s.total))}</div></a>`;
+      }).join('')}</div>`
+  };
+};
+
+// ---------------- ÜNİTE + TEST AYARLARI ----------------
+function setupForm(scope, id, poolSize) {
+  return `<form id="setupForm" class="panel" onsubmit="return false">
+    <h3>Test ayarları</h3>
+    <label class="lbl">Soru sayısı</label>
+    ${chips('n', [[10, '10'], [20, '20'], [30, '30'], [50, '50'], [100, '100'], ['all', 'Tümü']], '20')}
+    <label class="lbl">Zorluk</label>
+    ${chips('diff', [['mixed', 'Karışık'], ['easy', '🟢 Kolay'], ['medium', '🟡 Orta'], ['hard', '🔴 Zor']], 'mixed')}
+    <label class="lbl">Soru seçimi</label>
+    ${chips('sel', [['smart', 'Akıllı'], ['unsolved', 'Çözülmemiş'], ['wrong', 'Yanlışlarım'], ['random', 'Tamamen rastgele']], 'smart')}
+    <p class="hint">Akıllı seçim sırası: çözülmemiş → yanlış yapılan → zayıf ünite → az görülen.</p>
+    <button class="btn primary big" data-act="startSetup" data-scope="${scope}" data-id="${id}" ${poolSize ? '' : 'disabled'}>TESTİ BAŞLAT</button>
+  </form>`;
+}
+ROUTES.unit = uid => {
+  const u = QDB.unit(uid); if (!u) return ROUTES.courses();
+  const c = QDB.course(u.courseId), s = unitStats(uid), qs = QDB.unitQs(uid);
+  const unsolved = qs.filter(q => !S.q[q.id]?.l || S.q[q.id].l === 'b').length;
+  const wrongs = qs.filter(q => S.q[q.id]?.w > 0).length;
+  return {
+    title: `${c.short} · Ünite ${u.no}`,
+    html: `<div class="page-head"><span class="u-no lg">${u.no}</span><div><h2>Ünite ${u.no}</h2><p>${esc(u.title)}</p></div></div>
+      <div class="statgrid">
+        <div><b>${s.total}</b><span>Toplam soru</span></div><div><b>${s.solved}</b><span>Çözülen</span></div>
+        <div class="ok"><b>${s.correct}</b><span>Doğru</span></div><div class="bad"><b>${s.wrong}</b><span>Yanlış</span></div>
+        <div class="wide t-${tone(s.pct)}"><b>%${s.pct}</b><span>Başarı</span>${bar(s.pct, tone(s.pct))}</div>
+      </div>
+      <div class="row-btns">
+        <button class="btn secondary" data-act="quickUnit" data-id="${uid}" data-sel="unsolved" ${unsolved ? '' : 'disabled'}>Çözülmemiş (${unsolved})</button>
+        <button class="btn secondary" data-act="quickUnit" data-id="${uid}" data-sel="wrong" ${wrongs ? '' : 'disabled'}>Yanlışlar (${wrongs})</button>
+      </div>
+      ${qs.length ? '' : `<p class="hint center">Bu ünitede henüz soru yok.</p>`}
+      ${setupForm('unit', uid, qs.length)}`
+  };
+};
+ROUTES.setup = (scope, id) => {
+  const c = QDB.course(id); if (!c) return ROUTES.courses();
+  const qs = QDB.courseQs(id);
+  return { title: `${c.short} · Tüm üniteler`, html: `<div class="page-head"><span class="c-ico lg">${c.icon}</span><div><h2>${esc(c.name)}</h2><p>Tüm ünitelerden karışık · ${qs.length} soru</p></div></div>${setupForm('course', id, qs.length)}` };
+};
+
+// ---------------- KARMA TEST & DENEME ----------------
+const courseChecks = () => `<div class="checks">${COURSES.map(c => `<label class="check"><input type="checkbox" name="c" value="${c.id}" checked><span>${c.icon} ${esc(c.short)}</span><em>${QDB.courseQs(c.id).length}</em></label>`).join('')}</div>
+  <div class="row-btns small"><button type="button" class="mini" data-act="checkAll" data-v="1">Tümünü seç</button><button type="button" class="mini" data-act="checkAll" data-v="0">Temizle</button></div>`;
+ROUTES.mixed = () => ({
+  title: 'Karma Test',
+  html: noQuestionsNote() + `<form id="mixForm" class="panel" onsubmit="return false"><h3>🎲 Ders seçimi</h3>${courseChecks()}
+    <label class="lbl">Soru sayısı</label>${chips('n', [[10, '10'], [20, '20'], [30, '30'], [50, '50'], [100, '100']], '20')}
+    <label class="lbl">Zorluk</label>${chips('diff', [['mixed', 'Karışık'], ['easy', '🟢 Kolay'], ['medium', '🟡 Orta'], ['hard', '🔴 Zor']], 'mixed')}
+    <label class="lbl">Soru seçimi</label>${chips('sel', [['smart', 'Akıllı'], ['unsolved', 'Çözülmemiş'], ['random', 'Tamamen rastgele']], 'smart')}
+    <button class="btn primary big" data-act="startMixed">KARMA TESTİ BAŞLAT</button></form>`
+});
+ROUTES.exam = () => {
+  const exams = S.tests.filter(t => t.type === 'exam').slice(0, 5);
+  return {
+    title: 'Deneme Sınavı',
+    html: noQuestionsNote() + `<form id="examForm" class="panel" onsubmit="return false"><h3>📋 Deneme ayarları</h3>
+    <p class="hint">Sorular seçilen derslerden dengeli dağıtılır. Cevaplar sınav bitince gösterilir.</p>
+    ${courseChecks()}
+    <label class="lbl">Soru sayısı</label>${chips('n', [[10, '10'], [20, '20'], [30, '30'], [50, '50'], [100, '100']], '50')}
+    <label class="lbl">Süre</label>${chips('timed', [['1', `⏱️ Süreli (soru başı ${APP_CONFIG.examSecondsPerQuestion} sn)`], ['0', 'Süresiz']], '1')}
+    <button class="btn primary big" data-act="startExam">DENEMEYİ BAŞLAT</button></form>
+    ${exams.length ? `<h3 class="sec">Son denemeler</h3><div class="list">${exams.map(testRow).join('')}</div>` : ''}`
+  };
+};
+const testRow = t => `<a class="card row" href="#/result/${t.id}"><div class="c-body"><strong>${esc(t.title)}</strong><small>${fmtDate(t.date)} · ${t.total} soru · D ${t.c} · Y ${t.w} · B ${t.b} · Net ${t.net}</small></div><b class="score t-${tone(t.pct)}">%${t.pct}</b></a>`;
+
+// ---------------- TEST OTURUMU ----------------
+async function startTest({ type, title, qids, mode = 'practice', timed = false }) {
+  if (!qids.length) { toast('Bu seçimlerle uygun soru bulunamadı.'); return; }
+  if (S.session && !(await confirmBox('Devam eden test var', `"${S.session.title}" testi silinip yeni test başlatılsın mı?`, 'Yeni testi başlat'))) return;
+  S.session = { id: Date.now(), type, title, qids, mode, ans: Array(qids.length).fill(null), cur: 0, elapsed: 0,
+    limit: timed ? qids.length * APP_CONFIG.examSecondsPerQuestion : 0, started: Date.now() };
+  Store.save();
+  go('#/test');
+}
+
+function stopTimer() { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; Store.save(); } }
+function startTimer() {
+  if (timerHandle) return;
+  let tick = 0;
+  timerHandle = setInterval(() => {
+    const T = S.session; if (!T) return stopTimer();
+    T.elapsed++; tick++;
+    const el = $('#timer');
+    if (el) {
+      const rem = T.limit ? T.limit - T.elapsed : null;
+      el.textContent = rem !== null ? '⏱️ ' + fmtTime(rem) : '⏱️ ' + fmtTime(T.elapsed);
+      el.classList.toggle('warn', rem !== null && rem <= 60);
     }
-    const q = s.questions[s.index];
-    ST.currentQuestion = { ...q, mode: 'qb' };
-    document.getElementById('qbSolveProgress').textContent = `${s.index + 1}/${s.questions.length}`;
-
-    document.getElementById('qbSolveContent').innerHTML = `
-        <div class="prog-bar-wrap">
-            <div class="prog-bar-label"><span>Soru ${s.index + 1}/${s.questions.length}</span><span>${s.correct} doğru</span></div>
-            <div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${(s.index / s.questions.length) * 100}%"></div></div>
-        </div>
-        <div class="card accent-top">
-            <div class="q-text">${q.q}</div>
-            <div class="options-list">
-                ${q.options.map((opt, i) => `<button class="option-btn" onclick="answerQBQuestion(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`).join('')}
-            </div>
-        </div>
-        <div id="qbFeedbackArea"></div>
-    `;
+    if (T.limit && T.elapsed >= T.limit) { toast('Süre doldu, sınav tamamlandı.'); finishTest(true); return; }
+    if (tick % 5 === 0) Store.save();
+  }, 1000);
 }
 
-function answerQBQuestion(selectedIdx) {
-    const s = ST.qbSession;
-    const q = ST.currentQuestion;
-    if (!s || !q) return;
-    const isCorrect = selectedIdx === q.answer;
-    s.index++;
-    if (isCorrect) s.correct++;
+let lastCur = '';
+ROUTES.test = () => {
+  const T = S.session;
+  if (!T) { setTimeout(() => go('#/home'), 0); return { html: '' }; }
+  const qid = T.qids[T.cur], q = QDB.get(qid), a = T.ans[T.cur], practice = T.mode === 'practice';
+  const answered = a !== null && a !== -1, reveal = practice && answered;
+  const n = T.qids.length, c = q && QDB.course(q.courseId), u = q && QDB.unit(q.unitId);
+  const gridCls = i => {
+    const x = T.ans[i], gq = QDB.get(T.qids[i]);
+    let k = x === null ? '' : x === -1 ? 'blank' : !practice ? 'done' : (gq && x === gq.answer ? 'ok' : 'bad');
+    return k + (i === T.cur ? ' cur' : '');
+  };
+  const optsHtml = q ? q.options.map((o, i) => {
+    let cls = '';
+    if (reveal) cls = i === q.answer ? 'correct' : i === a ? 'wrong' : 'dim';
+    else if (!practice && a === i) cls = 'picked';
+    return `<button class="opt ${cls}" data-act="answer" data-i="${i}" ${reveal ? 'disabled' : ''}><span class="opt-l">${L[i]}</span><span class="opt-t">${esc(o)}</span></button>`;
+  }).join('') : '';
+  const fb = reveal ? (a === q.answer
+    ? `<div class="fb ok">✅ DOĞRU${q.explanation ? `<p>${esc(q.explanation)}</p>` : ''}</div>`
+    : `<div class="fb bad">❌ YANLIŞ<div class="fb-ans">Doğru cevap: <b>${L[q.answer]}</b></div>${q.explanation ? `<p>${esc(q.explanation)}</p>` : ''}${q.reference ? `<small>Kaynak: ${esc(q.reference)}</small>` : ''}</div>`)
+    : (a === -1 ? `<div class="fb blank">⚪ Boş bırakıldı. İstersen şimdi cevaplayabilirsin.</div>` : '');
+  const isLast = T.cur === n - 1;
+  return {
+    title: T.mode === 'exam' ? 'Deneme' : 'Test',
+    html: `<div class="qhead">
+        <div class="qmeta"><strong>${c ? esc(c.name) : 'Soru bulunamadı'}</strong><span>${u ? `Ünite ${u.no}` : ''}${q ? ` · ${DIFF[q.difficulty][0]} ${DIFF[q.difficulty][1]}` : ''}</span></div>
+        <div class="qcount"><b>Soru ${T.cur + 1}</b> / ${n}<span id="timer" class="timer">⏱️ ${fmtTime(T.limit ? T.limit - T.elapsed : T.elapsed)}</span></div>
+      </div>
+      <div class="qtools">
+        <button class="tool ${S.fav[qid] ? 'on' : ''}" data-act="fav" data-id="${qid}">⭐ Favori</button>
+        <button class="tool ${S.later[qid] ? 'on' : ''}" data-act="later" data-id="${qid}">🔖 Daha sonra çöz</button>
+        <button class="tool end" data-act="finish">Bitir</button>
+      </div>
+      ${q ? `<article class="qtext">${esc(q.question)}</article><div class="opts">${optsHtml}</div>${fb}`
+          : `<p class="hint">Bu soru veri dosyasından kaldırılmış. Sonraki soruya geçebilirsin.</p>`}
+      <div class="qnav">
+        <button class="btn ghost" data-act="prev" ${T.cur === 0 ? 'disabled' : ''}>← Önceki</button>
+        <button class="btn ghost" data-act="blank" ${answered ? 'disabled' : ''}>Boş bırak</button>
+        ${isLast ? `<button class="btn primary" data-act="finish">Testi bitir</button>` : `<button class="btn primary" data-act="next">Sonraki →</button>`}
+      </div>
+      <details class="qgrid-wrap" ${n <= 30 ? 'open' : ''}><summary>Soru haritası</summary>
+        <div class="qgrid">${T.qids.map((_, i) => `<button class="${gridCls(i)}" data-act="goto" data-i="${i}">${i + 1}</button>`).join('')}</div>
+        <p class="legend"><i class="ok"></i>Doğru <i class="bad"></i>Yanlış <i class="done"></i>İşaretli <i class="blank"></i>Boş <i></i>Cevapsız</p>
+      </details>`,
+    after: () => { startTimer(); if (lastCur !== T.id + ':' + T.cur) { lastCur = T.id + ':' + T.cur; window.scrollTo(0, 0); } }
+  };
+};
 
-    ST.totalSolved++;
-    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
-    else ST.streak = 0;
+function answer(i) {
+  const T = S.session; if (!T) return;
+  const q = QDB.get(T.qids[T.cur]); if (!q) return;
+  const prev = T.ans[T.cur];
+  if (T.mode === 'practice') {
+    if (prev !== null && prev !== -1) return;          // cevap kilitli
+    T.ans[T.cur] = i;
+    record(q.id, i === q.answer ? 'c' : 'w'); bumpDaily();
+    if (navigator.vibrate) navigator.vibrate(i === q.answer ? 15 : [30, 40, 30]);
+  } else {
+    T.ans[T.cur] = prev === i ? null : i;              // denemede değiştirilebilir
+    if (T.ans[T.cur] !== null && T.cur < T.qids.length - 1) { Store.save(); T.cur++; }
+  }
+  Store.save(); render();
+}
+function move(d) { const T = S.session; if (!T) return; T.cur = Math.min(T.qids.length - 1, Math.max(0, T.cur + d)); Store.save(); render(); }
 
-    // İlerleme kaydı
-    if (s.isMixed) {
-        ST.mixedProgress.solved++;
-        if (isCorrect) ST.mixedProgress.correct++;
-    } else {
-        const courseId = ST.currentCourse;
-        if (!ST.questionBankProgress[courseId]) ST.questionBankProgress[courseId] = { solved: 0, correct: 0 };
-        ST.questionBankProgress[courseId].solved++;
-        if (isCorrect) ST.questionBankProgress[courseId].correct++;
+async function finishTest(auto = false) {
+  const T = S.session; if (!T) return;
+  const unanswered = T.ans.filter(x => x === null || x === -1).length;
+  if (!auto && !(await confirmBox('Testi bitir', unanswered ? `${unanswered} soru boş. Bitirilsin mi?` : 'Test bitirilsin mi?', 'Bitir'))) return;
+  stopTimer();
+  const res = { id: T.id, type: T.type, title: T.title, mode: T.mode, date: Date.now(), dur: T.elapsed, total: T.qids.length, c: 0, w: 0, b: 0, by: {}, qids: T.qids, ans: T.ans.map(x => (x === null ? -1 : x)) };
+  let counted = 0;
+  T.qids.forEach((qid, i) => {
+    const q = QDB.get(qid); const x = T.ans[i];
+    const k = !q || x === null || x === -1 ? 'b' : x === q.answer ? 'c' : 'w';
+    res[k]++;
+    if (q) {
+      const bc = res.by[q.courseId] || (res.by[q.courseId] = { t: 0, c: 0, w: 0, b: 0 });
+      bc.t++; bc[k]++;
+      if (k === 'b') record(qid, 'b');
+      else if (T.mode === 'exam') { record(qid, k); counted++; }
     }
-    bumpDailyGoal();
-    saveState();
-
-    document.querySelectorAll('.option-btn').forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === q.answer) btn.classList.add('opt-correct');
-        if (i === selectedIdx && !isCorrect) btn.classList.add('opt-wrong');
-    });
-
-    const fbHtml = `
-        <div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}">
-            <div class="fb-head">
-                <span class="fb-icon">${isCorrect ? '🎉' : '❌'}</span>
-                <span class="fb-title">${isCorrect ? 'Doğru!' : 'Yanlış'}</span>
-            </div>
-            <div class="fb-body">
-                Doğru cevap: <b>${String.fromCharCode(65 + q.answer)}) ${q.options[q.answer]}</b>
-                ${q.explain ? `<br><br>💡 <b>Açıklama:</b> ${q.explain}` : ''}
-            </div>
-            <div class="btn-row"><button class="btn btn-primary btn-full" onclick="nextQBQuestion()">Sonraki Soru →</button></div>
-        </div>
-    `;
-    const fbArea = document.getElementById('qbFeedbackArea');
-    if (fbArea) fbArea.innerHTML = fbHtml;
-    if (!isCorrect) renderGrokBtn(fbArea.querySelector('.fb-fail'), q.q, q.options[q.answer], '');
+  });
+  if (counted) bumpDaily(counted);
+  res.net = +(res.c - res.w / 4).toFixed(2);
+  res.pct = pct(res.c, res.total);
+  S.tests.unshift(res);
+  S.tests = S.tests.slice(0, APP_CONFIG.testHistoryLimit);
+  S.tests.forEach((t, i) => { if (i >= APP_CONFIG.testDetailLimit) { delete t.qids; delete t.ans; } });
+  S.counters[T.type === 'exam' ? 'exams' : 'tests']++;
+  S.session = null; Store.save();
+  go('#/result/' + res.id);
 }
 
-function nextQBQuestion() {
-    ST.qbSession.index++;
-    renderQBQuestion();
+// ---------------- SONUÇ ----------------
+ROUTES.result = (id, filter = 'wrong') => {
+  const t = S.tests.find(x => String(x.id) === String(id));
+  if (!t) return { title: 'Sonuç', html: empty('📄', 'Sonuç bulunamadı.', `<a class="btn primary" href="#/home">Ana sayfa</a>`) };
+  const by = Object.entries(t.by || {});
+  const review = t.qids ? t.qids.map((qid, i) => ({ q: QDB.get(qid), a: t.ans[i] })).filter(x => x.q) : [];
+  const kind = x => (x.a === -1 ? 'blank' : x.a === x.q.answer ? 'ok' : 'wrong');
+  const shown = review.filter(x => filter === 'all' || kind(x) === filter);
+  const retry = review.filter(x => kind(x) !== 'ok').length;
+  return {
+    title: 'Sonuç',
+    html: `<section class="result-hero t-${tone(t.pct)}"><div class="ring" style="--p:${t.pct}"><b>%${t.pct}</b><span>başarı</span></div>
+        <div><h2>${esc(t.title)}</h2><p>${fmtDate(t.date)} · ${fmtTime(t.dur)}</p></div></section>
+      <div class="statgrid">
+        <div><b>${t.total}</b><span>Toplam soru</span></div><div class="ok"><b>${t.c}</b><span>Doğru</span></div>
+        <div class="bad"><b>${t.w}</b><span>Yanlış</span></div><div class="mut"><b>${t.b}</b><span>Boş</span></div>
+        <div class="wide"><b>${t.net}</b><span>Net (4 yanlış 1 doğruyu götürür)</span></div>
+      </div>
+      ${by.length > 1 ? `<h3 class="sec">Ders bazlı sonuç</h3><div class="panel">${by.map(([cid, v]) => { const p = pct(v.c, v.t); return `<div class="brow"><span>${esc(QDB.course(cid)?.short || cid)}</span><small>${v.c}/${v.t}</small><b class="t-${tone(p)}">%${p}</b>${bar(p, tone(p))}</div>`; }).join('')}</div>` : ''}
+      <div class="row-btns">
+        ${retry ? `<button class="btn primary" data-act="retryResult" data-id="${t.id}">🔁 Yanlış ve boşları tekrar çöz (${retry})</button>` : ''}
+        <a class="btn ghost" href="#/home">Ana sayfa</a>
+      </div>
+      ${review.length ? `<h3 class="sec">Soruları incele</h3>
+      <div class="tabs">${[['wrong', `❌ Yanlış (${t.w})`], ['blank', `⚪ Boş (${t.b})`], ['ok', `✅ Doğru (${t.c})`], ['all', 'Tümü']].map(([k, l]) => `<a class="tab ${filter === k ? 'on' : ''}" href="#/result/${t.id}/${k}">${l}</a>`).join('')}</div>
+      <div class="list">${shown.length ? shown.map(x => reviewCard(x.q, x.a)).join('') : empty('✔️', 'Bu filtrede soru yok.')}</div>` : `<p class="hint">Bu eski testin soru detayı saklanmıyor.</p>`}`
+  };
+};
+function reviewCard(q, a) {
+  const c = QDB.course(q.courseId), u = QDB.unit(q.unitId);
+  return `<details class="card review"><summary><small>${esc(c.short)} · Ünite ${u.no}${a === undefined ? '' : a === -1 ? ' · ⚪ Boş' : a === q.answer ? ' · ✅' : ` · ❌ Cevabın: ${L[a]}`}</small><span class="clamp">${esc(q.question)}</span></summary>
+    <ol class="ropts">${q.options.map((o, i) => `<li class="${i === q.answer ? 'correct' : i === a ? 'wrong' : ''}"><b>${L[i]})</b> ${esc(o)}</li>`).join('')}</ol>
+    ${q.explanation ? `<p class="rexp">${esc(q.explanation)}</p>` : ''}${q.reference ? `<small class="rref">Kaynak: ${esc(q.reference)}</small>` : ''}
+    <div class="row-btns small"><button class="mini ${S.fav[q.id] ? 'on' : ''}" data-act="favList" data-id="${q.id}">⭐ Favori</button></div></details>`;
 }
 
-// ========== EŞLEŞTİRME ==========
-let matchingState = {};
+// ---------------- YANLIŞLARIM ----------------
+ROUTES.wrongs = (cid = 'all') => {
+  let list = wrongList();
+  if (cid !== 'all') list = list.filter(q => q.courseId === cid);
+  list.sort((a, b) => (S.q[b.id].p - S.q[a.id].p) || (S.q[b.id].t - S.q[a.id].t));
+  const active = list.filter(q => S.q[q.id].p > 0).length;
+  const prio = p => (p >= 6 ? ['high', 'Yüksek öncelik'] : p >= 3 ? ['mid', 'Orta öncelik'] : p > 0 ? ['low', 'Düşük öncelik'] : ['done', 'Öğrenildi']);
+  return {
+    title: 'Yanlışlarım',
+    html: `<div class="panel"><div class="split"><div><b class="big-n">${active}</b><span>tekrar bekleyen</span></div><div><b class="big-n mut">${list.length - active}</b><span>öğrenildi</span></div></div>
+      <select class="select" data-act="nav" data-prefix="#/wrongs/"><option value="all">Tüm dersler</option>${COURSES.map(c => `<option value="${c.id}" ${c.id === cid ? 'selected' : ''}>${esc(c.short)}</option>`).join('')}</select>
+      <div class="row-btns">
+        <button class="btn primary" data-act="retryWrongs" data-c="${cid}" data-n="20" ${active ? '' : 'disabled'}>🔁 Yanlışları tekrar çöz (20)</button>
+        <button class="btn secondary" data-act="retryWrongs" data-c="${cid}" data-n="all" ${list.length ? '' : 'disabled'}>Tümü (${list.length})</button>
+      </div><p class="hint">Yanlış yaptıkça öncelik yükselir, doğru çözdükçe düşer.</p></div>
+      <div class="list">${list.length ? list.slice(0, 200).map(q => {
+        const r = S.q[q.id], [pc, pl] = prio(r.p);
+        return `<div class="wrong-item"><div class="wi-head"><span class="prio ${pc}">${pl}</span><span class="hist">${[...r.h].map(x => `<i class="${x}"></i>`).join('')}</span></div>
+          ${reviewCard(q)}<small class="wi-meta">✖ ${r.w} kez yanlış · son çözüm ${fmtDate(r.t)}</small></div>`;
+      }).join('') : empty('🎉', 'Yanlış yaptığın soru yok.', `<a class="btn primary" href="#/courses">Soru çöz</a>`)}</div>`
+  };
+};
 
-function renderMatching() {
-    const el = document.getElementById('matchingContent');
-    if (!el) return;
-    if (typeof MATCHING_SETS === 'undefined' || MATCHING_SETS.length === 0) {
-        el.innerHTML = '<div class="card" style="text-align:center">Eşleştirme seti bulunamadı.</div>';
-        return;
-    }
+// ---------------- FAVORİLER ----------------
+ROUTES.favs = (tab = 'fav') => {
+  const src = tab === 'later' ? S.later : S.fav;
+  const list = Object.keys(src).map(QDB.get).filter(Boolean).sort((a, b) => src[b.id] - src[a.id]);
+  return {
+    title: 'Favoriler',
+    html: `<div class="tabs"><a class="tab ${tab === 'fav' ? 'on' : ''}" href="#/favs/fav">⭐ Favoriler (${Object.keys(S.fav).filter(QDB.has).length})</a><a class="tab ${tab === 'later' ? 'on' : ''}" href="#/favs/later">🔖 Daha sonra (${Object.keys(S.later).filter(QDB.has).length})</a></div>
+      <div class="row-btns">
+        <button class="btn primary" data-act="favStart" data-tab="${tab}" data-mode="all" ${list.length ? '' : 'disabled'}>Tümünü çöz</button>
+        <button class="btn secondary" data-act="favStart" data-tab="${tab}" data-mode="rand" ${list.length ? '' : 'disabled'}>Rastgele 20</button>
+        <button class="btn ghost" data-act="favClear" data-tab="${tab}" ${list.length ? '' : 'disabled'}>Temizle</button>
+      </div>
+      <div class="list">${list.length ? list.map(q => reviewCard(q)).join('') : empty(tab === 'later' ? '🔖' : '⭐', 'Test sırasında soruları işaretleyerek buraya ekleyebilirsin.')}</div>`
+  };
+};
 
-    let html = '';
-    for (const set of MATCHING_SETS) {
-        const prog = ST.matchingProgress[set.id] || { correct: 0, total: 0 };
-        html += `<div class="topic-row" onclick="startMatching('${set.id}')">
-            <span class="t-icon">🎯</span>
-            <div class="t-info">
-                <div class="t-name">${set.title}</div>
-                <div class="t-meta">${set.pairs.length} çift • ${set.description || ''}</div>
-            </div>
-            <span>${prog.correct > 0 ? `%${Math.round((prog.correct/prog.total)*100)}` : '→'}</span>
-        </div>`;
-    }
-    el.innerHTML = html;
+// ---------------- ÇÖZÜM GEÇMİŞİ ----------------
+let histLimit = 100;
+ROUTES.history = (res = 'all', cid = 'all', uid = 'all') => {
+  const lastOf = q => S.q[q.id].h.slice(-1);
+  let list = QDB.all.filter(q => S.q[q.id]?.h);
+  if (res !== 'all') list = list.filter(q => lastOf(q) === res);
+  if (cid !== 'all') list = list.filter(q => q.courseId === cid);
+  if (uid !== 'all') list = list.filter(q => q.unitId === uid);
+  list.sort((a, b) => S.q[b.id].t - S.q[a.id].t);
+  const c = QDB.course(cid), label = { c: '✅ Doğru', w: '❌ Yanlış', b: '⚪ Boş' };
+  const h = (r, cc, uu) => `#/history/${r}/${cc}/${uu}`;
+  return {
+    title: 'Çözüm Geçmişi',
+    html: `<div class="panel filters">
+      <div class="tabs">${[['all', 'Tümü'], ['c', 'Doğru'], ['w', 'Yanlış'], ['b', 'Boş']].map(([k, l]) => `<a class="tab ${res === k ? 'on' : ''}" href="${h(k, cid, uid)}">${l}</a>`).join('')}</div>
+      <select class="select" data-act="nav" data-prefix="#/history/${res}/" data-suffix="/all"><option value="all">Tüm dersler</option>${COURSES.map(x => `<option value="${x.id}" ${x.id === cid ? 'selected' : ''}>${esc(x.short)}</option>`).join('')}</select>
+      ${c ? `<select class="select" data-act="nav" data-prefix="#/history/${res}/${cid}/"><option value="all">Tüm üniteler</option>${c.units.map(u => `<option value="${u.id}" ${u.id === uid ? 'selected' : ''}>Ünite ${u.no} – ${esc(u.title)}</option>`).join('')}</select>` : ''}
+      <p class="hint">${list.length} soru</p></div>
+      <div class="list">${list.length ? list.slice(0, histLimit).map(q => {
+        const r = S.q[q.id];
+        return `<div class="hist-item"><small>${label[lastOf(q)]} · ${fmtDate(r.t)} · ${r.a} kez çözüldü</small>${reviewCard(q)}</div>`;
+      }).join('') + (list.length > histLimit ? `<button class="btn ghost block" data-act="more">Daha fazla göster</button>` : '') : empty('📜', 'Bu filtrede çözülmüş soru yok.')}</div>`
+  };
+};
+
+// ---------------- İSTATİSTİK ----------------
+ROUTES.stats = () => {
+  let a = 0, c = 0, w = 0, b = 0, uniq = 0;
+  const perC = {};
+  QDB.all.forEach(q => {
+    const r = S.q[q.id]; if (!r) return;
+    a += r.a; c += r.c; w += r.w; b += r.b; if (r.l && r.l !== 'b') uniq++;
+    const x = perC[q.courseId] || (perC[q.courseId] = { a: 0, w: 0 }); x.a += r.c + r.w; x.w += r.w;
+  });
+  const most = Object.entries(perC).sort((x, y) => y[1].a - x[1].a)[0];
+  const mostW = Object.entries(perC).filter(x => x[1].w).sort((x, y) => y[1].w - x[1].w)[0];
+  return {
+    title: 'İstatistikler',
+    html: `<div class="statgrid">
+        <div><b>${c + w}</b><span>Toplam cevap</span></div><div><b>${uniq}</b><span>Farklı soru</span></div>
+        <div class="ok"><b>${c}</b><span>Doğru</span></div><div class="bad"><b>${w}</b><span>Yanlış</span></div>
+        <div class="mut"><b>${b}</b><span>Boş</span></div><div class="t-${tone(pct(c, c + w))}"><b>%${pct(c, c + w)}</b><span>Genel başarı</span></div>
+        <div><b>${S.counters.tests}</b><span>Toplam test</span></div><div><b>${S.counters.exams}</b><span>Toplam deneme</span></div>
+        <div class="wide"><b class="sm">${most ? esc(QDB.course(most[0]).short) : '—'}</b><span>En çok çözülen ders</span></div>
+        <div class="wide"><b class="sm">${mostW ? esc(QDB.course(mostW[0]).short) : '—'}</b><span>En çok yanlış yapılan ders</span></div>
+      </div>
+      <h3 class="sec">Ders ve ünite bazında başarı</h3>
+      <div class="list">${COURSES.map(co => {
+        const s = courseStats(co.id);
+        return `<details class="card stat-course"><summary><span>${co.icon} ${esc(co.short)}</span><small>${s.solved}/${s.total}</small><b class="t-${tone(s.pct)}">${s.solved ? '%' + s.pct : '—'}</b>${bar(s.pct, tone(s.pct))}</summary>
+          ${co.units.map(u => { const us = unitStats(u.id); return `<a class="brow" href="#/unit/${u.id}"><span>Ünite ${u.no}</span><small>${us.solved}/${us.total}</small><b class="t-${tone(us.pct)}">${us.solved ? '%' + us.pct : '—'}</b>${bar(us.pct, tone(us.pct))}</a>`; }).join('')}</details>`;
+      }).join('')}</div>
+      ${S.tests.length ? `<h3 class="sec">Son testler</h3><div class="list">${S.tests.slice(0, 10).map(testRow).join('')}</div>` : ''}
+      <h3 class="sec">Veri</h3>
+      <div class="panel"><div class="row-btns">
+        <button class="btn secondary" data-act="backup">💾 Yedek indir</button>
+        <label class="btn secondary">📂 Yedek yükle<input type="file" accept=".json" data-act="restore" hidden></label>
+        <button class="btn danger" data-act="reset">İlerlemeyi sıfırla</button></div>
+        <p class="hint">İlerlemen bu tarayıcıda saklanır. Cihaz değiştirirken yedeği kullan.</p></div>`
+  };
+};
+
+// ---------------- ZAYIF ÜNİTELER ----------------
+ROUTES.weak = () => {
+  const list = weakUnits();
+  return {
+    title: 'Zayıf Üniteler',
+    html: `<p class="hint">En az ${APP_CONFIG.weakMinSolved} soru çözülmüş ve başarısı %${APP_CONFIG.weakThreshold} altında kalan üniteler.</p>
+      <div class="list">${list.length ? list.map(({ c, u, s }) => `<div class="card weak"><div class="c-body"><strong>${esc(c.name)}</strong><span class="u-title">Ünite ${u.no} – ${esc(u.title)}</span>
+        <small>${s.correct}/${s.solved} doğru</small>${bar(s.pct, 'bad')}</div><b class="score t-bad">%${s.pct}</b>
+        <button class="btn primary block" data-act="quickUnit" data-id="${u.id}" data-sel="smart">BU ÜNİTEDEN TEST ÇÖZ</button></div>`).join('')
+        : empty('💪', 'Şu an zayıf ünite yok. Daha çok soru çözdükçe burası güncellenir.', `<a class="btn primary" href="#/courses">Soru çöz</a>`)}</div>`
+  };
+};
+
+// ---------------- TÜM SORU BANKASI ----------------
+ROUTES.bank = () => ({
+  title: 'Soru Bankası',
+  html: noQuestionsNote() + `<form id="bankForm" class="panel" onsubmit="return false">
+    <label class="lbl">Ders</label><select class="select" name="c" data-act="bankCourse"><option value="all">Tüm dersler</option>${COURSES.map(c => `<option value="${c.id}">${esc(c.short)}</option>`).join('')}</select>
+    <label class="lbl">Ünite</label><select class="select" name="u" id="bankUnit" data-act="bankCount"><option value="all">Tüm üniteler</option></select>
+    <label class="lbl">Zorluk</label>${chips('diff', [['mixed', 'Tümü'], ['easy', '🟢 Kolay'], ['medium', '🟡 Orta'], ['hard', '🔴 Zor']], 'mixed')}
+    <label class="lbl">Durum</label>${chips('st', [['all', 'Tümü'], ['solved', 'Çözülmüş'], ['unsolved', 'Çözülmemiş'], ['wrong', 'Yanlış'], ['fav', 'Favori'], ['later', 'Daha sonra']], 'all')}
+    <label class="lbl">Soru sayısı</label>${chips('n', [[10, '10'], [20, '20'], [50, '50'], [100, '100'], ['all', 'Tümü']], '20')}
+    <p class="bank-count">Eşleşen soru: <b id="bankN">0</b></p>
+    <button class="btn primary big" data-act="startBank">TESTİ BAŞLAT</button></form>`,
+  after: bankCount
+});
+function bankFilter() {
+  const f = readForm('#bankForm');
+  const c = f.get('c'), u = f.get('u'), d = f.get('diff'), st = f.get('st');
+  let list = c === 'all' ? QDB.all : QDB.courseQs(c);
+  if (u && u !== 'all') list = list.filter(q => q.unitId === u);
+  if (d !== 'mixed') list = list.filter(q => q.difficulty === d);
+  const r = q => S.q[q.id];
+  const fx = { solved: q => r(q)?.l === 'c' || r(q)?.l === 'w', unsolved: q => !r(q)?.l || r(q).l === 'b', wrong: q => r(q)?.w > 0, fav: q => S.fav[q.id], later: q => S.later[q.id] }[st];
+  return fx ? list.filter(fx) : list;
 }
+function bankCount() { const el = $('#bankN'); if (el) el.textContent = bankFilter().length; }
 
-function startMatching(setId) {
-    const set = MATCHING_SETS.find(s => s.id === setId);
-    if (!set) return;
-
-    const leftItems = set.pairs.map((p, i) => ({ id: i, text: p.left }));
-    const rightItems = shuffleArray(set.pairs.map((p, i) => ({ id: i, text: p.right })));
-
-    matchingState = {
-        setId,
-        set,
-        leftItems,
-        rightItems,
-        selectedLeft: null,
-        matches: {},           // { leftId: rightId }
-        correctCount: 0,
-        finished: false
+// ---------------- SORU YÜKLEME ----------------
+let pendingImport = null;
+ROUTES.import = () => {
+  const imported = QDB.loadImported().length, stat = QDB.all.filter(q => q.src === 'static').length;
+  const p = pendingImport;
+  return {
+    title: 'Soru Yükle',
+    html: `<div class="panel">
+      <h3>📥 Soru evrakı yükle</h3>
+      <p class="hint">Excel'den <b>CSV</b> olarak kaydettiğin dosyayı veya <b>JSON</b> dosyasını seç. Sütunlar: <code>id, ders, unite, zorluk, soru, A, B, C, D, E, cevap, aciklama, kaynak</code></p>
+      <div class="row-btns small"><button class="mini" data-act="tpl" data-f="csv">CSV şablonu indir</button><button class="mini" data-act="tpl" data-f="json">JSON şablonu indir</button><button class="mini" data-act="tpl" data-f="units">Ders/ünite listesi</button></div>
+      <label class="lbl">Yükleme şekli</label>
+      ${chips('mode', [['merge', 'Ekle / güncelle'], ['replace', 'Yüklenenlerin yerine koy']], 'merge')}
+      <label class="btn primary big file-btn">Dosya seç<input type="file" accept=".csv,.json,.txt,.js" data-act="importFile" hidden></label>
+    </div>
+    ${p ? `<div class="panel ${p.errors.length ? 'warnbox' : ''}"><h3>Kontrol sonucu: ${esc(p.name)}</h3>
+      <p><b class="t-ok">${p.ok.length}</b> geçerli soru · <b class="t-bad">${p.errors.length}</b> hatalı satır</p>
+      ${p.errors.length ? `<ul class="errs">${p.errors.slice(0, 30).map(e => `<li>Satır ${e.line}: ${esc(e.msg)}</li>`).join('')}${p.errors.length > 30 ? `<li>… ve ${p.errors.length - 30} hata daha</li>` : ''}</ul>` : ''}
+      <div class="row-btns"><button class="btn primary" data-act="importSave" ${p.ok.length ? '' : 'disabled'}>${p.ok.length} soruyu kaydet</button><button class="btn ghost" data-act="importCancel">Vazgeç</button></div></div>` : ''}
+    <div class="panel"><h3>Bankadaki sorular</h3>
+      <p>Veri dosyalarından: <b>${stat}</b> · Uygulamadan yüklenen: <b>${imported}</b> · Toplam: <b>${QDB.all.length}</b></p>
+      ${QDB.warnings.length ? `<details><summary class="t-bad">${QDB.warnings.length} veri uyarısı</summary><ul class="errs">${QDB.warnings.slice(0, 50).map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>` : ''}
+      <label class="lbl">GitHub için veri dosyası indir (data/&lt;ders&gt;.js)</label>
+      <div class="dl-list">${COURSES.map(c => `<button class="mini" data-act="exportCourse" data-id="${c.id}" ${QDB.courseQs(c.id).length ? '' : 'disabled'}>${c.icon} ${esc(c.short)} (${QDB.courseQs(c.id).length})</button>`).join('')}</div>
+      <p class="hint">İndirdiğin dosyayı depodaki <code>data/</code> klasörüne aynı adla koyduğunda sorular herkeste görünür. Sonra buradan “yüklenenleri sil” diyebilirsin.</p>
+      ${imported ? `<button class="btn danger block" data-act="importClear">Uygulamadan yüklenen ${imported} soruyu sil</button>` : ''}
+    </div>`
+  };
+};
+function readFileText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const t = r.result;
+      if (t.includes('\uFFFD')) { const r2 = new FileReader(); r2.onload = () => res(r2.result); r2.onerror = rej; r2.readAsText(file, 'windows-1254'); }
+      else res(t);
     };
+    r.onerror = rej; r.readAsText(file, 'utf-8');
+  });
+}
+function download(name, text, type = 'text/plain') {
+  const blob = new Blob([text], { type: type + ';charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const TEMPLATES = {
+  csv: () => '\uFEFF' + ['id;ders;unite;zorluk;soru;A;B;C;D;E;cevap;aciklama;kaynak',
+    ';anayasa;1;orta;Soru metni buraya;A şıkkı;B şıkkı;C şıkkı;D şıkkı;E şıkkı;B;Kısa açıklama;Kaynak (madde vb.)',
+    'CMK_U02_0001;Ceza Muhakemesi Hukuku;Ünite 2;zor;"Noktalı virgül veya satır sonu içeren metinleri tırnak içine al; böylece bozulmaz.";A;B;C;D;E;A;;'].join('\r\n'),
+  json: () => JSON.stringify([{ id: 'ANAYASA_U01_0001', courseId: 'anayasa', unitId: 'anayasa_u1', difficulty: 'medium', question: 'Soru metni', options: ['A şıkkı', 'B şıkkı', 'C şıkkı', 'D şıkkı', 'E şıkkı'], answer: 1, explanation: 'Kısa açıklama', reference: 'Kaynak' }], null, 2),
+  units: () => '\uFEFFders_id;ders;unite_no;unite_id;unite_basligi\r\n' + COURSES.flatMap(c => c.units.map(u => [c.id, c.name, u.no, u.id, u.title].join(';'))).join('\r\n')
+};
 
-    renderMatchingBoard();
+// ---------------- EYLEMLER ----------------
+const ACT = {
+  back: () => (history.length > 1 ? history.back() : go('#/home')),
+  home: () => go('#/home'),
+  goal: d => { S.daily.target = +d.n; Store.save(); render(); },
+  quick: () => startTest({ type: 'mixed', title: 'Hızlı test · 20 soru', qids: pickQuestions(QDB.all, 20, 'smart') }),
+  quickUnit: d => { const u = QDB.unit(d.id); startTest({ type: 'unit', title: `${QDB.course(u.courseId).short} · Ünite ${u.no}`, qids: pickQuestions(QDB.unitQs(d.id), 20, d.sel) }); },
+  startSetup: d => {
+    const f = readForm('#setupForm'); const n = f.get('n') === 'all' ? 'all' : +f.get('n');
+    const pool = d.scope === 'unit' ? QDB.unitQs(d.id) : QDB.courseQs(d.id);
+    const u = d.scope === 'unit' ? QDB.unit(d.id) : null, c = QDB.course(u ? u.courseId : d.id);
+    startTest({ type: d.scope, title: u ? `${c.short} · Ünite ${u.no}` : `${c.short} · Tüm üniteler`, qids: pickQuestions(pool, n, f.get('sel'), f.get('diff')) });
+  },
+  checkAll: (d, el) => el.closest('form').querySelectorAll('input[name=c]').forEach(i => { i.checked = d.v === '1'; }),
+  startMixed: () => {
+    const f = readForm('#mixForm'), cs = f.all('c');
+    if (!cs.length) return toast('En az bir ders seç.');
+    startTest({ type: 'mixed', title: `Karma test · ${cs.length} ders`, qids: pickQuestions(cs.flatMap(QDB.courseQs), +f.get('n'), f.get('sel'), f.get('diff')) });
+  },
+  startExam: () => {
+    const f = readForm('#examForm'), cs = f.all('c');
+    if (!cs.length) return toast('En az bir ders seç.');
+    startTest({ type: 'exam', title: `Deneme · ${f.get('n')} soru`, qids: pickBalanced(cs, +f.get('n')), mode: 'exam', timed: f.get('timed') === '1' });
+  },
+  answer: d => answer(+d.i),
+  prev: () => move(-1), next: () => move(1),
+  goto: d => { S.session.cur = +d.i; Store.save(); render(); },
+  blank: () => { const T = S.session; if (T.ans[T.cur] === null) T.ans[T.cur] = -1; if (T.cur < T.qids.length - 1) T.cur++; Store.save(); render(); },
+  finish: () => finishTest(false),
+  fav: d => { toggleMark('fav', d.id); render(); },
+  later: d => { toggleMark('later', d.id); render(); },
+  favList: (d, el) => { toggleMark('fav', d.id); el.classList.toggle('on', !!S.fav[d.id]); },
+  favStart: d => {
+    const ids = Object.keys(d.tab === 'later' ? S.later : S.fav).filter(QDB.has);
+    startTest({ type: 'fav', title: d.tab === 'later' ? 'Daha sonra çöz' : 'Favoriler', qids: d.mode === 'rand' ? shuffle(ids).slice(0, 20) : shuffle(ids) });
+  },
+  favClear: async d => { if (await confirmBox('Listeyi temizle', 'Bu listedeki tüm işaretler kaldırılsın mı?', 'Temizle', true)) { S[d.tab === 'later' ? 'later' : 'fav'] = {}; Store.save(); render(); } },
+  retryResult: d => {
+    const t = S.tests.find(x => String(x.id) === d.id);
+    const ids = t.qids.filter((qid, i) => { const q = QDB.get(qid); return q && t.ans[i] !== q.answer; });
+    startTest({ type: 'wrongs', title: 'Tekrar: ' + t.title, qids: shuffle(ids) });
+  },
+  retryWrongs: d => {
+    let list = wrongList(); if (d.c !== 'all') list = list.filter(q => q.courseId === d.c);
+    const ids = d.n === 'all' ? shuffle(list.map(q => q.id)) : pickQuestions(list.filter(q => S.q[q.id].p > 0), +d.n, 'wrong');
+    startTest({ type: 'wrongs', title: 'Yanlışları tekrar', qids: ids });
+  },
+  more: () => { histLimit += 100; render(); },
+  startBank: () => {
+    const f = readForm('#bankForm'), n = f.get('n') === 'all' ? 'all' : +f.get('n');
+    startTest({ type: 'bank', title: 'Soru bankası testi', qids: pickQuestions(bankFilter(), n, 'random') });
+  },
+  backup: () => download(`misyon-koruma-yedek-${dayKey()}.json`, JSON.stringify(S), 'application/json'),
+  reset: async () => {
+    if (!(await confirmBox('İlerlemeyi sıfırla', 'Tüm çözüm geçmişi, yanlışlar, favoriler ve istatistikler silinecek. Yüklenen sorular silinmez.', 'Sıfırla', true))) return;
+    S = DEFAULT_STATE(); Store.save(); toast('İlerleme sıfırlandı.'); go('#/home');
+  },
+  tpl: d => d.f === 'csv' ? download('soru-sablonu.csv', TEMPLATES.csv(), 'text/csv') : d.f === 'json' ? download('soru-sablonu.json', TEMPLATES.json(), 'application/json') : download('ders-unite-listesi.csv', TEMPLATES.units(), 'text/csv'),
+  importSave: async () => {
+    const mode = document.querySelector('input[name=mode]:checked')?.value || 'merge';
+    const total = QDB.saveImport(pendingImport.ok, mode);
+    toast(`${pendingImport.ok.length} soru kaydedildi. Yüklenen toplam: ${total}`);
+    pendingImport = null; render();
+  },
+  importCancel: () => { pendingImport = null; render(); },
+  importClear: async () => { if (await confirmBox('Yüklenen soruları sil', 'Uygulamadan yüklenen sorular silinsin mi? (Çözüm geçmişin korunur.)', 'Sil', true)) { QDB.clearImported(); render(); } },
+  exportCourse: d => download(`${d.id}.js`, QDB.exportCourseFile(d.id), 'text/javascript')
+};
+function toggleMark(kind, id) {
+  if (S[kind][id]) delete S[kind][id]; else S[kind][id] = Date.now();
+  Store.save(); toast(S[kind][id] ? (kind === 'fav' ? '⭐ Favorilere eklendi' : '🔖 Daha sonra çöz listesine eklendi') : 'İşaret kaldırıldı');
 }
 
-function renderMatchingBoard() {
-    const el = document.getElementById('matchingContent');
-    if (!el) return;
-    const s = matchingState;
-
-    let leftHtml = s.leftItems.map(item => {
-        const matched = s.matches[item.id] !== undefined;
-        const cls = matched ? 'match-item matched' : (s.selectedLeft === item.id ? 'match-item selected' : 'match-item');
-        return `<button class="${cls}" onclick="selectLeft(${item.id})" ${matched ? 'disabled' : ''}>${item.text}</button>`;
-    }).join('');
-
-    let rightHtml = s.rightItems.map(item => {
-        const matched = Object.values(s.matches).includes(item.id);
-        const cls = matched ? 'match-item matched' : 'match-item';
-        return `<button class="${cls}" onclick="selectRight(${item.id})" ${matched ? 'disabled' : ''}>${item.text}</button>`;
-    }).join('');
-
-    el.innerHTML = `
-        <div class="card">
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                <b>${s.set.title}</b>
-                <span>${Object.keys(s.matches).length}/${s.set.pairs.length}</span>
-            </div>
-            <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">${s.set.description || ''}</p>
-            <div class="matching-board">
-                <div class="match-col">${leftHtml}</div>
-                <div class="match-col">${rightHtml}</div>
-            </div>
-            <div id="matchingFeedback"></div>
-            <button class="btn btn-ghost btn-full" style="margin-top:12px" onclick="goMatching()">← Listeye Dön</button>
-        </div>
-    `;
-}
-
-function selectLeft(id) {
-    matchingState.selectedLeft = id;
-    renderMatchingBoard();
-}
-
-function selectRight(id) {
-    if (matchingState.selectedLeft === null) return;
-    const leftId = matchingState.selectedLeft;
-    matchingState.matches[leftId] = id;
-    matchingState.selectedLeft = null;
-
-    // Doğru mu?
-    const isCorrect = leftId === id;  // pairs aynı index'te eşleşiyor
-    if (isCorrect) matchingState.correctCount++;
-
-    // İlerleme kaydı
-    if (!ST.matchingProgress[matchingState.setId]) ST.matchingProgress[matchingState.setId] = { correct: 0, total: 0 };
-    ST.matchingProgress[matchingState.setId].total++;
-    if (isCorrect) ST.matchingProgress[matchingState.setId].correct++;
-
-    ST.totalSolved++;
-    if (isCorrect) { ST.totalCorrect++; ST.streak++; if (ST.streak > ST.maxStreak) ST.maxStreak = ST.streak; }
-    else ST.streak = 0;
-    bumpDailyGoal();
-    saveState();
-
-    renderMatchingBoard();
-    const fb = document.getElementById('matchingFeedback');
-    if (fb) {
-        fb.innerHTML = `<div class="fb ${isCorrect ? 'fb-ok' : 'fb-fail'}" style="margin-top:8px">
-            <div class="fb-head"><span>${isCorrect ? '🎉' : '❌'}</span><span>${isCorrect ? 'Doğru eşleştirme!' : 'Yanlış eşleştirme'}</span></div>
-        </div>`;
-    }
-
-    if (Object.keys(matchingState.matches).length === matchingState.set.pairs.length) {
-        setTimeout(() => {
-            alert(`🎉 Eşleştirme tamamlandı!\nDoğru: ${matchingState.correctCount}/${matchingState.set.pairs.length}`);
-        }, 400);
-    }
-}
-
-// ========== İSTATİSTİKLER ==========
-function renderStats() {
-    const acc = ST.totalSolved > 0 ? Math.round((ST.totalCorrect / ST.totalSolved) * 100) : 0;
-    let courseHtml = '';
-    for (const course of TOPICS) {
-        const unitsTotal = course.units?.length || 0;
-        const unitsDone = (course.units || []).filter(u => ST.completedUnits.includes(u.id)).length;
-        const pct = unitsTotal > 0 ? Math.round((unitsDone / unitsTotal) * 100) : 0;
-        const completed = ST.completedCourses.includes(course.id);
-        courseHtml += `<div class="topic-row">
-            <span class="t-icon">${course.e}</span>
-            <div class="t-info">
-                <div class="t-name">${course.n}</div>
-                <div class="t-meta">${unitsDone}/${unitsTotal} ünite</div>
-                <div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill fill-acc" style="width:${pct}%"></div></div></div>
-            </div>
-            <span>${completed ? '✅' : '🔄'}</span>
-        </div>`;
-    }
-
-    document.getElementById('statsContent').innerHTML = `
-        <div class="stat-grid">
-            <div class="stat-cell"><div class="stat-num">${ST.totalSolved}</div><div class="stat-lbl">Soru</div></div>
-            <div class="stat-cell"><div class="stat-num">%${acc}</div><div class="stat-lbl">Doğruluk</div></div>
-            <div class="stat-cell"><div class="stat-num">${ST.maxStreak}</div><div class="stat-lbl">Seri</div></div>
-            <div class="stat-cell"><div class="stat-num">${ST.completedCourses.length}</div><div class="stat-lbl">Ders</div></div>
-        </div>
-        <div class="card"><h3>📚 Ders Performansı</h3>${courseHtml}</div>
-    `;
-}
-
-// ========== GROQ API ==========
-async function askGrokForSolution(question, correctAnswer, userAnswer) {
-    if (!ST.grokApiKey) {
-        return '⚠️ Groq API anahtarı girilmedi. Menü → 🔑 Groq API Anahtarı\'ndan ekleyin.\n\n🔗 console.groq.com/keys adresinden ücretsiz alabilirsiniz.';
-    }
-    const prompt = `Sen bir Misyon Koruma sınavı öğretmenisin. Aşağıdaki soruyu Türkçe, adım adım ve anlaşılır biçimde açıkla.\n\nSoru: ${question}\nDoğru cevap: ${correctAnswer}\nÖğrencinin cevabı: ${userAnswer || '(boş bıraktı)'}\n\nLütfen:\n1. Soruyu kısa çöz (3-5 adım)\n2. Hangi kanun/kural kullanıldığını belirt\n3. Öğrencinin hatasını varsa düzelt\n4. Sonucu vurgula`;
-
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.tagName === 'SELECT' || el.tagName === 'INPUT') return;
+  const fn = ACT[el.dataset.act]; if (!fn) return;
+  e.preventDefault(); if (el.disabled) return;
+  fn(el.dataset, el);
+});
+document.addEventListener('change', async e => {
+  const el = e.target, act = el.dataset.act || el.closest('form')?.id;
+  if (act === 'nav') return go(el.dataset.prefix + el.value + (el.dataset.suffix || ''));
+  if (act === 'bankCourse') {
+    const c = QDB.course(el.value);
+    $('#bankUnit').innerHTML = '<option value="all">Tüm üniteler</option>' + (c ? c.units.map(u => `<option value="${u.id}">Ünite ${u.no} – ${esc(u.title)}</option>`).join('') : '');
+    return bankCount();
+  }
+  if (act === 'bankCount' || act === 'bankForm') return bankCount();
+  if (act === 'importFile' && el.files[0]) {
+    const file = el.files[0];
     try {
-        const response = await fetch(GROK_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ST.grokApiKey}` },
-            body: JSON.stringify({
-                model: GROK_MODEL,
-                messages: [
-                    { role: 'system', content: 'Sen Misyon Koruma sınavına hazırlanan öğrencilere ders anlatan bir öğretmensin. Kısa, net ve anlaşılır ol.' },
-                    { role: 'user', content: prompt }
-                ],
-                max_tokens: 800,
-                temperature: 0.3
-            })
-        });
-        if (!response.ok) {
-            if (response.status === 401) return '❌ API anahtarı geçersiz!';
-            if (response.status === 429) return '⚠️ API limiti aşıldı. Bekleyin.';
-            return `❌ API hatası (${response.status}).`;
-        }
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || 'Açıklama alınamadı.';
-    } catch(e) {
-        return '❌ Bağlantı hatası. İnternetinizi kontrol edin.';
-    }
-}
+      const text = await readFileText(file);
+      const mode = document.querySelector('input[name=mode]:checked')?.value || 'merge';
+      pendingImport = { name: file.name, ...QDB.prepareImport(text, file.name, mode) };
+    } catch (err) { pendingImport = { name: file.name, ok: [], errors: [{ line: '-', msg: 'Dosya okunamadı' }] }; }
+    render();
+  }
+  if (act === 'restore' && el.files[0]) {
+    try {
+      const data = JSON.parse(await readFileText(el.files[0]));
+      if (data.v !== 1 || typeof data.q !== 'object') throw new Error('biçim');
+      if (!(await confirmBox('Yedeği yükle', 'Mevcut ilerleme yedektekiyle değiştirilecek.', 'Yükle'))) return;
+      S = Object.assign(DEFAULT_STATE(), data); Store.save(); toast('Yedek yüklendi.'); go('#/home');
+    } catch { toast('Yedek dosyası geçersiz.'); }
+  }
+});
 
-function renderGrokBtn(targetEl, question, correctAnswer, userAnswer) {
-    if (!targetEl) return;
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-grok';
-    btn.innerHTML = '🤖 Groq ile Çözümü Gör';
-    btn.style.marginTop = '12px';
-    btn.style.width = '100%';
-    btn.onclick = async () => {
-        btn.disabled = true;
-        btn.innerHTML = '🤖 Groq düşünüyor...';
-        const explanation = await askGrokForSolution(question, correctAnswer, userAnswer);
-        const box = document.createElement('div');
-        box.className = 'grok-explanation';
-        box.style.marginTop = '12px';
-        box.innerHTML = `<div class="grok-header">🤖 <strong>Groq Açıklıyor</strong></div><div class="grok-body">${explanation.replace(/\n/g, '<br>')}</div>`;
-        btn.replaceWith(box);
-    };
-    targetEl.appendChild(btn);
-}
+// Klavye: test ekranında A–E / 1–5 ile cevap, ok tuşlarıyla gezinme
+document.addEventListener('keydown', e => {
+  if (document.body.dataset.view !== 'test' || !S.session || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toUpperCase(), idx = L.indexOf(k) >= 0 ? L.indexOf(k) : '12345'.indexOf(e.key);
+  if (idx >= 0) { const b = document.querySelectorAll('.opt')[idx]; if (b && !b.disabled) answer(idx); }
+  else if (e.key === 'ArrowRight') move(1);
+  else if (e.key === 'ArrowLeft') move(-1);
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) Store.save(); });
+window.addEventListener('pagehide', () => Store.save());
 
-// ========== MODALLAR ==========
-function openModal(id) {
-    document.getElementById(id + 'Modal')?.classList.remove('hidden');
-    if (id === 'api') document.getElementById('apiInp').value = ST.grokApiKey;
-}
-function closeModal(id) {
-    document.getElementById(id + 'Modal')?.classList.add('hidden');
-}
-function saveKey() {
-    const k = document.getElementById('apiInp')?.value?.trim();
-    if (k) {
-        ST.grokApiKey = k;
-        localStorage.setItem('misyon_grok_api_key', k);
-        closeModal('api');
-        alert('✅ Groq API anahtarı kaydedildi!');
-    }
-}
-
-function doReset(type) {
-    if (type === 'all' && confirm('TÜM VERİLER SİLİNECEK! Emin misiniz?')) {
-        const k = ST.grokApiKey;
-        localStorage.clear();
-        if (k) { localStorage.setItem('misyon_grok_api_key', k); ST.grokApiKey = k; }
-        location.reload();
-    } else if (type === 'course' && confirm(`${getCourseById(ST.currentCourse)?.n} dersi sıfırlansın mı?`)) {
-        const course = getCourseById(ST.currentCourse);
-        (course.units || []).forEach(u => { delete ST.unitProgress[u.id]; });
-        ST.completedUnits = ST.completedUnits.filter(id => !(course.units || []).find(u => u.id === id));
-        ST.completedCourses = ST.completedCourses.filter(id => id !== ST.currentCourse);
-        saveState();
-        renderCoursesList();
-        alert('✅ Ders sıfırlandı!');
-    } else if (type === 'unit' && confirm('Bu ünite sıfırlansın mı?')) {
-        if (ST.currentUnit) {
-            delete ST.unitProgress[ST.currentUnit];
-            ST.completedUnits = ST.completedUnits.filter(id => id !== ST.currentUnit);
-            saveState();
-            renderUnitQuiz();
-            alert('✅ Ünite sıfırlandı!');
-        }
-    }
-}
-
-// ========== BAŞLANGIÇ ==========
-function startApp() {
-    loadState();
-    loadQuestions();
-    updateDailyGoal();
-    ST.currentView = 'vHome';
-    history.replaceState({ view: 'vHome' }, '', '#/vHome');
-    showView('vHome', false);
-    console.log('✅ Misyon Koruma Motoru Aktif!');
-}
-
-window.addEventListener('popstate', (e) => showView(e.state?.view || 'vHome', false));
+// ---------------- başlat ----------------
+Store.load();
+QDB.build();
+if (S.session) S.session.qids = S.session.qids.filter(Boolean);
+render();
