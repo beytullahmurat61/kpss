@@ -23,21 +23,15 @@
 <div id="modal" class="modal" hidden></div>
 <noscript><p class="noscript">Uygulamanın çalışması için JavaScript gereklidir.</p></noscript>
 
-<!-- Yapılandırma -->
+<script>
+  // Dosya yükleme / yazım hatalarını yakala ve uygulamada göster
+  window.__loadErrors = [];
+  window.addEventListener('error', function (e) {
+    if (e.target && e.target.tagName === 'SCRIPT') window.__loadErrors.push(e.target.getAttribute('src') + ' bulunamadı (dosya adı ve konumu doğru mu?)');
+    else if (e.filename) window.__loadErrors.push(e.filename.split('/').pop() + ' satır ' + e.lineno + ': ' + e.message);
+  }, true);
+</script>
 <script src="config.js"></script>
-<!-- Soru veri dosyaları (her ders ayrı dosya) -->
-<script src="data/anayasa.js"></script>
-<script src="data/ceza.js"></script>
-<script src="data/idare.js"></script>
-<script src="data/cmk.js"></script>
-<script src="data/ataturk.js"></script>
-<script src="data/insan.js"></script>
-<script src="data/genel.js"></script>
-<script src="data/protokol.js"></script>
-<script src="data/ingilizce.js"></script>
-<script src="data/silah.js"></script>
-<script src="data/pmm.js"></script>
-<!-- Motor -->
 <script src="questions.js"></script>
 <script src="app.js"></script>
 </body>

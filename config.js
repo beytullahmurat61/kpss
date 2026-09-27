@@ -39,5 +39,3 @@ const COURSES = [
     'Emniyet Teşkilatı (3201)', 'Polis Vazife ve Selahiyet Kanunu (2559)', 'Zor ve Silah Kullanma', 'Disiplin Hükümleri (7068)', 'Personel ve İlgili Mevzuat'] }
 ].map(c => ({ ...c, units: c.units.map((title, i) => ({ id: `${c.id}_u${i + 1}`, no: i + 1, title })) }));
 
-// Soru verileri data/<dersId>.js dosyalarından buraya eklenir.
-const QUESTION_BANK = {};

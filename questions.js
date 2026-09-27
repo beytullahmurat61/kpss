@@ -1,258 +1,307 @@
 // ============================================================
-// MİSYON KORUMA – SORU VERİTABANI MOTORU
-// - data/*.js dosyalarındaki soruları ve uygulama içinden yüklenen
-//   soruları tek indekste toplar (Map tabanlı, binlerce soruda hızlı).
-// - CSV / JSON soru evrakını ayrıştırır ve doğrular.
-// - GitHub için data/<ders>.js dosyası üretir.
+// MİSYON KORUMA – SORU BANKASI (questions.js)
+// ------------------------------------------------------------
+// Soruları bu dosyaya eklersin. Her ünitenin köşeli parantezi [ ]
+// içine, aralarına VİRGÜL koyarak soru nesneleri yazılır.
+//
+// Soru biçimi:
+//   {
+//     "id": "ANAYASA_U01_0001",      // benzersiz olmalı, sonradan değiştirme
+//     "courseId": "anayasa",
+//     "unitId": "anayasa_u1",
+//     "difficulty": "medium",        // easy | medium | hard
+//     "question": "Soru metni",
+//     "options": ["A şıkkı", "B şıkkı", "C şıkkı", "D şıkkı", "E şıkkı"],
+//     "answer": 0,                   // 0=A 1=B 2=C 3=D 4=E
+//     "explanation": "Kısa açıklama",
+//     "reference": "Kaynak"
+//   },
+//
+// Dikkat: Metin içinde çift tırnak (") kullanacaksan başına \ koy: \"
+// Bir hata yaparsan uygulama açılışta hatanın satırını gösterir.
+// Bu dosyayı uygulamadaki "Soru Yükle → questions.js indir" ile de üretebilirsin.
 // ============================================================
-const QDB = (() => {
-  const LETTERS = ['A', 'B', 'C', 'D', 'E'];
-  let all = [], byId = new Map(), byUnit = {}, byCourse = {}, warnings = [];
-  const courseMap = {}, unitMap = {};
 
-  COURSES.forEach(c => {
-    courseMap[c.id] = c;
-    c.units.forEach(u => { unitMap[u.id] = { ...u, courseId: c.id }; });
-  });
+const QUESTION_BANK = {
 
-  // ---------- yardımcılar ----------
-  const fold = s => String(s ?? '').toLocaleLowerCase('tr-TR')
-    .replace(/[çğıöşüâîû]/g, ch => ({ ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u' }[ch]))
-    .replace(/[^a-z0-9]+/g, ' ').trim();
-
-  function resolveCourse(v) {
-    if (!v) return null;
-    const f = fold(v);
-    for (const c of COURSES) {
-      if ([c.id, c.code, c.name, c.short].some(x => fold(x) === f)) return c;
-    }
-    for (const c of COURSES) if (fold(c.name).startsWith(f)) return c;
-    const byLen = [...COURSES].sort((a, b) => fold(b.short).length - fold(a.short).length);
-    for (const c of byLen) if (f.startsWith(fold(c.short))) return c;
-    return null;
-  }
-
-  function resolveUnit(course, v) {
-    if (v === undefined || v === null || v === '') return null;
-    const s = String(v).trim();
-    if (unitMap[s]) return unitMap[s];
-    if (!course) return null;
-    const f = fold(s);
-    const num = f.match(/^(?:unite ?|u)?(\d+)(?: unite)?$/);
-    if (num) return unitMap[`${course.id}_u${parseInt(num[1], 10)}`] || null;
-    const hit = course.units.find(u => fold(u.title) === f);
-    return hit ? unitMap[hit.id] : null;
-  }
-
-  function resolveDifficulty(v) {
-    const f = fold(v);
-    if (['easy', 'kolay', 'e', '1'].includes(f)) return 'easy';
-    if (['hard', 'zor', 'h', '3'].includes(f)) return 'hard';
-    return 'medium';
-  }
-
-  function resolveAnswer(v, optCount) {
-    if (typeof v === 'number' && Number.isInteger(v)) return v >= 0 && v < optCount ? v : -1;
-    const s = String(v ?? '').trim().toUpperCase();
-    if (/^[A-E]$/.test(s)) { const i = LETTERS.indexOf(s); return i < optCount ? i : -1; }
-    return -1;
-  }
-
-  // Ham bir soru nesnesini standart biçime çevirir. Hata varsa {error} döner.
-  function normalize(raw, ctx = {}) {
-    const g = (...keys) => { for (const k of keys) if (raw[k] !== undefined && raw[k] !== '') return raw[k]; return undefined; };
-    const course = resolveCourse(g('courseId', 'ders', 'course')) || (ctx.courseId ? courseMap[ctx.courseId] : null);
-    const unit = resolveUnit(course, g('unitId', 'unite', 'ünite', 'unit')) || (ctx.unitId ? unitMap[ctx.unitId] : null);
-    const text = String(g('question', 'soru') ?? '').trim();
-    let options = g('options', 'secenekler', 'şıklar');
-    if (!Array.isArray(options)) options = LETTERS.map(L => g(L, L.toLowerCase())).filter(x => x !== undefined);
-    options = options.map(o => String(o ?? '').trim());
-    while (options.length && options[options.length - 1] === '') options.pop();
-
-    if (!course) return { error: `Ders tanınmadı: "${g('courseId', 'ders', 'course') ?? ''}"` };
-    if (!unit || unit.courseId !== course.id) return { error: `Ünite tanınmadı: "${g('unitId', 'unite', 'ünite', 'unit') ?? ''}" (${course.short})` };
-    if (!text) return { error: 'Soru metni boş' };
-    if (options.length < 2 || options.length > 5) return { error: `Şık sayısı ${options.length} (2–5 olmalı, varsayılan 5)` };
-    if (options.some(o => !o)) return { error: 'Boş şık var' };
-    if (new Set(options).size !== options.length) return { error: 'Aynı metne sahip şıklar var' };
-    const answer = resolveAnswer(g('answer', 'cevap', 'dogru_cevap'), options.length);
-    if (answer < 0) return { error: `Cevap geçersiz: "${g('answer', 'cevap', 'dogru_cevap') ?? ''}"` };
-
-    const id = g('id') ? String(g('id')).trim().toUpperCase().replace(/\s+/g, '_') : '';
-    return {
-      q: {
-        id, courseId: course.id, unitId: unit.id,
-        difficulty: resolveDifficulty(g('difficulty', 'zorluk')),
-        question: text, options, answer,
-        explanation: String(g('explanation', 'aciklama', 'açıklama') ?? '').trim(),
-        reference: String(g('reference', 'kaynak', 'referans') ?? '').trim()
+  // ==================== ANAYASA HUKUKU ====================
+  anayasa: {
+    // Ünite 1: Anayasa Hukukuna Giriş ve Türk Anayasal Gelişimi
+    anayasa_u1: [],
+    // Ünite 2: Temel İlkeler ve Temel Hak ve Hürriyetler
+    anayasa_u2: [],
+    // Ünite 3: Yasama
+    anayasa_u3: [
+      {
+        "id": "ANAYASA_U03_0001",
+        "courseId": "anayasa",
+        "unitId": "anayasa_u3",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Türkiye Büyük Millet Meclisi kaç milletvekilinden oluşur?",
+        "options": ["450", "500", "550", "600", "650"],
+        "answer": 3,
+        "explanation": "2017 Anayasa değişikliğiyle milletvekili sayısı 600'e çıkarılmıştır.",
+        "reference": "Anayasa m.75"
       }
-    };
-  }
+    ],
+    // Ünite 4: Yürütme
+    anayasa_u4: [],
+    // Ünite 5: Yargı
+    anayasa_u5: []
+  },
 
-  function nextId(unitId, used) {
-    const u = unitMap[unitId], c = courseMap[u.courseId];
-    const prefix = `${c.code}_U${String(u.no).padStart(2, '0')}_`;
-    let n = 0;
-    used.forEach(id => { if (id.startsWith(prefix)) n = Math.max(n, parseInt(id.slice(prefix.length), 10) || 0); });
-    const id = prefix + String(n + 1).padStart(4, '0');
-    used.add(id);
-    return id;
-  }
-
-  // ---------- indeks ----------
-  function loadImported() {
-    try { return JSON.parse(localStorage.getItem(APP_CONFIG.importKey) || '[]'); } catch { return []; }
-  }
-
-  function build() {
-    all = []; byId = new Map(); byUnit = {}; byCourse = {}; warnings = [];
-    COURSES.forEach(c => { byCourse[c.id] = []; c.units.forEach(u => { byUnit[u.id] = []; }); });
-
-    const add = (raw, ctx, src) => {
-      const r = normalize(raw, ctx);
-      if (r.error) { warnings.push(`${src}: ${raw.id || '(ID yok)'} → ${r.error}`); return; }
-      const q = r.q;
-      if (!q.id) { warnings.push(`${src}: ID'siz soru atlandı → ${q.question.slice(0, 40)}`); return; }
-      q.src = src;
-      if (byId.has(q.id)) {
-        const old = byId.get(q.id);
-        if (src === 'static') { warnings.push(`Tekrarlanan ID: ${q.id}`); return; }
-        // yüklenen soru aynı ID'li statik soruyu günceller
-        byUnit[old.unitId] = byUnit[old.unitId].filter(x => x.id !== q.id);
+  // ==================== CEZA HUKUKU ====================
+  ceza: {
+    // Ünite 1: Temel İlkeler ve Uygulama Alanı
+    ceza_u1: [],
+    // Ünite 2: Suçun Unsurları ve Hukuka Uygunluk Nedenleri
+    ceza_u2: [],
+    // Ünite 3: Kusurluluk, Teşebbüs, İştirak ve İçtima
+    ceza_u3: [
+      {
+        "id": "CEZA_U03_0001",
+        "courseId": "ceza",
+        "unitId": "ceza_u3",
+        "difficulty": "medium",
+        "question": "ÖRNEK SORU – Fiili işlediği sırada 12 yaşını doldurmamış çocuğun ceza sorumluluğu ile ilgili hangisi doğrudur?",
+        "options": ["Cezası yarı oranında indirilir.", "Ceza sorumluluğu yoktur; çocuklara özgü güvenlik tedbirleri uygulanabilir.", "Algılama yeteneğine bakılarak ceza verilir.", "Tam ceza verilir.", "Velisine ceza verilir."],
+        "answer": 1,
+        "explanation": "12 yaşını doldurmamış çocukların ceza sorumluluğu yoktur.",
+        "reference": "TCK m.31"
       }
-      byId.set(q.id, q);
-    };
+    ],
+    // Ünite 4: Yaptırımlar, Zamanaşımı ve Şikâyet
+    ceza_u4: [],
+    // Ünite 5: Özel Hükümler
+    ceza_u5: []
+  },
 
-    for (const [cid, units] of Object.entries(QUESTION_BANK)) {
-      if (Array.isArray(units)) { units.forEach(raw => add(raw, { courseId: cid }, 'static')); continue; }
-      for (const [uid, arr] of Object.entries(units || {})) (arr || []).forEach(raw => add(raw, { courseId: cid, unitId: uid }, 'static'));
-    }
-    loadImported().forEach(raw => add(raw, {}, 'imported'));
-
-    byId.forEach(q => { all.push(q); byUnit[q.unitId].push(q); });
-    Object.values(byUnit).forEach(arr => arr.sort((a, b) => a.id.localeCompare(b.id)));
-    COURSES.forEach(c => { byCourse[c.id] = c.units.flatMap(u => byUnit[u.id]); });
-    if (warnings.length) console.warn(`Soru verisi uyarıları (${warnings.length}):`, warnings);
-    console.info(`Soru bankası hazır: ${all.length} soru`);
-  }
-
-  // ---------- CSV ----------
-  function parseCSV(text) {
-    text = text.replace(/^\uFEFF/, '');
-    const first = text.split(/\r?\n/, 1)[0];
-    const counts = { ';': (first.match(/;/g) || []).length, ',': (first.match(/,/g) || []).length, '\t': (first.match(/\t/g) || []).length };
-    const d = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-    const rows = []; let row = [], cell = '', q = false;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (q) {
-        if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
-        else cell += ch;
-      } else if (ch === '"') q = true;
-      else if (ch === d) { row.push(cell); cell = ''; }
-      else if (ch === '\n' || ch === '\r') {
-        if (ch === '\r' && text[i + 1] === '\n') i++;
-        row.push(cell); rows.push(row); row = []; cell = '';
-      } else cell += ch;
-    }
-    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
-    const nonEmpty = rows.filter(r => r.some(c => c.trim() !== ''));
-    if (!nonEmpty.length) return [];
-    const alias = { ders: 'ders', course: 'ders', courseid: 'ders', unite: 'unite', unit: 'unite', unitid: 'unite',
-      zorluk: 'zorluk', difficulty: 'zorluk', soru: 'soru', question: 'soru', cevap: 'cevap', 'dogru cevap': 'cevap', 'dogru': 'cevap',
-      answer: 'cevap', aciklama: 'aciklama', explanation: 'aciklama', kaynak: 'kaynak', referans: 'kaynak',
-      reference: 'kaynak', id: 'id', a: 'A', b: 'B', c: 'C', d: 'D', e: 'E',
-      'a sikki': 'A', 'b sikki': 'B', 'c sikki': 'C', 'd sikki': 'D', 'e sikki': 'E',
-      'secenek a': 'A', 'secenek b': 'B', 'secenek c': 'C', 'secenek d': 'D', 'secenek e': 'E' };
-    const header = nonEmpty[0].map(h => alias[fold(h)] || fold(h));
-    return nonEmpty.slice(1).map((r, i) => {
-      const o = { __line: i + 2 };
-      header.forEach((h, j) => { o[h] = (r[j] ?? '').trim(); });
-      return o;
-    });
-  }
-
-  // JSON: dizi, {dersId:{uniteId:[...]}} veya {uniteId:[...]} biçimlerini kabul eder
-  function flattenJSON(data) {
-    const out = [];
-    const walk = (node, ctx) => {
-      if (Array.isArray(node)) { node.forEach((x, i) => out.push({ ...x, __ctx: ctx, __line: i + 1 })); return; }
-      if (node && typeof node === 'object') {
-        if (node.question || node.soru) { out.push({ ...node, __ctx: ctx }); return; }
-        for (const [k, v] of Object.entries(node)) {
-          const next = { ...ctx };
-          if (courseMap[k]) next.courseId = k; else if (unitMap[k]) next.unitId = k;
-          walk(v, next);
-        }
+  // ==================== İDARE HUKUKU ====================
+  idare: {
+    // Ünite 1: Temel Kavramlar ve İdari Teşkilat
+    idare_u1: [],
+    // Ünite 2: İdari İşlemler
+    idare_u2: [],
+    // Ünite 3: Kamu Hizmeti, Kolluk ve İdari Sözleşmeler
+    idare_u3: [],
+    // Ünite 4: Kamu Görevlileri ve Kamu Malları
+    idare_u4: [],
+    // Ünite 5: İdari Yargı ve İdarenin Sorumluluğu
+    idare_u5: [
+      {
+        "id": "IDARE_U05_0001",
+        "courseId": "idare",
+        "unitId": "idare_u5",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Özel kanunlarında ayrı süre gösterilmeyen hallerde idare mahkemesinde dava açma süresi kaç gündür?",
+        "options": ["15", "30", "45", "60", "90"],
+        "answer": 3,
+        "explanation": "Danıştay ve idare mahkemelerinde 60, vergi mahkemelerinde 30 gündür.",
+        "reference": "İYUK m.7"
       }
-    };
-    walk(data, {});
-    return out;
+    ]
+  },
+
+  // ==================== CEZA MUHAKEMESİ HUKUKU ====================
+  cmk: {
+    // Ünite 1: Temel Kavramlar, Görev ve Yetki
+    cmk_u1: [],
+    // Ünite 2: Yakalama, Gözaltı ve Tutuklama
+    cmk_u2: [
+      {
+        "id": "CMK_U02_0001",
+        "courseId": "cmk",
+        "unitId": "cmk_u2",
+        "difficulty": "medium",
+        "question": "ÖRNEK SORU – Gözaltı süresi, yakalama yerine en yakın hâkime gönderilmesi için zorunlu süre hariç kaç saati geçemez?",
+        "options": ["12", "24", "36", "48", "72"],
+        "answer": 1,
+        "explanation": "Gözaltı süresi 24 saati geçemez; yol süresi 12 saati aşamaz.",
+        "reference": "CMK m.91"
+      }
+    ],
+    // Ünite 3: Arama, Elkoyma ve İletişimin Denetlenmesi
+    cmk_u3: [],
+    // Ünite 4: Soruşturma ve Kovuşturma
+    cmk_u4: [],
+    // Ünite 5: Kanun Yolları
+    cmk_u5: []
+  },
+
+  // ==================== ATATÜRK İLKELERİ VE İNKILAP TARİHİ ====================
+  ataturk: {
+    // Ünite 1: Osmanlı'nın Son Dönemi ve I. Dünya Savaşı
+    ataturk_u1: [],
+    // Ünite 2: Millî Mücadele Hazırlık Dönemi
+    ataturk_u2: [],
+    // Ünite 3: Kurtuluş Savaşı: Cepheler ve Antlaşmalar
+    ataturk_u3: [
+      {
+        "id": "ATATURK_U03_0001",
+        "courseId": "ataturk",
+        "unitId": "ataturk_u3",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Türkiye Büyük Millet Meclisi hangi tarihte açılmıştır?",
+        "options": ["19 Mayıs 1919", "23 Temmuz 1919", "4 Eylül 1919", "23 Nisan 1920", "29 Ekim 1923"],
+        "answer": 3,
+        "explanation": "TBMM 23 Nisan 1920'de Ankara'da açılmıştır.",
+        "reference": "Millî Mücadele"
+      }
+    ],
+    // Ünite 4: Atatürk İnkılapları
+    ataturk_u4: [],
+    // Ünite 5: Atatürk İlkeleri ve Dış Politika
+    ataturk_u5: []
+  },
+
+  // ==================== İNSAN HAKLARI ====================
+  insan: {
+    // Ünite 1: Temel Kavramlar ve Tarihsel Gelişim
+    insan_u1: [],
+    // Ünite 2: Birleşmiş Milletler Sistemi
+    insan_u2: [
+      {
+        "id": "INSAN_U02_0001",
+        "courseId": "insan",
+        "unitId": "insan_u2",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – İnsan Hakları Evrensel Beyannamesi hangi tarihte BM Genel Kurulunca kabul edilmiştir?",
+        "options": ["26 Haziran 1945", "10 Aralık 1948", "4 Kasım 1950", "16 Aralık 1966", "20 Kasım 1989"],
+        "answer": 1,
+        "explanation": "Beyanname 10 Aralık 1948'de kabul edilmiştir.",
+        "reference": "İHEB"
+      }
+    ],
+    // Ünite 3: Avrupa İnsan Hakları Sözleşmesi ve AİHM
+    insan_u3: [],
+    // Ünite 4: Ulusal Koruma Mekanizmaları
+    insan_u4: []
+  },
+
+  // ==================== GENEL KÜLTÜR VE ANALİTİK DÜŞÜNME ====================
+  genel: {
+    // Ünite 1: Tarih ve Coğrafya
+    genel_u1: [
+      {
+        "id": "GENEL_U01_0001",
+        "courseId": "genel",
+        "unitId": "genel_u1",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Türkiye'nin en yüksek dağı hangisidir?",
+        "options": ["Erciyes Dağı", "Süphan Dağı", "Ağrı Dağı", "Kaçkar Dağı", "Uludağ"],
+        "answer": 2,
+        "explanation": "Ağrı Dağı yaklaşık 5137 m ile Türkiye'nin en yüksek dağıdır.",
+        "reference": "Türkiye coğrafyası"
+      }
+    ],
+    // Ünite 2: Kurumlar ve Güncel Bilgiler
+    genel_u2: [],
+    // Ünite 3: Sayısal Mantık ve Problemler
+    genel_u3: [],
+    // Ünite 4: Sözel Mantık: Sıralama ve Tablo
+    genel_u4: [],
+    // Ünite 5: Örüntü ve Çıkarım
+    genel_u5: []
+  },
+
+  // ==================== PROTOKOL BİLGİSİ ====================
+  protokol: {
+    // Ünite 1: Temel Kavramlar ve Devlet Protokolü
+    protokol_u1: [],
+    // Ünite 2: Törenler, Bayrak ve İstiklal Marşı
+    protokol_u2: [],
+    // Ünite 3: Resmî Yazışma ve Görgü Kuralları
+    protokol_u3: [
+      {
+        "id": "PROTOKOL_U03_0001",
+        "courseId": "protokol",
+        "unitId": "protokol_u3",
+        "difficulty": "medium",
+        "question": "ÖRNEK SORU – Resmî yazışmalarda üst makama yazılan yazılar hangi ifadeyle bitirilir?",
+        "options": ["Rica ederim.", "Arz ederim.", "Bilgilerinize sunulur.", "Gereğini isterim.", "Saygılarımla bildiririm."],
+        "answer": 1,
+        "explanation": "Üst makama ‘arz ederim’, alt ve aynı düzeydeki makamlara ‘rica ederim’ yazılır.",
+        "reference": "Resmî Yazışma Yönetmeliği"
+      }
+    ],
+    // Ünite 4: Diplomatik Protokol ve Viyana Sözleşmeleri
+    protokol_u4: []
+  },
+
+  // ==================== İNGİLİZCE ====================
+  ingilizce: {
+    // Ünite 1: Tenses
+    ingilizce_u1: [
+      {
+        "id": "INGILIZCE_U01_0001",
+        "courseId": "ingilizce",
+        "unitId": "ingilizce_u1",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – She ---- to work by bus every morning.",
+        "options": ["go", "goes", "is going", "went", "has gone"],
+        "answer": 1,
+        "explanation": "‘every morning’ alışkanlık bildirir; üçüncü tekil şahısta Simple Present ‘goes’ kullanılır.",
+        "reference": "Simple Present Tense"
+      }
+    ],
+    // Ünite 2: Modals and Prepositions
+    ingilizce_u2: [],
+    // Ünite 3: Vocabulary
+    ingilizce_u3: [],
+    // Ünite 4: Sentence Completion and Reading
+    ingilizce_u4: []
+  },
+
+  // ==================== SİLAH BİLGİSİ ====================
+  silah: {
+    // Ünite 1: Temel Kavramlar ve Sınıflandırma
+    silah_u1: [],
+    // Ünite 2: Parçalar ve Çalışma Prensipleri
+    silah_u2: [],
+    // Ünite 3: Mühimmat ve Balistik
+    silah_u3: [
+      {
+        "id": "SILAH_U03_0001",
+        "courseId": "silah",
+        "unitId": "silah_u3",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Fişeğin parçalarından hangisi ateşleme iğnesinin darbesiyle barutu tutuşturan kısımdır?",
+        "options": ["Çekirdek", "Kovan", "Kapsül", "Barut", "Tırnak yuvası"],
+        "answer": 2,
+        "explanation": "Kapsül, iğne darbesiyle ateş alarak barutu tutuşturur.",
+        "reference": "Fişek yapısı"
+      }
+    ],
+    // Ünite 4: Güvenlik Kuralları ve Bakım
+    silah_u4: [],
+    // Ünite 5: Silah Mevzuatı
+    silah_u5: []
+  },
+
+  // ==================== POLİS MESLEK MEVZUATI ====================
+  pmm: {
+    // Ünite 1: Emniyet Teşkilatı (3201)
+    pmm_u1: [
+      {
+        "id": "PMM_U01_0001",
+        "courseId": "pmm",
+        "unitId": "pmm_u1",
+        "difficulty": "easy",
+        "question": "ÖRNEK SORU – Emniyet Genel Müdürlüğü hangi bakanlığa bağlıdır?",
+        "options": ["Adalet Bakanlığı", "Millî Savunma Bakanlığı", "İçişleri Bakanlığı", "Dışişleri Bakanlığı", "Cumhurbaşkanlığı"],
+        "answer": 2,
+        "explanation": "Emniyet Genel Müdürlüğü İçişleri Bakanlığına bağlıdır.",
+        "reference": "3201 s. Emniyet Teşkilatı Kanunu"
+      }
+    ],
+    // Ünite 2: Polis Vazife ve Selahiyet Kanunu (2559)
+    pmm_u2: [],
+    // Ünite 3: Zor ve Silah Kullanma
+    pmm_u3: [],
+    // Ünite 4: Disiplin Hükümleri (7068)
+    pmm_u4: [],
+    // Ünite 5: Personel ve İlgili Mevzuat
+    pmm_u5: []
   }
 
-  // Dosya metnini ayrıştırır, doğrular ve ID atar. Kaydetmez.
-  function prepareImport(text, fileName, mode) {
-    let rows = [];
-    const name = (fileName || '').toLowerCase();
-    try {
-      if (name.endsWith('.json') || /^\s*[\[{]/.test(text)) rows = flattenJSON(JSON.parse(text));
-      else if (name.endsWith('.js')) {
-        const m = text.match(/=\s*([\[{][\s\S]*[\]}])\s*;?\s*$/);
-        if (!m) throw new Error('JS dosyasında veri bulunamadı');
-        const cid = (text.match(/QUESTION_BANK(?:\.|\[["'])(\w+)/) || [])[1];
-        const data = JSON.parse(m[1]);
-        rows = flattenJSON(cid ? { [cid]: data } : data);
-      } else rows = parseCSV(text);
-    } catch (e) {
-      return { ok: [], errors: [{ line: '-', msg: 'Dosya okunamadı: ' + e.message }] };
-    }
-    const existing = mode === 'replace' ? all.filter(q => q.src === 'static') : all;
-    const used = new Set(existing.map(q => q.id));
-    const textIndex = new Map(existing.map(q => [q.unitId + '|' + fold(q.question), q.id]));
-    const ok = [], errors = [], seen = new Set();
-    rows.forEach((raw, i) => {
-      const line = raw.__line ?? i + 1;
-      const r = normalize(raw, raw.__ctx || {});
-      if (r.error) { errors.push({ line, msg: r.error }); return; }
-      const q = r.q;
-      const key = q.unitId + '|' + fold(q.question);
-      if (seen.has(key)) { errors.push({ line, msg: 'Dosyada aynı soru iki kez var' }); return; }
-      seen.add(key);
-      if (!q.id) q.id = textIndex.get(key) || nextId(q.unitId, used);
-      else used.add(q.id);
-      ok.push(q);
-    });
-    return { ok, errors, total: rows.length };
-  }
-
-  function saveImport(questions, mode) {
-    let cur = mode === 'replace' ? [] : loadImported();
-    const ids = new Set(questions.map(q => q.id));
-    cur = cur.filter(q => !ids.has(q.id)).concat(questions.map(({ src, ...q }) => q));
-    localStorage.setItem(APP_CONFIG.importKey, JSON.stringify(cur));
-    build();
-    return cur.length;
-  }
-
-  function clearImported() { localStorage.removeItem(APP_CONFIG.importKey); build(); }
-
-  // GitHub'a konulacak data/<ders>.js dosya içeriği
-  function exportCourseFile(courseId) {
-    const c = courseMap[courseId], out = {};
-    c.units.forEach(u => {
-      out[u.id] = byUnit[u.id].map(({ src, ...q }) => q);
-    });
-    return `// ${c.name} – soru veri dosyası (${byCourse[courseId].length} soru)\n` +
-      `// Oluşturma: ${new Date().toLocaleString('tr-TR')}\n` +
-      `QUESTION_BANK.${courseId} = ${JSON.stringify(out, null, 1)};\n`;
-  }
-
-  return {
-    LETTERS, build, prepareImport, saveImport, clearImported, exportCourseFile, loadImported,
-    get all() { return all; }, get warnings() { return warnings; },
-    get: id => byId.get(id), has: id => byId.has(id),
-    unitQs: id => byUnit[id] || [], courseQs: id => byCourse[id] || [],
-    course: id => courseMap[id], unit: id => unitMap[id]
-  };
-})();
+};
