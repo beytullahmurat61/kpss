@@ -1,52 +1,66 @@
-# Misyon Koruma – Soru Bankası
+# Misyon Koruma – Soru Bankası (v4)
 
-Tarayıcıda çalışan soru çözme uygulaması. Sunucu gerekmez, GitHub Pages'te çalışır.
+Telefon öncelikli, sunucusuz soru çözme uygulaması. GitHub Pages'te çalışır.
 
 ## Dosyalar (hepsi aynı klasörde, alt klasör yok)
 
 | Dosya | Görevi |
 |---|---|
-| index.html | Uygulamanın açılış sayfası |
-| style.css | Görünüm |
-| config.js | Dersler ve ünite başlıkları |
-| questions.js | **SORULAR** – soru eklediğin tek dosya |
-| app.js | Uygulama motoru (dokunmana gerek yok) |
+| index.html | Açılış sayfası + sürüm numarası (`var V = '4.0.0'`) |
+| style.css / app.js | Görünüm ve uygulama motoru (dokunmaya gerek yok) |
+| config.js | Ders listesi |
+| sorular-anayasa.js … sorular-pmm.js | **Her dersin kendi soru dosyası** (11 dosya) |
+
+Bir derse tıklandığında o dersin dosyası yüklenir. Bir dosyada hata olursa yalnızca o ders etkilenir;
+uygulama hatanın satırını gösterir (Ayarlar ⚙︎ → Soru dosyaları).
+
+## İçerik
+
+| Ders | İçerik |
+|---|---|
+| Anayasa Hukuku | 297 soru (10 ünite), kitabın 100 soruluk Deneme Sınavı + Test 1–5, 487 soru-cevap kartı |
+| Ceza Hukuku | 48 soru (5 ünite) |
+| İdare Hukuku | 44 soru (5 ünite) |
+| CMK | 47 soru (5 ünite) |
+| Diğer 7 ders | Ünite yapısı hazır, sorular bekleniyor |
+
+Güncellik kontrolü yapıldı: eski düzenlemeye dayanan sorular güncellendi veya çıkarıldı
+(ör. KYOK itirazı 7499 s. Kanunla "iki hafta"; 2017 sonrası meclis soruşturması 301 imza).
+
+## Uygulama bölümleri
+
+- **Alt menü:** Ana Sayfa · Dersler · Karma Test · Yanlışlar · İstatistik
+- **Ders sayfası:** Üniteler | Denemeler | Kartlar sekmeleri
+- **Denemeler:** kitaptaki deneme ve testler (süreli sınav veya alıştırma) + istenen sayıda yeni deneme oluşturma
+- **Karma Test:** seçilen tüm derslerin havuzundan, derslere dengeli dağıtılmış soru; alıştırma veya süreli sınav
+- Yanlışlarım (öncelikli tekrar), Favoriler / Daha sonra, Zayıf üniteler, Çözüm geçmişi, Günlük hedef ve seri
+- **Ayarlar ⚙︎:** yazı boyutu, açık/koyu tema, otomatik ilerleme, dosya durumu, yedek al/yükle
 
 ## GitHub'a yükleme
 
-1. github.com → sağ üst **+** → **New repository** → ad ver (ör. `misyon-koruma`) → **Public** → **Create repository**.
-2. Açılan sayfada **uploading an existing file** bağlantısına tıkla.
-3. ZIP'i bilgisayarında aç; içindeki **dosyaları** (klasörü değil) sürükle bırak → **Commit changes**.
-   Depo ana sayfasında `index.html` doğrudan görünmeli; bir klasörün içinde olmamalı.
-4. **Settings → Pages** → Source: *Deploy from a branch* → Branch: **main** ve **/(root)** → **Save**.
-5. 1–3 dakika bekle. Adres: `https://KULLANICIADIN.github.io/misyon-koruma/`
+1. Depo → **Add file → Upload files** → ZIP'teki **tüm dosyaları** sürükle → Commit.
+2. **Settings → Pages → Branch: main, /(root) → Save**.
+3. Adres: `https://KULLANICIADIN.github.io/DEPO-ADI/`
+4. Telefonda tarayıcı menüsünden **"Ana ekrana ekle"** ile uygulama gibi kullanabilirsin.
 
-> Not: ZIP'ten çıkan `index.html`'i telefonda dosya olarak açmak çalışmaz (tarayıcı diğer dosyaları yüklemez).
-> Uygulamayı her zaman GitHub Pages adresinden aç.
+**Bir soru dosyasını güncelledikten sonra** `index.html` içindeki `var V = '4.0.0'` değerini artır
+(ör. `4.0.1`). Böylece telefonlar eski dosyayı önbellekten kullanmaz.
 
-## Soru ekleme
+## Soru ekleme (ders dosyasının içinde)
 
-### Yol 1 – Excel ile (önerilen)
-1. Uygulamada **📥 Soru Yükle → CSV şablonu indir**.
-2. Excel'de doldur, **CSV (noktalı virgülle ayrılmış)** olarak kaydet.
-3. **Dosya seç** → kontrol sonucunu gör → **Kaydet**. Sorular hemen o cihazda çalışır.
-4. Herkeste/her cihazda görünmesi için **⬇️ questions.js dosyasını indir** → GitHub'da
-   `questions.js` dosyasına tıkla → çöp kutusu ile sil ya da **Add file → Upload files** ile yenisini yükle (aynı adla üzerine yazar).
+```js
+{
+  "id": "CEZA_U02_0011",          // benzersiz; sonradan değiştirme
+  "unite": 2,                      // uniteler listesindeki sıra
+  "zorluk": "orta",                // kolay | orta | zor
+  "soru": "Soru metni",
+  "secenekler": ["A", "B", "C", "D", "E"],
+  "cevap": "C",
+  "aciklama": "Kısa açıklama (isteğe bağlı)",
+  "kaynak": "TCK m.21 (isteğe bağlı)",
+  "deneme": "Deneme Sınavı", "sira": 12   // yalnızca kitap deneme/testindeki sorular için
+}
+```
+Kart: `{"id": "ANAYASA_K0001", "soru": "...", "cevap": "...", "aciklama": "..."}`
 
-CSV sütunları: `id ; ders ; unite ; zorluk ; soru ; A ; B ; C ; D ; E ; cevap ; aciklama ; kaynak`
-- ders: `anayasa` veya `Anayasa Hukuku` · unite: `1` veya `Ünite 1` · zorluk: `kolay/orta/zor` · cevap: `A`–`E`
-- id boş bırakılabilir, otomatik verilir. Ders/ünite listesi: Soru Yükle → *Ders/ünite listesi*.
-
-### Yol 2 – GitHub'da doğrudan düzenleme
-`questions.js` → kalem simgesi. İlgili ünitenin `[ ]` içine örnekteki gibi soru ekle, sorular arasına **virgül** koy.
-`answer`: 0=A, 1=B, 2=C, 3=D, 4=E. Yanlış yazarsan uygulama açılışta **hatalı satırı** gösterir.
-
-Her derste **"ÖRNEK SORU"** ile başlayan 1 soru var; kendi sorularını ekleyince silebilirsin.
-
-## Ders kodları
-anayasa · ceza · idare · cmk · ataturk · insan · genel · protokol · ingilizce · silah · pmm
-Ünite kodu: `<ders>_u<no>` → `anayasa_u1`, `cmk_u3` …
-
-## Veriler
-İlerleme (doğru/yanlış, favoriler, geçmiş) tarayıcıda saklanır. Cihaz değiştirirken
-**İstatistikler → Yedek indir / Yedek yükle** kullan.
+Yeni kitap PDF'lerini gönderdiğinde aynı düzende ilgili `sorular-<ders>.js` dosyası hazırlanır.

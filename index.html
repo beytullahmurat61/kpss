@@ -4,35 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1b2d">
-<meta name="description" content="Misyon Koruma sınavı soru bankası ve test platformu">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Misyon Koruma">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Misyon Koruma sınavı soru bankası">
 <title>Misyon Koruma · Soru Bankası</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230f1b2d'/><text x='50%' y='58%' text-anchor='middle' dominant-baseline='middle' font-size='70'>🛡️</text></svg>">
+<script>
+  // Dosya yükleme ve yazım hatalarını yakala (uygulamada gösterilir)
+  window.__loadErrors = [];
+  window.addEventListener('error', function (e) {
+    if (e.target && e.target.tagName === 'SCRIPT') window.__loadErrors.push({ file: (e.target.getAttribute('src') || '').split('?')[0], msg: 'Dosya bulunamadı' });
+    else if (e.filename) window.__loadErrors.push({ file: e.filename.split('/').pop().split('?')[0], msg: 'Satır ' + e.lineno + ': ' + e.message });
+  }, true);
+  var V = '4.0.0';
+  document.write('<link rel="stylesheet" href="style.css?v=' + V + '">');
+</script>
 </head>
 <body>
 <header class="topbar">
   <button class="icon-btn" id="btnBack" data-act="back" aria-label="Geri">‹</button>
   <h1 class="topbar-title" id="topTitle">Misyon Koruma</h1>
-  <button class="icon-btn" id="btnHome" data-act="home" aria-label="Ana sayfa">⌂</button>
+  <button class="icon-btn" id="btnMenu" data-act="goSettings" aria-label="Ayarlar">⚙︎</button>
 </header>
-<main id="view" tabindex="-1"></main>
+<main id="view" tabindex="-1"><p class="boot">Yükleniyor…</p></main>
+<nav class="tabbar" id="tabbar" aria-label="Ana menü">
+  <a href="#/home" data-tab="home"><span>🏠</span>Ana Sayfa</a>
+  <a href="#/dersler" data-tab="dersler"><span>📚</span>Dersler</a>
+  <a href="#/karma" data-tab="karma"><span>🎲</span>Karma Test</a>
+  <a href="#/yanlislar" data-tab="yanlislar"><span>❌</span>Yanlışlar</a>
+  <a href="#/istatistik" data-tab="istatistik"><span>📊</span>İstatistik</a>
+</nav>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="modal" class="modal" hidden></div>
-<noscript><p class="noscript">Uygulamanın çalışması için JavaScript gereklidir.</p></noscript>
-
+<noscript><p class="boot">Uygulamanın çalışması için JavaScript gereklidir.</p></noscript>
 <script>
-  // Dosya yükleme / yazım hatalarını yakala ve uygulamada göster
-  window.__loadErrors = [];
-  window.addEventListener('error', function (e) {
-    if (e.target && e.target.tagName === 'SCRIPT') window.__loadErrors.push(e.target.getAttribute('src') + ' bulunamadı (dosya adı ve konumu doğru mu?)');
-    else if (e.filename) window.__loadErrors.push(e.filename.split('/').pop() + ' satır ' + e.lineno + ': ' + e.message);
-  }, true);
+  document.write('<script src="config.js?v=' + V + '"><\/script>');
+  document.write('<script src="app.js?v=' + V + '"><\/script>');
 </script>
-<script src="config.js"></script>
-<script src="questions.js"></script>
-<script src="app.js"></script>
 </body>
 </html>
