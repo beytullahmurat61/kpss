@@ -1,4 +1,4 @@
-# Misyon Koruma – Soru Bankası (v4)
+# Misyon Koruma – Sınav Hazırlık Platformu (v5)
 
 Telefon öncelikli, sunucusuz soru çözme uygulaması. GitHub Pages'te çalışır.
 
@@ -6,7 +6,7 @@ Telefon öncelikli, sunucusuz soru çözme uygulaması. GitHub Pages'te çalış
 
 | Dosya | Görevi |
 |---|---|
-| index.html | Açılış sayfası + sürüm numarası (`var V = '4.0.2'`) |
+| index.html | Açılış sayfası + sürüm numarası (`var V = '5.0.0'`) |
 | style.css / app.js | Görünüm ve uygulama motoru (dokunmaya gerek yok) |
 | config.js | Ders listesi |
 | sorular-anayasa.js … sorular-pmm.js | **Her dersin kendi soru dosyası** (11 dosya) |
@@ -27,6 +27,26 @@ uygulama hatanın satırını gösterir (Ayarlar ⚙︎ → Soru dosyaları).
 Güncellik kontrolü yapıldı: eski düzenlemeye dayanan sorular güncellendi veya çıkarıldı
 (ör. KYOK itirazı 7499 s. Kanunla "iki hafta"; 2017 sonrası meclis soruşturması 301 imza).
 
+## v5 ile gelenler
+
+- **100 soruluk gerçek sınav simülatörü (ana sayfa):** resmi ağırlıklar (PMM %20, Silah %20, İnsan Hakları %10, Anayasa/İdare %10, Atatürk %10, Protokol %10, Genel Kültür %10, İngilizce %10), soruların %80'i hiç çözülmemiş veya Leitner'e göre tekrar bekleyen yanlışlardan, zorluk %20 kolay / %60 orta / %20 zor. 125 dakika, süre bitince sınav kilitlenir, sonuçta 4 yanlış 1 doğruyu götürür neti ve ders bazlı karne. Ağırlıklar `config.js` → `simWeights`.
+- **Ünite sekmesi:** "Kitap Alıştırmaları" ve "Soru Bankası Testleri" (20'şer soruluk testler, anında geri bildirim).
+- **Denemeler sekmesi (yalnızca sınav modu):** ünite ara denemeleri, genel bitirme denemeleri ve zorluk seçmeli (Kolay/Orta/Zor/Karma) dinamik deneme üretici.
+- **Leitner kartları:** Bilemedim (hemen) · Zorlandım (yarın) · Bildim (3 gün) · Çok kolay (10 gün). Akıllı tur, en az bilinen kartı öne alır. Klavye: 1–4.
+- **Hafıza Eşleştirme oyunu:** kanun numarası ↔ kanun adı, rütbe ↔ tanım (Ana Sayfa → Diğer). Liste `app.js` içinde `GAME_PAIRS`.
+- **İstatistik → Başarı trendi:** son 10 deneme/sınavın netlerine doğrusal regresyon.
+- **Kalıcı veri:** `navigator.storage.persist()`, Ayarlar'da durum ve yedek tarihi, JSON yedek indir/yükle.
+- **Tema:** emniyet laciverti/sarı, her dersin kendi vurgu rengi (`config.js` → `color`), Nöbet Modu (saf siyah OLED).
+
+### Soru dosyasındaki yeni isteğe bağlı alanlar
+
+```js
+"isExercise": true,      // Kitap Alıştırması (yazılmazsa Soru Bankası sayılır)
+"isBank": true,          // Soru Bankası
+"guncel": true,          // (veya "isUpdated": true) ⚠️ GÜNCEL MEVZUAT DEĞİŞİKLİĞİ etiketi
+"denemeTur": "genel"     // kitap denemesi için: "unite" | "genel"
+```
+
 ## Uygulama bölümleri
 
 - **Alt menü:** Ana Sayfa · Dersler · Karma Test · Yanlışlar · İstatistik
@@ -43,8 +63,8 @@ Güncellik kontrolü yapıldı: eski düzenlemeye dayanan sorular güncellendi v
 3. Adres: `https://KULLANICIADIN.github.io/DEPO-ADI/`
 4. Telefonda tarayıcı menüsünden **"Ana ekrana ekle"** ile uygulama gibi kullanabilirsin.
 
-**Bir soru dosyasını güncelledikten sonra** `index.html` içindeki `var V = '4.0.0'` değerini artır
-(ör. `4.0.1`). Böylece telefonlar eski dosyayı önbellekten kullanmaz.
+**Bir soru dosyasını güncelledikten sonra** `index.html` içindeki `var V = '5.0.0'` değerini artır
+(ör. `5.0.1`). Böylece telefonlar eski dosyayı önbellekten kullanmaz.
 
 ## Soru ekleme (ders dosyasının içinde)
 

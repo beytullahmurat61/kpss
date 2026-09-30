@@ -25,3 +25,12 @@
 //   "note": "..."                       cevap anahtarı / mevzuat uyarısı (cevaptan sonra gösterilir)
 // Bu dosyayı uygulamadaki "Soru Yükle → questions.js indir" ile de üretebilirsin.
 // ============================================================
+//
+// ---- v5 YENİ ALANLAR (sorular-<ders>.js içindeki soru nesnelerinde, hepsi isteğe bağlı) ----
+//   "isExercise": true     Kitap Alıştırması (Üniteler sekmesi → "Kitap Alıştırmaları")
+//   "isBank": true         Soru Bankası (ikisi de yazılmazsa soru "Soru Bankası" sayılır)
+//   "isUpdated": true      Soruda ⚠️ GÜNCEL MEVZUAT DEĞİŞİKLİĞİ etiketi çıkar
+//   "denemeTur": "unite"   Kitap denemesinin türü: "unite" (ara deneme) | "genel" (bitirme).
+//                          Yazılmazsa ad "Genel / Bitirme / Deneme Sınavı" içeriyorsa genel, değilse ünite sayılır.
+// Not: uygulama soruları sorular-<ders>.js dosyalarından okur (bkz. README.md). Bu dosya yalnızca şablon/açıklamadır.
+// ============================================================
