@@ -6,7 +6,7 @@ Telefon öncelikli, sunucusuz soru çözme uygulaması. GitHub Pages'te çalış
 
 | Dosya | Görevi |
 |---|---|
-| index.html | Açılış sayfası + sürüm numarası (`var V = '4.0.0'`) |
+| index.html | Açılış sayfası + sürüm numarası (`var V = '4.0.2'`) |
 | style.css / app.js | Görünüm ve uygulama motoru (dokunmaya gerek yok) |
 | config.js | Ders listesi |
 | sorular-anayasa.js … sorular-pmm.js | **Her dersin kendi soru dosyası** (11 dosya) |
