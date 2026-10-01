@@ -22,7 +22,7 @@
     if (e.target && e.target.tagName === 'SCRIPT') window.__loadErrors.push({ file: (e.target.getAttribute('src') || '').split('?')[0], msg: 'Dosya bulunamadı' });
     else if (e.filename) window.__loadErrors.push({ file: e.filename.split('/').pop().split('?')[0], msg: 'Satır ' + e.lineno + ': ' + e.message });
   }, true);
-  var V = '5.1.0';
+  var V = '5.2.0';
   document.write('<link rel="stylesheet" href="style.css?v=' + V + '">');
 </script>
 </head>
