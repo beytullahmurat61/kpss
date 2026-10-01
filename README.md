@@ -6,7 +6,7 @@ Telefon öncelikli, sunucusuz soru çözme uygulaması. GitHub Pages'te çalış
 
 | Dosya | Görevi |
 |---|---|
-| index.html | Açılış sayfası + sürüm numarası (`var V = '5.0.0'`) |
+| index.html | Açılış sayfası + sürüm numarası (`var V = '5.1.0'`) |
 | style.css / app.js | Görünüm ve uygulama motoru (dokunmaya gerek yok) |
 | config.js | Ders listesi |
 | sorular-anayasa.js … sorular-pmm.js | **Her dersin kendi soru dosyası** (11 dosya) |
@@ -26,6 +26,15 @@ uygulama hatanın satırını gösterir (Ayarlar ⚙︎ → Soru dosyaları).
 
 Güncellik kontrolü yapıldı: eski düzenlemeye dayanan sorular güncellendi veya çıkarıldı
 (ör. KYOK itirazı 7499 s. Kanunla "iki hafta"; 2017 sonrası meclis soruşturması 301 imza).
+
+## v5.1 – Yeni görünüm
+
+- **Rütbe kartı:** Toplam doğru sayısına göre Aday Memur'dan Emniyet Müdürü'ne yükselen rütbe ve bir sonraki rütbeye kalan doğru sayısı (liste `app.js` → `RANKS`).
+- **İstatistik üçlüsü:** gün serisi, bugünkü soru / hedef (karta dokununca hedef 20 → 50 → 100 değişir), genel başarı.
+- **Eylem kartları:** Hızlı test (20 soru) ve Sınav simülatörü; tekrar bekleyen yanlışlar için ayrı bant.
+- **Renkli ders kutuları:** her dersin `color` değerinden gradyan; çözülme oranı ve başarı rozeti.
+- **Ders sayfası:** ilerleme halkası ve özet (soru, çözülen, başarı, deneme/test); ünitelerde ilerleme halkası.
+- **Alt menü:** ortada öne çıkan Karma Test düğmesi. Yazı tipleri: Sora ve Plus Jakarta Sans (internet yoksa sistem yazı tipi kullanılır).
 
 ## v5 ile gelenler
 
@@ -63,7 +72,7 @@ Güncellik kontrolü yapıldı: eski düzenlemeye dayanan sorular güncellendi v
 3. Adres: `https://KULLANICIADIN.github.io/DEPO-ADI/`
 4. Telefonda tarayıcı menüsünden **"Ana ekrana ekle"** ile uygulama gibi kullanabilirsin.
 
-**Bir soru dosyasını güncelledikten sonra** `index.html` içindeki `var V = '5.0.0'` değerini artır
+**Bir soru dosyasını güncelledikten sonra** `index.html` içindeki `var V = '5.1.0'` değerini artır
 (ör. `5.0.1`). Böylece telefonlar eski dosyayı önbellekten kullanmaz.
 
 ## Soru ekleme (ders dosyasının içinde)

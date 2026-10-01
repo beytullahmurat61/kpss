@@ -394,3 +394,146 @@ body { background: radial-gradient(120% 55% at 50% -8%, #1C2541 0%, var(--bg) 62
   background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: var(--r); }
 .mg-end-ico { font-size: 48px; } .mg-end h3 { font: 700 28px/1 var(--display); color: var(--accent); }
 .mg-end .btn { min-width: 200px; }
+
+/* ============================================================
+   v5.1 – Yeni görünüm (rütbe kartı, istatistik üçlüsü, renkli ders kutuları)
+   ============================================================ */
+:root {
+  --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Sora', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --r: 18px; --r-lg: 24px; --tabbar-h: 66px;
+  --ink: #0A1128;
+}
+.topbar-title { font: 700 17px/1 var(--display); letter-spacing: 0; }
+.sec { font: 700 17px/1.2 var(--display); letter-spacing: 0; color: var(--text); margin: 24px 0 12px; }
+.sec-row { display: flex; align-items: baseline; justify-content: space-between; }
+.sec-row a { color: var(--brass); font-size: 14px; font-weight: 600; padding: 6px 0 6px 12px; }
+
+/* rütbe kartı */
+.hero { position: relative; display: flex; align-items: center; gap: 14px; padding: 18px 18px 16px; margin: 2px 0 12px;
+  border-radius: var(--r-lg); background: linear-gradient(135deg, #1B2B5C 0%, #142046 60%, #0E1838 100%); border: 1px solid #2A3B70; overflow: hidden; }
+.hero::after { content: ''; position: absolute; right: -40px; top: -60px; width: 190px; height: 190px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brass) 28%, transparent), transparent 70%); pointer-events: none; }
+.hero-txt { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.hero-txt p { color: var(--muted); font-size: 14px; }
+.hero-txt h2 { font: 800 25px/1.15 var(--display); margin: 2px 0 4px; color: #fff; }
+.hero-txt small { color: var(--muted); font-size: 13px; }
+.hero-txt small b { color: var(--brass); }
+.rank-bar .bar { height: 8px; border-radius: 4px; margin-top: 10px; background: rgba(255,255,255,.1); }
+.rank-bar .bar i { background: linear-gradient(90deg, #E9B949, var(--brass)); }
+.insignia { position: relative; z-index: 1; flex: none; display: grid; place-items: center; width: 64px; height: 74px;
+  background: linear-gradient(160deg, #F7DC7A, #C9962F); color: var(--ink); font-size: 14px; letter-spacing: -1px; line-height: 1.05; text-align: center;
+  clip-path: polygon(50% 0, 100% 15%, 100% 60%, 50% 100%, 0 60%, 0 15%); padding: 0 10px 8px; word-break: break-all; }
+.insignia.big { font-size: 16px; }
+
+/* istatistik üçlüsü */
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.st { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 12px; border-radius: var(--r); background: var(--surface);
+  border: 1px solid transparent; text-align: left; min-width: 0; }
+button.st:active { border-color: var(--line); }
+.st-ico { font-size: 18px; line-height: 1; margin-bottom: 4px; }
+.st b { font: 800 22px/1.1 var(--display); }
+.st b em { font: 600 13px var(--font); color: var(--muted); font-style: normal; margin-left: 2px; }
+.st small { color: var(--muted); font-size: 11.5px; line-height: 1.3; }
+.st .bar { width: 100%; margin-top: 8px; height: 5px; }
+
+/* devam bandı */
+.resume { gap: 12px; padding: 14px 16px; border-radius: var(--r); background: linear-gradient(90deg, var(--brass), #E9B949); color: var(--ink); }
+.resume .r-ico { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(10,17,40,.14); font-size: 16px; }
+.resume div { flex: 1; min-width: 0; }
+.resume small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resume .chev { color: inherit; opacity: .7; }
+.resume.alt { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+.resume.alt .r-ico { background: var(--surface-2); }
+
+/* iki büyük eylem kartı */
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.act { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 124px; padding: 14px;
+  border-radius: var(--r-lg); text-align: left; overflow: hidden; color: #fff; }
+.act:disabled { opacity: .5; }
+.act:not(:disabled):active { transform: scale(.98); }
+.a-mix { background: linear-gradient(150deg, #2E5BE8, #1C3BB0); }
+.a-sim { background: linear-gradient(150deg, #E2563D, #A82E3C); }
+.act-ico { font-size: 26px; line-height: 1; margin-bottom: auto; width: 46px; height: 46px; display: grid; place-items: center;
+  border-radius: 14px; background: rgba(255,255,255,.16); }
+.act strong { font: 700 17px/1.2 var(--display); margin-top: 12px; }
+.act small { font-size: 12.5px; opacity: .85; }
+.sim-last { display: block; text-align: center; font-size: 14px; color: var(--brass); padding: 10px 0 0; }
+.wrong-cta { width: 100%; display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 14px 16px; border-radius: var(--r);
+  background: var(--bad-bg); border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent); text-align: left; }
+.wrong-cta > span:first-child { font-size: 22px; }
+.wrong-cta div { flex: 1; } .wrong-cta strong { display: block; } .wrong-cta small { color: var(--muted); font-size: 13px; }
+
+/* renkli ders kutuları – her dersin kendi rengi (--c) */
+.course-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+.ctile { position: relative; align-items: flex-start; text-align: left; gap: 2px; min-height: 148px; padding: 14px 14px 12px; border-radius: var(--r-lg);
+  overflow: hidden; color: var(--ink);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--c) 92%, #fff) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 62%, #0A1128) 100%); }
+.ctile::before { content: ''; position: absolute; right: -26px; top: -26px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.22); }
+.ctile:active { transform: scale(.98); background: var(--c); }
+.ct-ico { position: relative; font-size: 34px; line-height: 1; margin-bottom: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
+.ctile b { position: relative; font: 700 16px/1.2 var(--display); margin-top: 14px; }
+.ctile small { position: relative; color: color-mix(in srgb, var(--ink) 75%, transparent); font-size: 12px; font-weight: 600; }
+.ct-prog { position: relative; display: block; width: 100%; height: 6px; border-radius: 3px; background: rgba(10,17,40,.18); margin-top: 8px; overflow: hidden; }
+.ct-prog i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
+.ct-pct { position: relative; font-size: 11px; font-weight: 700; margin-top: 4px; color: color-mix(in srgb, var(--ink) 80%, transparent); }
+.ctile.dim { opacity: .6; }
+.ctile.err small { color: #7A0A16; }
+.course-grid.big .ctile { min-height: 160px; }
+
+/* ilerleme halkası */
+.ring { position: relative; flex: none; display: inline-grid; place-items: center; }
+.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ring-bg { stroke: var(--surface-2); }
+.ring-fg { stroke: var(--accent); transition: stroke-dashoffset .6s ease; }
+.ring b { position: relative; font: 800 15px/1 var(--display); }
+.card.unit { gap: 14px; }
+.card.unit .ring b { font-size: 17px; color: var(--accent); }
+
+/* ders sayfası başlık kartı */
+.c-hero { position: relative; padding: 16px; margin-bottom: 14px; border-radius: var(--r-lg); overflow: hidden; color: var(--ink);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--c) 90%, #fff), var(--c) 50%, color-mix(in srgb, var(--c) 60%, #0A1128)); }
+.c-hero::before { content: ''; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.2); }
+.c-hero-top { position: relative; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.c-hero-top .ct-ico { margin: 0; font-size: 30px; }
+.c-hero h2 { font: 800 20px/1.2 var(--display); }
+.c-hero-body { position: relative; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--r); background: rgba(10,17,40,.82); color: #fff; }
+.c-hero-body .ring-bg { stroke: rgba(255,255,255,.12); }
+.c-hero-body .ring-fg { stroke: var(--c); }
+.c-hero-body .ring b { font-size: 19px; }
+.c-hero dl { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.c-hero dt { font-size: 12px; color: #A3B3D1; }
+.c-hero dd { font: 700 18px/1.2 var(--display); }
+
+/* alt menü – ortada öne çıkan hızlı test düğmesi */
+.tabbar { border-top: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 97%, transparent); }
+.tabbar a { font-size: 10.5px; gap: 3px; }
+.fab-tab { position: relative; }
+.fab-tab .fab { position: absolute; top: -22px; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(160deg, #F7DC7A, var(--brass)); color: var(--ink); font-size: 24px; filter: none !important; opacity: 1 !important;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--brass) 45%, transparent), 0 0 0 5px var(--bg); }
+.fab-tab { justify-content: flex-end !important; padding-bottom: 9px; }
+.fab-tab.on { color: var(--brass); }
+
+/* çalışma araçları */
+.tile { border-radius: var(--r); }
+
+/* açık tema uyarlamaları */
+:root[data-theme="light"] .hero { background: linear-gradient(135deg, #1B2B5C, #2A3F80); }
+:root[data-theme="light"] .st, :root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(22,34,58,.06); }
+:root[data-theme="light"] .fab-tab .fab { box-shadow: 0 6px 16px rgba(184,134,43,.35), 0 0 0 5px var(--bg); }
+
+@media (min-width: 700px) {
+  .course-grid, .course-grid.big { grid-template-columns: repeat(3, 1fr); }
+  .stats3 .st small { font-size: 12.5px; }
+}
+@media (max-width: 360px) {
+  .st b { font-size: 19px; } .act strong { font-size: 15px; } .ctile b { font-size: 15px; }
+}
+.ctile small, .ct-pct { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+body[data-view="ders"] #view > .btn.block:first-of-type, .c-hero ~ .seg ~ .btn.block { margin-bottom: 10px; }
+.card.unit + .card.unit { margin-top: 0; }
+.ct-score { position: absolute; top: 12px; right: 12px; padding: 4px 9px; border-radius: 999px; background: rgba(10,17,40,.82); color: #fff;
+  font: 700 12px/1.2 var(--display); }
+.hero-txt p, .hero-txt small { color: #A9B7D6; }
+.st small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
